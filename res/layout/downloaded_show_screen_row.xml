@@ -8,6 +8,14 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textSize="20dip"
-        android:gravity="center_vertical" />
+        android:textSize="18dip"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:gravity="center_vertical"
+		android:ellipsize="marquee"
+		android:marqueeRepeatLimit="marquee_forever"
+		android:lines="1"
+		android:focusableInTouchMode="true"
+		android:scrollHorizontally="true"
+        />
 </LinearLayout>

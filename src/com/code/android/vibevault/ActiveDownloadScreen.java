@@ -1,6 +1,6 @@
 /*
  * ActiveDownloadScreen.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -58,6 +58,8 @@ import com.code.android.vibevault.R;
 
 public class ActiveDownloadScreen extends Activity {
 
+	private static final String LOG_TAG = ActiveDownloadScreen.class.getName();
+	
 	private DownloadService dService = null;
 	private ListView downloadList;
 	

@@ -1,6 +1,6 @@
 /*
  * DataStore.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -41,9 +41,11 @@ import android.util.Log;
 
 public class DataStore extends SQLiteOpenHelper {
 
+	private static final String LOG_TAG = DataStore.class.getName();
+	
 	private static final String DB_NAME = "archivedb";
 	private static String DB_PATH;
-	private static final int DB_VERSION = 7;
+	private static final int DB_VERSION = 9;
 
 	public static final String PREF_TBL = "prefsTbl";
 	public static final String PREF_KEY = "_id";
@@ -103,20 +105,24 @@ public class DataStore extends SQLiteOpenHelper {
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
 	}
+	
+	private String sanitize(String s){
+		return s.replaceAll("[^-a-zA-Z0-9\\s-_@><&+\\\\/\\*]", "");
+	}
 
 	public void initialize() {
 		try {
 			createDB();
 		} catch (IOException e) {
-			Log.e(VibeVault.DATA_STORE_TAG, "Unable to create database");
-			Log.e(VibeVault.DATA_STORE_TAG, e.getStackTrace().toString());
+			Log.e(LOG_TAG, "Unable to create database");
+			Log.e(LOG_TAG, e.getStackTrace().toString());
 		}
 		if(!needsUpgrade){
 			try {
 				openDataBase();
 			} catch (SQLException e) {
-				Log.e(VibeVault.DATA_STORE_TAG, "Unable to open database");
-				Log.e(VibeVault.DATA_STORE_TAG, e.getStackTrace().toString());
+				Log.e(LOG_TAG, "Unable to open database");
+				Log.e(LOG_TAG, e.getStackTrace().toString());
 			}
 		}
 	}
@@ -127,7 +133,7 @@ public class DataStore extends SQLiteOpenHelper {
 		if (dbExists) {
 			
 		} else {
-			Log.d(VibeVault.DATA_STORE_TAG,
+			Log.d(LOG_TAG,
 					"createDB() - Database does not exist");
 			this.getReadableDatabase();
 			try {
@@ -149,7 +155,7 @@ public class DataStore extends SQLiteOpenHelper {
 
 		if (checkDB != null) {
 			if (checkDB.getVersion() != DB_VERSION) {
-				Log.d(VibeVault.DATA_STORE_TAG,
+				Log.d(LOG_TAG,
 						"checkDB() - Wrong DB version: old "
 								+ checkDB.getVersion() + " new " + DB_VERSION);
 				// checkDB.execSQL("DROP TABLE IF EXISTS " + PREF_TABLE);
@@ -167,7 +173,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public void copyDB() throws IOException {
-		Log.d(VibeVault.DATA_STORE_TAG, "copyDB() - Copying database to "
+		Log.d(LOG_TAG, "copyDB() - Copying database to "
 				+ DB_PATH);
 		InputStream is = context.getAssets().open(DB_NAME);
 		OutputStream os = new FileOutputStream(DB_PATH);
@@ -191,9 +197,8 @@ public class DataStore extends SQLiteOpenHelper {
 		needsUpgrade = false;
 	}
 
-	public Cursor getPrefCursor(String pref_name) {
-		Cursor cur = db.query(true, PREF_TBL, new String[] { PREF_KEY,
-				PREF_NAME, PREF_VALUE }, null, null, null, null, null, null);
+	public Cursor getPrefCursor() {
+		Cursor cur = db.rawQuery("SELECT * FROM prefsTbl ", null);
 		if (cur != null) {
 			cur.moveToFirst();
 		}
@@ -201,8 +206,8 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public String getPref(String pref_name) {
-		Cursor cur = db.query(PREF_TBL, new String[] { PREF_VALUE },
-				PREF_NAME + "='" + pref_name + "'", null, null, null, null, null);
+		Cursor cur = db.rawQuery("SELECT prefValue FROM prefsTbl " 
+				+ "WHERE prefName = '" + sanitize(pref_name) + "'", null);
 		if (cur != null) {
 			cur.moveToFirst();
 			String retString = cur.getString(cur.getColumnIndex(PREF_VALUE));
@@ -214,12 +219,12 @@ public class DataStore extends SQLiteOpenHelper {
 
 	public void updatePref(String pref_name, String pref_value) {
 		db.execSQL("UPDATE prefsTbl SET prefValue = '"
-				+ pref_value + "' WHERE prefName = '"
-				+ pref_name + "'");
+				+ sanitize(pref_value) + "' WHERE prefName = '"
+				+ sanitize(pref_name) + "'");
 	}
 
 	public void insertShow(ArchiveShowObj show) {
-		Log.d(VibeVault.DATA_STORE_TAG, "insertShow(" + show.getIdentifier()
+		Log.d(LOG_TAG, "insertShow(" + show.getIdentifier()
 				+ "," + show.getArtistAndTitle() + ")");
 		db.execSQL("INSERT INTO showTbl(showIdent,showTitle,showArtist,showSource,hasVBR,hasLBR) "
 				+ "SELECT '"
@@ -244,10 +249,10 @@ public class DataStore extends SQLiteOpenHelper {
 		 * value.put(SHOW_ARTIST, show.getShowArtist()); value.put(SHOW_SOURCE,
 		 * show.getShowSource()); value.put(SHOW_HASVBR, show.hasVBR());
 		 * value.put(SHOW_HASLBR, show.hasLBR()); long row = db.insert(SHOW_TBL,
-		 * null, value); Log.d(VibeVault.DATA_STORE_TAG,
+		 * null, value); Log.d(LOG_TAG,
 		 * "insertShow() - Inserting show [" + row + "," + show.getIdentifier()
 		 * + "," + show.getArtistAndTitle() + "," + show.hasVBR() + "," +
-		 * show.hasLBR() + "]"); } else{ Log.d(VibeVault.DATA_STORE_TAG,
+		 * show.hasLBR() + "]"); } else{ Log.d(LOG_TAG,
 		 * "insertShow() - Show exists"); }
 		 */
 	}
@@ -323,7 +328,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public void insertSong(ArchiveSongObj song) {
-		Log.d(VibeVault.DATA_STORE_TAG, "insertSong(" + song.getFileName()
+		Log.d(LOG_TAG, "insertSong(" + song.getFileName()
 				+ "," + song.toString() + ")");
 		db.execSQL("INSERT INTO songTbl(fileName,songTitle,show_id,isDownloaded) "
 				+ "SELECT '"
@@ -343,10 +348,10 @@ public class DataStore extends SQLiteOpenHelper {
 		 * song.getFileName()); value.put(SONG_TITLE, song.toString());
 		 * value.put(SONG_SHOW_KEY, song.getShowIdentifier());
 		 * value.put(SONG_DOWNLOADED, song.getShowTitle()); long row =
-		 * db.insert(SONG_TBL, null, value); Log.d(VibeVault.DATA_STORE_TAG,
+		 * db.insert(SONG_TBL, null, value); Log.d(LOG_TAG,
 		 * "insertSong() - Inserting song [" + row + "," + song.getFileName() +
 		 * "," + song.toString() + "," + song.getShowIdentifier() + "," +
-		 * song.getShowTitle() + "]"); } else{ Log.d(VibeVault.DATA_STORE_TAG,
+		 * song.getShowTitle() + "]"); } else{ Log.d(LOG_TAG,
 		 * "insertSong() - Song exists"); }
 		 */
 	}
@@ -357,29 +362,45 @@ public class DataStore extends SQLiteOpenHelper {
 				+ "WHERE fileName = '"
 				+ song.getFileName() + "'");
 	}
+	
+	public void setSongDeleted(ArchiveSongObj song) {
+		db.execSQL("UPDATE songTbl "
+				+ "SET isDownloaded = 'false' "
+				+ "WHERE fileName = '"
+				+ song.getFileName() + "'");
+	}
+	
+	public void setShowDeleted(ArchiveShowObj show){
+		db.execSQL("UPDATE songTbl "
+				+ "SET isDownloaded = 'false' "
+				+ "WHERE EXISTS (SELECT 1 from showTbl show where "
+				+ "show.showIdent = '" + show.getIdentifier() + "' and "
+				+ "show._id = show_id");
+	}
 
 	public boolean songIsDownloaded(String song_filename) {
 		
 		/*Cursor cur = db.query(SONG_TBL, new String[] { SONG_FILENAME },
 				SONG_FILENAME + "='" + song_filename + "'", null, null, null,
 				null);*/
-		Cursor cur = db.rawQuery("Select 1 FROM songTbl song WHERE song.fileName = '"
-				+ song_filename + "' AND song.isDownloaded like 'true'", null);
+		Cursor cur = db.rawQuery("SELECT 1 FROM songTbl song WHERE song.fileName = '"
+				+ song_filename + "' AND song.isDownloaded LIKE 'true'", null);
 		int results = cur.getCount();
 		cur.close();
 		return results > 0;
 	}
 
 	public Cursor getSongsFromShow(String showIdent) {
-		Log.d(VibeVault.DATA_STORE_TAG, "Returning all songs with identifier "
+		Log.d(LOG_TAG, "Returning all songs with identifier "
 				+ showIdent);
 		return db
-				.rawQuery(
-						"SELECT song.*,show.showIdent,show.showArtist + ' Live at ' + show.showTitle AS 'showTitle' FROM songTbl song "
-								+ "INNER JOIN showTbl show "
-								+ "	ON song.show_id = show._id "
-								+ "	AND show.showIdent = '" + showIdent + "'",
-						null);
+		.rawQuery(
+				"SELECT song.*,show.showIdent,show.showArtist + ' Live at ' + show.showTitle AS 'showTitle' FROM songTbl song "
+						+ "INNER JOIN showTbl show "
+						+ "	ON song.show_id = show._id "
+						+ "	AND show.showIdent = '" + showIdent + "' "
+						+ "AND song.isDownloaded = 'true'",
+				null);
 		/*
 		 * return db.query(SONG_TBL, new String[] { SONG_KEY, SONG_FILENAME,
 		 * SONG_TITLE, SONG_SHOW_KEY, SONG_DOWNLOADED }, SONG_SHOW_KEY + "='" +
@@ -388,14 +409,15 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public Cursor getSongsFromShowKey(long id) {
-		Log.d(VibeVault.DATA_STORE_TAG, "Returning all songs with key "
+		Log.d(LOG_TAG, "Returning all songs with key "
 				+ id);
 		return db
 				.rawQuery(
 						"SELECT song.*,show.showIdent,show.showArtist + ' Live at ' + show.showTitle AS 'showTitle' FROM songTbl song "
 								+ "INNER JOIN showTbl show "
 								+ "	ON song.show_id = show._id "
-								+ "	AND show._id = '" + id + "'",
+								+ "	AND show._id = '" + id + "' "
+								+ "ORDER BY song.fileName",
 						null);
 		/*
 		 * return db.query(SONG_TBL, new String[] { SONG_KEY, SONG_FILENAME,
@@ -429,7 +451,7 @@ public class DataStore extends SQLiteOpenHelper {
 					cur.getString(cur.getColumnIndex(SHOW_IDENT)),
 					Boolean.valueOf(cur.getString(cur
 							.getColumnIndex(SONG_DOWNLOADED))));
-			Log.d(VibeVault.DATA_STORE_TAG,
+			Log.d(LOG_TAG,
 					"Returning Song: " + song.toString() + "-"
 							+ song.getFileName() + "-" + song.getShowTitle());
 		}
@@ -437,80 +459,209 @@ public class DataStore extends SQLiteOpenHelper {
 		return song;
 	}
 	
-	public boolean createPlaylist(String name){
-		
-		Cursor cur = db.rawQuery("Select 1 FROM playlistTbl pl WHERE pl.playlistName like '" + name + "'", null);
-		int results = cur.getCount();
-		cur.close();
-		if(results > 0){
-			return false;
-		}
-		db.execSQL("Insert into playlistTbl(playlistName) "
-				+ "Select '" + name + "'");
-		return true;
-	}
+	//Playlist functions
 	
-	public boolean createPlaylist(ArchivePlaylistObj playlist){
+	//Returns the playlist_id (key) of the newly created playlist to update playlist object
+	//Will return -1 if playlist with same name exists or error inserting
+	public int storePlaylist(ArchivePlaylistObj playlist){
 		
-		Cursor cur = db.rawQuery("Select 1 FROM playlistTbl pl WHERE pl.playlistName like '" + playlist.getTitle() + "'", null);
+		Cursor cur = db.rawQuery("SELECT _id FROM playlistTbl pl WHERE pl.playlistName like '" + sanitize(playlist.getTitle()) + "'", null);
 		int results = cur.getCount();
 		cur.close();
 		if(results > 0){
-			return false;
+			//Playlist exists
+			return -1;
 		}
-		db.execSQL("Insert into playlistTbl(playlistName) "
-				+ "Select '" + playlist.getTitle() + "'");
+		db.execSQL("INSERT INTO playlistTbl(playlistName) "
+				+ "SELECT '" + sanitize(playlist.getTitle()) + "'");
+		cur = db.rawQuery("SELECT _id FROM playlistTbl pl WHERE pl.playlistName like '" + sanitize(playlist.getTitle()) + "'", null);
+		results = cur.getCount();
+		if(results == 0){
+			cur.close();
+			return -1;
+		}
+		cur.moveToFirst();
+		int key = cur.getInt(cur.getColumnIndex("_id"));
+		cur.close();
 		for(int i = 0; i < playlist.size(); i++){
-			insertSongIntoPlaylist(playlist.getTitle(),playlist.getSong(i));
+			insertSongIntoPlaylist(key,playlist.getSong(i),i);
 		}
-		return true;
+		return key;
 	}
 	
-	public void insertSongIntoPlaylist(String playlist, ArchiveSongObj song){
+	public void insertSongIntoPlaylist(int playlist_id, ArchiveSongObj song, int position){
+		if(playlist_id <= 0){
+			//Playlist not saved yet
+			return;
+		}
 		insertSong(song);
-		db.execSQL("Insert into playlistSongsTbl(playlist_id,song_id) "
-				+ "Select pl._id,song._id from playlistTbl pl "
-				+ "inner join songTbl song on song.fileName = '" + song.getFileName() + "' "
-				+ "where pl.playlistName = '" + playlist + "'");
+		db.execSQL("INSERT INTO playlistSongsTbl(playlist_id,song_id,trackNum) "
+				+ "SELECT " + playlist_id + ",song._id," + position + " FROM songTbl song " +
+				"WHERE song.fileName = '" + song.getFileName() + "'");
 	}
 	
-	public void deleteSongFromPlaylist(long key){
-		db.execSQL("Delete from playlistSongsTbl where _id = '" + key + "'");
-	}
-	
-	public void clearPlaylist(long key){
-		db.execSQL("Delete from playlistSongsTbl where playlist_id = '" + key + "'");
-	}
-	
-	public Cursor getSongsFromPlaylist(long key){
-		return db.rawQuery("Select pls._id,song.fileName,song.songTitle,song.isDownloaded," 
-				+ "show.showIdent,show.showArtist + ' Live at ' + show.showTitle AS 'showTitle' "
-				+ "from playlistSongsTbl pls "
-				+ "inner join songTbl song on song._id = pls.song_id "
-				+ "inner join showTbl show on show._id = song.show_id "
-				+ "where pls.playlist_id = '" + key + "'", null);
-	}
-	
-	public Cursor getPlaylists(){
-		return db.rawQuery("Select * from playlistTbl", null);
-	}
-	
-	public boolean updatePlaylistName(long key, String name){
-		
-		Cursor cur = db.rawQuery("Select 1 FROM playlistTbl pl WHERE pl.playlistName like '" + name + "'", null);
-		int results = cur.getCount();
-		cur.close();
-		if(results > 0){
-			return false;
+	public void insertKnownSongIntoPlaylist(int playlist_id, ArchiveSongObj song, int position){
+		if(playlist_id <= 0){
+			//Playlist not saved yet
+			return;
 		}
-		db.execSQL("Update pl Set pl.playlistName = '" 
-				+ name + "' from playlistTbl pl where pl._id = '" + key + "'");
-		return true;
+		db.execSQL("INSERT INTO playlistSongsTbl(playlist_id,song_id,trackNum) "
+				+ "SELECT " + playlist_id + ",song._id," + position + " FROM songTbl song " +
+				"WHERE song.fileName = '" + song.getFileName() + "'");
 	}
+	
+	public void insertSongAtEndOfPlaylist(int playlist_id, ArchiveSongObj song){
+		if(playlist_id <= 0){
+			//Playlist not saved yet
+			return;
+		}
+		insertSong(song);
+		Cursor cur = db.rawQuery("SELECT MAX(pls.trackNum) AS 'max' FROM playlistSongsTbl pls" +
+				" WHERE pls.playlist_id = " + playlist_id, null);
+		cur.moveToFirst();
+		int results = cur.getCount();
+		if(results == 0){
+			cur.close();
+			return;
+		}
+		int position = cur.getInt(cur.getColumnIndex("max"));
+		cur.close();
+		insertSongIntoPlaylist(playlist_id,song,position);
+	}
+	
+	//Returns cursor of all playlists (_id,playlistName)
+	public Cursor getAllPlaylists(){
+		return db.rawQuery("SELECT * FROM playlistTbl " +
+				"ORDER BY _id", null);
+	}
+	
+	//Deletes specific song from playlist
+	public void deleteSongFromPlaylist(long key){
+		db.execSQL("DELETE FROM playlistSongsTbl WHERE _id = '" + key + "'");
+	}
+	
+	//Empties all songs in playlist
+	public void clearPlaylist(long key){
+		db.execSQL("DELETE FROM playlistSongsTbl WHERE playlist_id = '" + key + "'");
+	}
+	
+	public void deletePlaylist(long key){
+		clearPlaylist(key);
+		db.execSQL("DELETE FROM playlistTbl WHERE _id = " + key);
+	}
+	
+	//Returns cursor of songs associated with playlist
+	public Cursor getSongsFromPlaylist(long key){
+		return db.rawQuery("SELECT pls._id,pls.song_id,song.fileName,song.songTitle,song.isDownloaded," 
+				+ "show.showIdent,show.showArtist + ' Live at ' + show.showTitle AS 'showTitle' "
+				+ "FROM playlistSongsTbl pls "
+				+ "INNER JOIN songTbl song ON song._id = pls.song_id "
+				+ "INNER JOIN showTbl show ON show._id = song.show_id "
+				+ "WHERE pls.playlist_id = '" + key + "' " +
+						"ORDER BY pls.trackNum", null);
+	}
+	
+	public void renamePlaylist(long key, String name){
+		db.execSQL("UPDATE playlistTbl SET playlistName = '" 
+				+ sanitize(name) + "' WHERE _id = '" + key + "'");
+	}
+	
+	//Returns playlist object 
+	//If the listview binds to the returned object, then we must
+	//somehow explicitly update the db if we change the object.
+	//This behavior may be changed in 2.1
+	public ArchivePlaylistObj getPlaylist(long key){
+		Cursor cur = db.rawQuery("SELECT playlistName FROM playlistTbl WHERE _id = " + key,null);
+		cur.moveToFirst();
+		String name = cur.getString(cur.getColumnIndex("playlistName"));
+		cur.close();
+		cur = getSongsFromPlaylist(key);
+		ArrayList<ArchiveSongObj> songs = new ArrayList<ArchiveSongObj>();
+		for(int i = 0; i < cur.getCount(); i++){
+			cur.moveToPosition(i);
+			songs.add(getSong(cur.getInt(cur.getColumnIndex("song_id"))));
+		}
+		cur.close();
+		return new ArchivePlaylistObj(name,key,songs);
+	}
+	
+	public int updatePlaylist(ArchivePlaylistObj playlist){
+		if(playlist.getKey() > 0){
+			clearPlaylist(playlist.getKey());
+			for(int i = 0; i < playlist.size(); i++){
+				insertKnownSongIntoPlaylist((int)playlist.getKey(),playlist.getSong(i),i);
+			}
+		}
+		return (int)playlist.getKey();
+	}
+	
+	//End of Playlist methods
 	
 	public Cursor getAutoCompleteCursor(String searchString){
-		return db.rawQuery("Select * from autoCompleteTbl "
-				+ "where searchText like '" + searchString + "%'", null);
+		return db.rawQuery("SELECT * FROM autoCompleteTbl "
+				+ "WHERE searchText LIKE '" + searchString + "%'", null);
+	}
+	
+	public void addArtist(String artist, String numShows){
+		db.execSQL("INSERT INTO artistTbl(artistName,numShows) "
+				+ "SELECT '" + artist + "','" + numShows + "' "
+				+ "WHERE NOT EXISTS (SELECT 1 FROM artistTbl "
+				+ "WHERE artistName LIKE '" + artist + "')");
+		/*db.execSQL("UPDATE artistTbl SET numShows = '" 
+				+ numShows + "' WHERE artistName LIKE '" + artist + "'");*/
+	}
+	
+	public Cursor getArtists(){
+		return db.rawQuery("SELECT * FROM artistTbl ORDER BY artistName",null);
+	}
+	
+	public Cursor getArtist(String firstLetter){
+		//Apparently you have to manually implement regular expressions, so fuck that
+		//Ugly hack that works
+		if(firstLetter.equalsIgnoreCase("!")){
+			return db.rawQuery("SELECT * FROM artistTbl WHERE artistName NOT LIKE 'a%' AND artistName NOT LIKE 'b%' " +
+					"AND artistName NOT LIKE 'c%' AND artistName NOT LIKE 'd%' AND artistName NOT LIKE 'e%' " +
+					"AND artistName NOT LIKE 'f%' AND artistName NOT LIKE 'g%' AND artistName NOT LIKE 'h%' " +
+					"AND artistName NOT LIKE 'i%' AND artistName NOT LIKE 'j%' AND artistName NOT LIKE 'k%' " +
+					"AND artistName NOT LIKE 'l%' AND artistName NOT LIKE 'm%' AND artistName NOT LIKE 'n%' " +
+					"AND artistName NOT LIKE 'o%' AND artistName NOT LIKE 'p%' AND artistName NOT LIKE 'q%' " +
+					"AND artistName NOT LIKE 'r%' AND artistName NOT LIKE 's%' AND artistName NOT LIKE 't%' " +
+					"AND artistName NOT LIKE 'u%' AND artistName NOT LIKE 'v%' AND artistName NOT LIKE 'w%' " +
+					"AND artistName NOT LIKE 'x%' AND artistName NOT LIKE 'y%' AND artistName NOT LIKE 'z%' " +
+					"ORDER BY artistName", null);
+		}
+		else{
+			return db.rawQuery("SELECT * FROM artistTbl "
+					+ "WHERE artistName like '" + firstLetter + "%' ORDER BY artistName",null);
+		}
+	}
+	
+	public void insertArtistBulk(ArrayList<ArrayList<String>> artists){
+		//db.execSQL("PRAGMA synchronous=OFF");
+		/*InsertHelper ih = new InsertHelper(db,"artistTbl");
+		ih.prepareForInsert();*/
+		
+		db.execSQL("DELETE FROM artistTbl");
+		try{
+			db.beginTransaction();
+			for(int i = 0; i < artists.size(); i++){
+				ContentValues artist = new ContentValues();
+				artist.put("artistName",artists.get(i).get(0));
+				artist.put("numShows",artists.get(i).get(1));
+				db.insert("artistTbl",null,artist);
+			}
+			db.setTransactionSuccessful();
+		} catch(SQLException e){
+			Log.e(LOG_TAG,e.toString());
+		} finally{
+			db.endTransaction();
+		}
+		
+		//ih.execute();
+	}
+	
+	public void clearArtists(){
+		db.execSQL("UPDATE prefsTbl SET prefValue = '2010-01-01' WHERE prefName LIKE 'artistUpdate'");
 	}
 
 	/*
@@ -705,6 +856,14 @@ public class DataStore extends SQLiteOpenHelper {
 		case 6:
 			oldDB.execSQL("INSERT INTO prefsTbl (prefName, prefValue) "
 					+ "SELECT 'sortOrder','Date'");
+		case 7:
+			oldDB.execSQL("CREATE TABLE artistTbl (_id INTEGER PRIMARY KEY, artistName TEXT, numShows TEXT)");
+			oldDB.execSQL("INSERT INTO prefsTbl (prefName, prefValue) "
+					+ "SELECT 'artistUpdate','2010-01-01'");
+		case 8:
+			oldDB.execSQL("ALTER TABLE playlistSongsTbl ADD COLUMN trackNum INTEGER");
+			oldDB.execSQL("INSERT INTO playlistTbl(_id,playlistName) " +
+				"SELECT 1,'Now Playing'");
 		}
 		return true;
 	}

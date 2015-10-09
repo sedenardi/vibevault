@@ -1,6 +1,6 @@
 /*
  * ArchiveApp.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -26,23 +26,12 @@ package com.code.android.vibevault;
 
 import java.util.ArrayList;
 
+import com.code.android.vibevault.BrowseArtistsScreen.ParseArtistsPageTask;
+
 import android.app.Application;
 import android.util.Log;
 
 public class VibeVault extends Application {
-
-	public static final String HOME_SCREEN_TAG = "HomeScreen";
-	public static final String SHOW_DETAILS_TAG = "ShowDetailsScreen";
-	public static final String SEARCH_SCREEN_TAG = "SearchScreen";
-	public static final String NOW_PLAYING_TAG = "NowPlaying";
-	public static final String RECENT_SHOWS_TAG = "RecentShows";
-	public static final String PLAYER_SERVICE_TAG = "PlayerService";
-	public static final String DOWNLOAD_SERVICE_TAG = "DownloadService";
-	public static final String DATA_STORE_TAG = "DataStore";
-	public static final String DOWNLOAD_THREAD_TAG = "DownloadSongThread";
-	public static final String ACTIVE_DOWNLOAD_TAG = "ActiveDownloadScreen";
-	public static final String SHOWS_DOWNLOADED_TAG = "ShowsDownloadedScreen";
-	public static final String DOWNLOADED_SHOW_TAG = "DownloadedShowScreen";
 
 	public static final int PLAYER_NOTIFICATION = 300;
 	public static final int DOWNLOAD_NOTIFICATION = 301;
@@ -67,6 +56,10 @@ public class VibeVault extends Application {
 	public static final int EMAIL_LINK = 12;
 	public static final int SHOW_INFO = 13;
 	public static final int UPGRADING_DB = 14;
+	public static final int RETRIEVING_DIALOG_ID = 15;
+	public static final int DELETE_SONG = 16;
+	public static final int DELETE_SHOW = 17;
+	public static final int FETCHING_ARTISTS_ID = 18;
 	
 	/* Default number of objects to return in a JSON query for a show. */
 	public static final int DEFAULT_SHOW_SEARCH_NUM = 10;
@@ -85,8 +78,14 @@ public class VibeVault extends Application {
 	public static int nowPlayingPosition = 0;
 	public static int nowDownloadingPosition = 0;
 	public static final String sortChoices[] = {"Date", "Rating"};
+	public static ArrayList<ArchiveShowObj> featuredShows;
+	public static ArrayList<String> moreFeaturedShows;
+	public static ArrayList<ArchivePlaylistObj> savedPlayLists;
 	//public static ArrayList<ArchiveShowObj> downloadedShows;
 
+	public static ParseArtistsPageTask workerTask;
+
+	
 	public static DataStore db;
 
 	public void onCreate() {
@@ -100,6 +99,8 @@ public class VibeVault extends Application {
 		searchResults = new ArrayList<ArchiveShowObj>();
 		playList = new ArchivePlaylistObj();
 		downloadSongs = new ArrayList<ArchiveSongObj>();
+		featuredShows = new ArrayList<ArchiveShowObj>();
+		moreFeaturedShows = new ArrayList<String>();
 		db = new DataStore(this);
 		db.initialize();
 	}

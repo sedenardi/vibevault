@@ -1,6 +1,6 @@
 /*
  * ArchiveShowObj.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -26,9 +26,10 @@ package com.code.android.vibevault;
 
 import java.io.Serializable;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
-import android.util.Log;
+import android.net.Uri;
 
 public class ArchiveShowObj implements Serializable {
 
@@ -46,7 +47,8 @@ public class ArchiveShowObj implements Serializable {
 	private String showTitle = "";
 	private boolean vbrShow = false;
 	private boolean lbrShow = false;
-	
+	private boolean hasSelectedSong = false;
+	private String selectedSong = "";
 	
 	/** Create an object which represents a show returned from an archive.org search.
 	 * 
@@ -136,9 +138,39 @@ public class ArchiveShowObj implements Serializable {
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
-		
 	}
 	
+	public ArchiveShowObj(Uri uri, boolean hasSelected) {
+		wholeTitle = "";
+		identifier = uri.toString().replace("http://www.archive.org/details/", "");
+		showTitle = "";
+		showArtist = "";
+		source = "";
+		vbrShow = true;
+		lbrShow = true;
+		hasSelectedSong = hasSelected;
+		try{
+			showURL = new URL(uri.toString());
+		} catch(MalformedURLException e){
+			// url is null in this case!
+		}
+	}
+	
+	public void setFullTitle(String s){
+		wholeTitle = s;
+		String artistAndShowTitle[] = s.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = s.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = s.split(" Live ");
+		}
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		if(artistAndShowTitle.length >= 2){
+			showTitle = artistAndShowTitle[1];
+		}
+	}
+
 	private void parseFormatList(String formatList){
 		if(formatList.contains("64Kbps MP3")){
 			lbrShow = true;
@@ -152,6 +184,7 @@ public class ArchiveShowObj implements Serializable {
 		if(formatList.contains("VBR M3U")){
 			vbrShow = true;
 		}
+		//
 	}
 	
 	public boolean hasVBR(){
@@ -189,6 +222,24 @@ public class ArchiveShowObj implements Serializable {
 	
 	public String getLinkPrefix(){
 		return "http://www.archive.org/download/" + identifier + "/" + identifier;
+	}
+	
+	// Used when the ArchiveShowObj is created by an Intent from
+	// the user clicking on a song link.
+	public boolean hasSelectedSong(){
+		return hasSelectedSong;
+	}
+	
+	// Used when the ArchiveShowObj is created by an Intent from
+	// the user clicking on a song link.
+	public void setSelectedSong(String s){
+		selectedSong = s;
+	}
+	
+	// Used when the ArchiveShowObj is created by an Intent from
+	// the user clicking on a song link.
+	public String getSelectedSong(){
+		return selectedSong;
 	}
 	
 	// CALLER MUST CHECK FOR NULL RETURN VALUE!

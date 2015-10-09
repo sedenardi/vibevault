@@ -1,6 +1,6 @@
 /*
  * PlayerService.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -46,6 +46,8 @@ import com.code.android.vibevault.R;
 
 public class PlayerService extends Service {
 	
+	private static final String LOG_TAG = PlayerService.class.getName();
+	
 	private Intent broadcastSong = new Intent(VibeVault.BROADCAST_SONG_TITLE);
 	private Intent broadcastPlayStatus = new Intent(VibeVault.BROADCAST_PLAYER_STATUS);
 	private Intent broadcastPlaylist = new Intent(VibeVault.BROADCAST_PLAYLIST);
@@ -60,6 +62,7 @@ public class PlayerService extends Service {
 	private static int currentPos = -1;
 	private String currentSongTitle = "Nothing Playing...";
 	private String currentSongShow = "Nothing Playing...";
+	private String currentSongArtist = "Nothing Playing...";
 	private static String playListTitle = "Empty";
 	
 	NotificationManager pNotificationManager;
@@ -142,7 +145,7 @@ public class PlayerService extends Service {
 			} 
 			catch (Exception e) 
 			{
-				Log.e(VibeVault.PLAYER_SERVICE_TAG,"Error playing song: " + e.getStackTrace().toString());
+				Log.e(LOG_TAG,"Error playing song: " + e.getStackTrace().toString());
 				e.printStackTrace();
 			}
 		}
@@ -199,6 +202,7 @@ public class PlayerService extends Service {
 		if(currentPos > -1 && currentPos < VibeVault.playList.size() && currentSong != null){
 			currentSongTitle = currentSong.toString();
 			currentSongShow = currentSong.getShowTitle();
+			currentSongArtist = currentSong.getShowArtist();
 		}
 		else{
 			currentSongTitle = "Nothing Playing";
@@ -270,6 +274,12 @@ public class PlayerService extends Service {
 		}
 	}
 	
+	public void updatePlaying(){
+		if(currentSong!=null){
+			currentPos = VibeVault.playList.getList().indexOf(currentSong);
+		}
+	}
+	
 	public void playNext()
 	{
 		if(currentPos + 1 < VibeVault.playList.size())
@@ -292,7 +302,7 @@ public class PlayerService extends Service {
 	
 	// CAN RETURN NULL CALLER MUST CHECK!!!!!!!!
 	public ArchiveSongObj getPlayingSong(){
-		if(VibeVault.playList.size()!=0){
+		if(VibeVault.playList.size()!=0&&!isStopped()){
 			return VibeVault.playList.getSong(currentPos);
 		} else{
 			return null;
@@ -314,6 +324,10 @@ public class PlayerService extends Service {
 	
 	public String getPlayingShowTitle(){
 		return currentSongShow;
+	}
+	
+	public String getPlayingShowArtist(){
+		return currentSongArtist;
 	}
 	
 	private void setNotification(){

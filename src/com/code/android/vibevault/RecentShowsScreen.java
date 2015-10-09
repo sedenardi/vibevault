@@ -1,6 +1,6 @@
 /*
  * RecentShowsScreen.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -28,6 +28,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -45,6 +46,8 @@ import android.widget.AdapterView.OnItemClickListener;
 import com.code.android.vibevault.R;
 
 public class RecentShowsScreen extends Activity {
+	
+	private static final String LOG_TAG = RecentShowsScreen.class.getName();
 
 	private ListView showList;
 	
@@ -73,7 +76,9 @@ public class RecentShowsScreen extends Activity {
 	}
 	
 	private void refreshShowList(){
-		showList.setAdapter(new ScrollingCursorAdapter(this, VibeVault.db.getRecentShows()));
+		Cursor listCur = VibeVault.db.getRecentShows();
+		this.startManagingCursor(listCur);
+		showList.setAdapter(new ScrollingCursorAdapter(this, listCur));
 	}
 	
 	private void openShow(long pos){

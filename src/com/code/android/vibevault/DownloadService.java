@@ -1,6 +1,6 @@
 /*
  * DownloadService.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -43,6 +43,8 @@ import android.widget.RemoteViews;
 import com.code.android.vibevault.R;
 
 public class DownloadService extends Service implements Observer {
+	
+	private static final String LOG_TAG = DownloadService.class.getName();
 
 	private static Intent broadcaseDownloadStatus = new Intent(VibeVault.BROADCAST_DOWNLOAD_STATUS);
 	private final Binder binder = new DServiceBinder();

@@ -1,6 +1,6 @@
 /*
  * ArchiveSongObj.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -41,6 +41,7 @@ public class ArchiveSongObj {
 	private String title;
 	private String showTitle;
 	private String showIdent;
+	private String showArtist;
 	private String fileName;
 	private int status;
 	private boolean exists = false;
@@ -61,10 +62,20 @@ public class ArchiveSongObj {
 	 * @param showTit The title of the show which the song is a part of.
 	 */
 	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent){
+		String artistAndShowTitle[] = showTit.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live ");
+		}
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		
 		urlString = urlStr;
 		status = -1;
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
+		
 		this.showIdent = showIdent;
 		String splitArray[] = urlStr.split("/");
 		fileName = splitArray[splitArray.length-1];
@@ -84,14 +95,22 @@ public class ArchiveSongObj {
 	}
 	
 	// Constructor from DB, doesn't call db
-	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent, boolean isDownloaded){
-		urlString = urlStr;
+	public ArchiveSongObj(String tit, String fileStr, String showTit, String showIdent, boolean isDownloaded){
+		urlString = "http://www.archive.org/download/" + showIdent + "/" + fileStr;
 		status = -1;
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
+		String artistAndShowTitle[] = showTit.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live ");
+		}
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
 		this.showIdent = showIdent;
-		String splitArray[] = urlStr.split("/");
-		fileName = splitArray[splitArray.length-1];
+		String splitArray[] = fileStr.split("/");
+		fileName = fileStr;
 		exists = isDownloaded;
 		//checkExists();
 		/*File showRootDir = new File(Environment.getExternalStorageDirectory() + ArchiveApp.APP_DIRECTORY + showTitle);
@@ -149,7 +168,6 @@ public class ArchiveSongObj {
 		else{
 			exists = false;
 		}
-		
 	}
 	
 	public String getSongPath(){
@@ -193,6 +211,10 @@ public class ArchiveSongObj {
 	
 	public String getShowTitle(){
 		return showTitle;
+	}
+	
+	public String getShowArtist(){
+		return showArtist;
 	}
 
 	/** Returns a URL object of the lowest bitrate for a song.

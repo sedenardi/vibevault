@@ -1,6 +1,6 @@
 /*
  * ShowDetailsScreen.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -53,6 +53,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -77,8 +78,9 @@ import com.code.android.vibevault.R;
 
 public class ShowDetailsScreen extends Activity {
 	
+	private static final String LOG_TAG = ShowDetailsScreen.class.getName();
 
-	private PlayerService pService = null;
+	private PlaybackService pService;
 	private DownloadService dService = null;
 	
 	private ArrayList<ArchiveSongObj> downloadLinks;
@@ -89,6 +91,11 @@ public class ShowDetailsScreen extends Activity {
 	private ParseShowDetailsPageTask workerTask;
 	private boolean dialogShown;
 	private String showTitle;
+	
+	// This is set to -1 UNLESS ShowDetailsScreen is being opened by an intent from clicking
+	// on a song (not a show link).  it is set in the AsyncTask which parses the show
+	// as the index of the song that the user clicked on.
+	private int selectedPos = -1;
 	
 	/** Create the activity, taking into account ongoing dialogs or already downloaded data.
 	*
@@ -103,10 +110,32 @@ public class ShowDetailsScreen extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.show_details_screen);
-		Bundle b = getIntent().getExtras();
-		show = (ArchiveShowObj)b.get("Show");
+		Intent intent = getIntent();
+		Bundle b = intent.getExtras();
+		if(b != null){
+			show = (ArchiveShowObj) b.get("Show");
+		}
+		if(show == null){
+			if(intent.getScheme().equals("http")){
+				Uri link = intent.getData();
+				String linkString = link.toString();
+				if(linkString.contains("/download/")){
+					String[] paths = linkString.split("/");
+					for(int i = 0; i < paths.length; i++){
+						if(paths[i].equals("download")){
+							show = new ArchiveShowObj(Uri.parse("http://www.archive.org/details/" + paths[i+1]), true);
+							show.setSelectedSong(linkString);
+						}
+					}
+				} else{
+					show = new ArchiveShowObj(link, false);
+				}
+			}
+		}
 		
 		
+//		
+//		
 		
 		showTitle = show.getArtistAndTitle();
 		showLabel = (TextView) findViewById(R.id.ShowLabel);
@@ -118,6 +147,8 @@ public class ShowDetailsScreen extends Activity {
 			public void onItemClick(AdapterView<?> a, View v, int position, long id){
 				
 				playShow(position);
+				Intent i = new Intent(ShowDetailsScreen.this, NowPlayingScreen.class);
+                startActivity(i);
 			}
 		});
 		trackList.setOnCreateContextMenuListener(new OnCreateContextMenuListener(){
@@ -132,7 +163,6 @@ public class ShowDetailsScreen extends Activity {
 		downloadLinks = new ArrayList<ArchiveSongObj>();
 		Object retained = getLastNonConfigurationInstance();
 		if(retained instanceof ParseShowDetailsPageTask){
-			
 			workerTask = (ParseShowDetailsPageTask)retained;
 			workerTask.setActivity(this);
 			downloadLinks = workerTask.songs;
@@ -143,12 +173,18 @@ public class ShowDetailsScreen extends Activity {
 		}
 	}
 	
+	private void refreshScreenTitle(){
+		showTitle = show.getArtistAndTitle();
+		showLabel = (TextView) findViewById(R.id.ShowLabel);
+		showLabel.setText(showTitle);
+	}
+	
 	@Override
 	public void onResume()
 	{
 		super.onResume();
 		getApplicationContext().bindService(new Intent(this, DownloadService.class), onDService, BIND_AUTO_CREATE);
-		getApplicationContext().bindService(new Intent(this, PlayerService.class), onPService, BIND_AUTO_CREATE);
+		attachToPlaybackService();
 		registerReceiver(TitleReceiver, new IntentFilter(VibeVault.BROADCAST_SONG_TITLE));
 		refreshTrackList();
 	}
@@ -158,8 +194,22 @@ public class ShowDetailsScreen extends Activity {
 	{
 		super.onPause();
 		getApplicationContext().unbindService(onDService);
-		getApplicationContext().unbindService(onPService);
+		detachFromPlaybackService();
 		unregisterReceiver(TitleReceiver);
+	}
+	
+	private void attachToPlaybackService() {
+		
+		Intent serviceIntent = new Intent(this, PlaybackService.class);
+
+		// Explicitly start the service. Don't use BIND_AUTO_CREATE, since it
+		// causes an implicit service stop when the last binder is removed.
+		getApplicationContext().startService(serviceIntent);
+		getApplicationContext().bindService(serviceIntent, conn, 0);
+	}
+
+	private void detachFromPlaybackService() {
+		getApplicationContext().unbindService(conn);
 	}
 
 	@Override
@@ -316,7 +366,14 @@ public class ShowDetailsScreen extends Activity {
 			}
 			dialogShown=false;
 			
+			refreshScreenTitle();
 			refreshTrackList();
+			// If this is from an Intent where a song was selected, play it.
+			if(selectedPos!=-1){
+				playShow(selectedPos);
+				Intent i = new Intent(ShowDetailsScreen.this, NowPlayingScreen.class);
+                startActivity(i);
+			}
 		}
 	}
 	
@@ -420,15 +477,15 @@ public class ShowDetailsScreen extends Activity {
 				
 				
 				if(m3uURL!=null){
-					System.out.println("IN M3U.");
+					
 					// Grab the M3U stream...
-					URLConnection test = m3uURL.openConnection();
-					if(test==null){
+					URLConnection m3uConn = m3uURL.openConnection();
+					if(m3uConn==null){
 						
 					}
-					InputStream inStream = test.getInputStream();
+					InputStream inStream = m3uConn.getInputStream();
 					BufferedInputStream bis = new BufferedInputStream(inStream);
-					System.out.println("Connection opened.");
+					
 					ByteArrayBuffer baf = new ByteArrayBuffer(50);
 					int read = 0;
 					int bufSize = 512;
@@ -438,11 +495,11 @@ public class ShowDetailsScreen extends Activity {
 						
 						bis.close();
 						inStream.close();
-						test = m3uURL.openConnection();
-						inStream = test.getInputStream();
+						m3uConn = m3uURL.openConnection();
+						inStream = m3uConn.getInputStream();
 						bis = new BufferedInputStream(inStream);
 					}
-					System.out.println("Got stream.");
+					
 					while (true) {
 						read = bis.read(buffer);
 						if (read == -1) {
@@ -477,10 +534,26 @@ public class ShowDetailsScreen extends Activity {
 							
 							try {
 								JSONObject jObject = new JSONObject(jsonArray[1]);
+								if(taskShow.getShowArtist().equals("")){
+									parentScreen.show.setFullTitle(jObject.getString("title"));	
+								}
 								JSONArray jArray = jObject.getJSONArray("names");
 								if(jArray.length() == songLinks.size()){
 									for (int i = 0; i < jArray.length(); i++) {
-										ArchiveSongObj song = new ArchiveSongObj(jArray.get(i).toString(), songLinks.get(i), showTitle, showIdent);
+										String songLink = songLinks.get(i);
+										// If the show has a "selectedSong" meaning that it was opened by
+										// the user clicking on a song link, do a comparison to see
+										// if the song being added is the selected song.  If it is, set
+										// selectedPos to the right index so that the song can be played
+										// once the ListView is filled.
+										if(show[0].hasSelectedSong()){
+											if(songLink.equals(show[0].getSelectedSong())){
+												selectedPos = i;
+											}
+										} else{
+											selectedPos = -1;
+										}
+										ArchiveSongObj song = new ArchiveSongObj(jArray.get(i).toString(), songLink, showTitle, showIdent);
 										
 										songs.add(song);
 									}
@@ -497,43 +570,6 @@ public class ShowDetailsScreen extends Activity {
 						}
 					}
 				}
-
-//				// Here is where the non-M3U based song aggregation starts.
-//				Object[] downloadNodes = node.evaluateXPath(songXPath);
-//				boolean reachedSongs = false;
-//				for (Object linkNode : downloadNodes) {
-//					System.out.println("NONM3U");
-//					// The song titles and locations are listed between two
-//					// particular rows on the page.
-//					// Ignore all other rows to save a little time and
-//					// battery...
-//					if (!reachedSongs) {
-//						if (!pageParser.getInnerHtml(
-//								((TagNode) linkNode).getChildTags()[0]).equals(
-//								"Audio Files")) {
-//							continue;
-//						} else {
-//							reachedSongs = true;
-//							continue;
-//						}
-//					} else {
-//						if (pageParser.getInnerHtml(
-//								((TagNode) linkNode).getChildTags()[0]).equals(
-//								"Information")) {
-//							break;
-//						}
-//					}
-//					TagNode[] links = ((TagNode) linkNode)
-//							.getElementsHavingAttribute("href", true);
-//					ArrayList<String> stringLinks = new ArrayList<String>();
-//					for (TagNode t : links) {
-//						stringLinks.add(t.getAttributeByName("href"));
-//					}
-//					songs.add(new ArchiveSongObj(pageParser.getInnerHtml(
-//							((TagNode) ((TagNode) linkNode).getChildren()
-//									.get(0))).trim(), stringLinks, showTitle));
-//				}
-//				return null;
 
 			} catch (XPatherException e) {
 				e.printStackTrace();
@@ -588,6 +624,7 @@ public class ShowDetailsScreen extends Activity {
 			}
 			TextView text = (TextView) convertView.findViewById(R.id.text);
 			text.setText(song.toString());
+			text.setSelected(true);
 			ImageView icon = (ImageView) convertView.findViewById(R.id.icon);
 			if (song != null) {
 				if (VibeVault.db.songIsDownloaded(song.getFileName())) {
@@ -611,13 +648,16 @@ public class ShowDetailsScreen extends Activity {
 		}
 	};
 
-	private ServiceConnection onPService=new ServiceConnection() {
-		public void onServiceConnected(ComponentName className, IBinder rawBinder) {
-			pService=((PlayerService.MPlayerBinder)rawBinder).getService();
+	private ServiceConnection conn = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+			pService = ((PlaybackService.ListenBinder) service).getService();
 		}
 
-		public void onServiceDisconnected(ComponentName className) {
-			pService=null;
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			Log.w(LOG_TAG, "DISCONNECT");
+			pService = null;
 		}
 	};
 	

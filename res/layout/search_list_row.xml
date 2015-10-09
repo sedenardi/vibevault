@@ -12,7 +12,6 @@
             android:textColor="#127DD4"
             android:textStyle="bold"
             android:ellipsize="marquee"
-            android:focusable="true"
             android:marqueeRepeatLimit="marquee_forever"
             android:lines="1"
             android:focusableInTouchMode="true"
@@ -28,7 +27,6 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:ellipsize="marquee"
-            android:focusable="true"
             android:marqueeRepeatLimit="marquee_forever"
             android:lines="1"
             android:focusableInTouchMode="true"
@@ -41,4 +39,13 @@
         	android:src="@drawable/star5"
         	android:gravity="center_vertical"
         	android:layout_alignParentRight="true" />
+        	<TextView
+            android:id="@+id/ShowInfoText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16dip"
+            android:textColor="#127DD4"
+            android:textStyle="italic"
+            android:focusableInTouchMode="true"
+            android:layout_below="@id/ShowText"/>
 </RelativeLayout>

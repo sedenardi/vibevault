@@ -1,6 +1,6 @@
 /*
  * ArchivePlaylistObj.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -31,6 +31,28 @@ public class ArchivePlaylistObj {
 	private ArrayList<ArchiveSongObj> playList;
 	private String title = "";
 	private long key = -1;
+	private boolean dirty = false;
+	
+	public boolean isDirty(){
+		return dirty;
+	}
+	
+	public void savePlayList(){
+		VibeVault.db.updatePlaylist(this);
+		dirty = false;
+	}
+	
+	public void clear(){
+		playList.clear();
+	}
+	
+	public void setKey(long k){
+		key = k;
+	}
+	
+	public long getKey(){
+		return key;
+	}
 	
 	public ArchivePlaylistObj(){
 		playList = new ArrayList<ArchiveSongObj>();
@@ -49,6 +71,7 @@ public class ArchivePlaylistObj {
 	public void setPlayList(ArrayList<ArchiveSongObj> list){
 		playList.clear();
 		playList.addAll(list);
+		this.setKey(1);
 	}
 	
 	public String getTitle(){
@@ -71,13 +94,30 @@ public class ArchivePlaylistObj {
 		return playList.get(pos);
 	}
 	
-	public void queueFront(ArchiveSongObj song){
-		playList.add(0, song);
+	public void add(ArchiveSongObj song, int pos){
+		playList.add(pos,song);
+		dirty = true;
 	}
 	
+	public void queueFront(ArchiveSongObj song){
+		playList.add(0, song);
+		dirty = true;
+	}
+	
+	/** Enqueue song in PlayList.
+	 * 
+	 *  Since this method is usually not being called from NowPlayingScreen,
+	 *  we make sure to save the PlayList to the DB (unless it is the Now Playing
+	 *  PlayList) because otherwise, it will only be saved if you view the
+	 *  NowPlayingScreen (where it gets saved in the onpause() method).
+	 */
 	public int enqueue(ArchiveSongObj song){
 		if(!playList.contains(song)){
 			playList.add(song);
+		}
+		dirty = true;
+		if(key!=1){
+			VibeVault.db.insertSongAtEndOfPlaylist((int)key, song);
 		}
 		return playList.indexOf(song);
 	}
@@ -88,6 +128,12 @@ public class ArchivePlaylistObj {
 	
 	public void removeSongAt(int location){
 		playList.remove(location);
+		dirty = true;
+	}
+	
+	public boolean removeSong(ArchiveSongObj song){
+		dirty = true;
+		return playList.remove(song);
 	}
 	
 	//returns index of song if it exists, -1 if not

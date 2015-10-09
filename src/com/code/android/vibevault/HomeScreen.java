@@ -1,6 +1,6 @@
 /*
  * HomeScreen.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -41,17 +41,21 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import com.code.android.vibevault.R;
 
 public class HomeScreen extends Activity {
+	
+	private static final String LOG_TAG = HomeScreen.class.getName();
 
-	private Button searchButton;
-	private Button recentButton;
-	private Button downloadButton;
-	private Button playingButton;
+	private ImageButton searchButton;
+	private ImageButton recentButton;
+	private ImageButton downloadButton;
+	private ImageButton playingButton;
 //	private Button settingsButton;
+	private ImageButton recentShowsButton;
+	private ImageButton browseArtistsButton;
 	
 	private InitTask workerTask;
 	private boolean dialogShown;
@@ -71,7 +75,8 @@ public class HomeScreen extends Activity {
 			workerTask = new InitTask(this);
 		}
 		
-		searchButton = (Button) findViewById(R.id.HomeSearch);
+		
+		searchButton = (ImageButton) findViewById(R.id.HomeSearch);
 		searchButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -79,7 +84,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		recentButton = (Button) findViewById(R.id.HomeRecent);
+		recentButton = (ImageButton) findViewById(R.id.HomeRecent);
 		recentButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -87,7 +92,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		downloadButton = (Button) findViewById(R.id.HomeDownload);
+		downloadButton = (ImageButton) findViewById(R.id.HomeDownload);
 		downloadButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -95,7 +100,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		playingButton = (Button) findViewById(R.id.HomePlaying);
+		playingButton = (ImageButton) findViewById(R.id.HomePlaying);
 		playingButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -111,6 +116,23 @@ public class HomeScreen extends Activity {
 //				//startActivity(i);
 //			}
 //		});
+		recentShowsButton = (ImageButton) findViewById(R.id.HomeFeatured);
+		recentShowsButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v){
+				Intent i = new Intent(HomeScreen.this, FeaturedShowsScreen.class);
+				startActivity(i);
+			}
+		});
+		browseArtistsButton = (ImageButton) findViewById(R.id.HomeBrowse);
+		browseArtistsButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v){
+				Intent i = new Intent(HomeScreen.this, BrowseArtistsScreen.class);
+				startActivity(i);
+			}
+		});
+
 		
 		if(VibeVault.db.needsUpgrade){
 			workerTask = new InitTask(this);
@@ -146,7 +168,6 @@ public class HomeScreen extends Activity {
 	@Override
 	public void onResume(){
 		super.onResume();
-		startService(new Intent(this, PlayerService.class));
 		startService(new Intent(this, DownloadService.class));
 	}
 	
@@ -183,8 +204,8 @@ public class HomeScreen extends Activity {
 			try {
 				VibeVault.db.openDataBase();
 			} catch (SQLException e) {
-				Log.e(VibeVault.HOME_SCREEN_TAG, "Unable to open database");
-				Log.e(VibeVault.HOME_SCREEN_TAG, e.getStackTrace().toString());
+				Log.e(LOG_TAG, "Unable to open database");
+				Log.e(LOG_TAG, e.getStackTrace().toString());
 			}
 			completed=true;
 			notifyActivityTaskCompleted();

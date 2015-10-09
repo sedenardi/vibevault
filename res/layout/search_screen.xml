@@ -9,17 +9,16 @@
 		android:scrollbarDefaultDelayBeforeFade="2000"
 		android:scrollbarAlwaysDrawVerticalTrack="true" />
 
-	<SlidingDrawer android:id="@+id/slidingDrawer"
+	<SlidingDrawer android:id="@+id/SlidingDrawerSearchScreen"
 		android:handle="@+id/HandleTextView" android:content="@+id/ContentRelativeLayout"
 		android:layout_width="match_parent" android:layout_height="225dip"
-		android:layout_alignParentBottom="true">
-
-
+		android:layout_alignParentBottom="true"
+		>
 		<TextView android:id="@+id/HandleTextView" android:layout_width="fill_parent"
 			android:layout_height="wrap_content" android:text="Drag up to search..."
 			android:textSize="28dip"
 			android:textStyle="bold" android:textColor="#FFFFFF"
-			android:background="#111111">
+			android:background="#AB127DD4">
 		</TextView>
 
 		<RelativeLayout android:id="@+id/ContentRelativeLayout"
@@ -59,7 +58,7 @@
 				
 
 			<Button android:id="@+id/SearchButton" android:layout_width="wrap_content"
-				android:layout_height="wrap_content" android:drawableLeft="@drawable/searchbutton"
+				android:layout_height="wrap_content" android:drawableLeft="@drawable/searchbutton_plain"
 				android:layout_below="@id/DateSearchSpinner"
 				android:gravity="center" android:drawablePadding="1dip" />
 			<Button android:id="@+id/SettingsButton" android:layout_width="wrap_content"

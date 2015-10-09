@@ -1,6 +1,6 @@
 /*
  * DownloadTabs.java
- * VERSION 1.3
+ * VERSION 2.0
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -50,12 +50,12 @@ public class DownloadTabs extends TabActivity {
 	    Intent intent;
 	    
 	    intent = new Intent().setClass(this,ActiveDownloadScreen.class);
-	    spec = tabHost.newTabSpec(VibeVault.ACTIVE_DOWNLOAD_TAG)
+	    spec = tabHost.newTabSpec("ActiveDownloadScreen")
 	    	.setIndicator("Active Downloads").setContent(intent);
 	    tabHost.addTab(spec);
 	    
 	    intent = new Intent().setClass(this,ShowsDownloadedScreen.class);
-	    spec = tabHost.newTabSpec(VibeVault.SHOWS_DOWNLOADED_TAG)
+	    spec = tabHost.newTabSpec("ShowsDownloadedScreen")
 	    	.setIndicator("Shows Downloaded").setContent(intent);
 	    tabHost.addTab(spec);
 	 

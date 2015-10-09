@@ -21,6 +21,10 @@
             android:textColor="#FFFFFF"
             android:layout_weight="1"
             android:textStyle="bold"
-            android:gravity="center_vertical"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:lines="1"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true"
         />
 </LinearLayout>
