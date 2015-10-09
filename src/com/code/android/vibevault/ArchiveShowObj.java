@@ -1,6 +1,6 @@
 /*
  * ArchiveShowObj.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -26,8 +26,8 @@ package com.code.android.vibevault;
 
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
+
 
 import android.net.Uri;
 
@@ -49,6 +49,7 @@ public class ArchiveShowObj implements Serializable {
 	private boolean lbrShow = false;
 	private boolean hasSelectedSong = false;
 	private String selectedSong = "";
+	private int votes;
 	
 	/** Create an object which represents a show returned from an archive.org search.
 	 * 
@@ -142,7 +143,8 @@ public class ArchiveShowObj implements Serializable {
 	
 	public ArchiveShowObj(Uri uri, boolean hasSelected) {
 		wholeTitle = "";
-		identifier = uri.toString().replace("http://www.archive.org/details/", "");
+		// This should take care of any prefix (eg. http://, http://www., www.).
+		identifier = uri.toString().split("archive.org/details/")[1];
 		showTitle = "";
 		showArtist = "";
 		source = "";
@@ -151,6 +153,24 @@ public class ArchiveShowObj implements Serializable {
 		hasSelectedSong = hasSelected;
 		try{
 			showURL = new URL(uri.toString());
+		} catch(MalformedURLException e){
+			// url is null in this case!
+		}
+	}
+	
+	// Constructor called from vote return
+	public ArchiveShowObj(String ident, String title, String artist, String date, String src, double rat, int numVotes){
+		wholeTitle = artist + " Live at " + title;
+		identifier = ident;
+		showTitle = title;
+		showArtist = artist;
+		source = src;
+		vbrShow = true;
+		lbrShow = false;
+		rating = rat;
+		votes = numVotes;
+		try{
+			showURL = new URL("http://www.archive.org/details/" + identifier);
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
@@ -184,7 +204,6 @@ public class ArchiveShowObj implements Serializable {
 		if(formatList.contains("VBR M3U")){
 			vbrShow = true;
 		}
-		//
 	}
 	
 	public boolean hasVBR(){
@@ -195,6 +214,7 @@ public class ArchiveShowObj implements Serializable {
 		return lbrShow;
 	}
 	
+	//should only be called from the voted shows activity
 	public double getRating(){
 		return rating;
 	}
@@ -205,6 +225,10 @@ public class ArchiveShowObj implements Serializable {
 	
 	public String getDate(){
 		return date;
+	}
+	
+	public int getVotes(){
+		return votes;
 	}
 
 	@Override
@@ -246,6 +270,17 @@ public class ArchiveShowObj implements Serializable {
 	// \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 	public URL getShowURL() {
 		return showURL;
+	}
+	
+	@Override
+	public boolean equals(Object obj){
+		ArchiveShowObj show = (ArchiveShowObj) obj;
+		if(this.identifier == show.getIdentifier()){
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 
 }

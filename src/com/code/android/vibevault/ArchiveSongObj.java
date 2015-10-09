@@ -1,6 +1,6 @@
 /*
  * ArchiveSongObj.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -29,7 +29,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import android.os.Environment;
-import android.util.Log;
 
 public class ArchiveSongObj {
 	

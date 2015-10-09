@@ -1,6 +1,6 @@
 /*
  * DownloadTabs.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -59,7 +59,7 @@ public class DownloadTabs extends TabActivity {
 	    	.setIndicator("Shows Downloaded").setContent(intent);
 	    tabHost.addTab(spec);
 	 
-	    tabHost.setCurrentTab(0);
+	    tabHost.setCurrentTab(1);
 	    
 	}
 	

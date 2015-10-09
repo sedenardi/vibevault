@@ -26,6 +26,9 @@ package com.code.android.vibevault;
 
 import java.util.List;
 
+import net.londatiga.android.ActionItem;
+import net.londatiga.android.QuickAction;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -37,15 +40,16 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.SlidingDrawer;
 import android.widget.Spinner;
@@ -69,6 +73,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.SlidingDrawer.OnDrawerCloseListener;
 import android.widget.SlidingDrawer.OnDrawerOpenListener;
+import android.widget.SlidingDrawer.OnDrawerScrollListener;
 
 import com.code.android.vibevault.R;
 
@@ -77,7 +82,6 @@ public class NowPlayingScreen extends Activity {
 	private static final String LOG_TAG = NowPlayingScreen.class.getName();
 	
 	private PlaybackService player;
-	//private PlayerService pService = null;
 
 	private BroadcastReceiver changeReceiver = new PlaybackChangeReceiver();
 	private BroadcastReceiver updateReceiver = new PlaybackUpdateReceiver();
@@ -107,6 +111,11 @@ public class NowPlayingScreen extends Activity {
 	protected EditText playListEditText;
 	protected Spinner playListSpinner;
 	
+	protected Button shareButton;
+	
+	private QuickAction qa;
+
+	
 	private void refreshPlayListSpinner() {
 		Cursor spinCur = VibeVault.db.getAllPlaylists();
 		this.startManagingCursor(spinCur);
@@ -132,6 +141,18 @@ public class NowPlayingScreen extends Activity {
 		}
 	}
 	
+	@Override
+	 public void onBackPressed() {
+		if(slidingDrawer!=null&&slidingDrawer.isOpened()){
+			vibrator.vibrate(50);
+			slidingDrawer.close();
+			return;
+		} else{
+			super.onBackPressed();
+	         return;
+		}
+    }
+	
 	private void initPlayControls(){
 		this.previous.setOnClickListener(new OnClickListener() {
 			@Override
@@ -140,7 +161,6 @@ public class NowPlayingScreen extends Activity {
 				vibrator.vibrate(50);
 			}
 		});
-
 		this.stop.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -153,6 +173,9 @@ public class NowPlayingScreen extends Activity {
 		this.pause.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if(player == null){
+					attachToPlaybackService();
+				}
 				if (player.isPaused()) {
 					
 					player.play();
@@ -197,16 +220,110 @@ public class NowPlayingScreen extends Activity {
 					player.seekTo(progress);
 				}
 			}
-
 			@Override
 			public void onStartTrackingTouch(SeekBar arg0) {
-				// TODO Auto-generated method stub
 			}
-
 			@Override
 			public void onStopTrackingTouch(SeekBar arg0) {
-				// TODO Auto-generated method stub
 			}
+		});
+		
+		final ActionItem voteButton = new ActionItem();
+		
+		voteButton.setTitle("Vote");
+		voteButton.setIcon(getResources().getDrawable(R.drawable.vote));
+		voteButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				vibrator.vibrate(50);
+				new Handler().postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						// Give the button time to draw its “pressed” state.
+						// Without this delay, the pressed button is transparent
+						// while the exit animation runs.
+						qa.dismiss();
+					}
+				}, 15);
+				vote();
+			}
+		});
+
+		final ActionItem facebookButton = new ActionItem();
+
+		facebookButton.setTitle("Facebook");
+		facebookButton.setIcon(getResources().getDrawable(
+				R.drawable.facebook_icon));
+		facebookButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				ArchiveSongObj voteSong = player.getPlayingSong();
+				if(voteSong!=null){
+					Intent i = new Intent(NowPlayingScreen.this, FacebookCon.class);
+					i.putExtra("show_title", voteSong.getShowArtist() + " - " + voteSong.getShowTitle());
+					i.putExtra("show_url", voteSong.getLowBitRate());
+					vibrator.vibrate(50);
+					new Handler().postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							// Give the button time to draw its “pressed” state.
+							// Without this delay, the pressed button is transparent
+							// while the exit animation runs.
+							qa.dismiss();
+						}
+					}, 10);
+					startActivity(i);
+				} else{
+					Toast.makeText(getBaseContext(), "No song playing or paused to vote for.", Toast.LENGTH_SHORT).show();
+				}
+				
+			}
+		});
+
+		final ActionItem twitterButton = new ActionItem();
+
+		twitterButton.setTitle("Twitter");
+		twitterButton.setIcon(getResources().getDrawable(
+				R.drawable.twitter_icon));
+		twitterButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				ArchiveSongObj voteSong = player.getPlayingSong();
+				if(voteSong!=null){
+					Intent i = new Intent(NowPlayingScreen.this, TwitterCon.class);
+					i.putExtra("show_title", voteSong.getShowArtist() + " - " + voteSong.getShowTitle());
+					i.putExtra("show_url", voteSong.getLowBitRate());
+					vibrator.vibrate(50);
+					new Handler().postDelayed(new Runnable() {
+						@Override
+						public void run() {
+							// Give the button time to draw its “pressed” state.
+							// Without this delay, the pressed button is transparent
+							// while the exit animation runs.
+							qa.dismiss();
+						}
+					}, 10);
+					startActivity(i);
+			} else{
+				Toast.makeText(getBaseContext(), "No song playing or paused to vote for.", Toast.LENGTH_SHORT).show();
+			}
+		}
+		});
+		
+		shareButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				qa = new QuickAction(v);
+
+				qa.addActionItem(voteButton);
+				qa.addActionItem(facebookButton);
+				qa.addActionItem(twitterButton);
+				qa.setAnimStyle(QuickAction.ANIM_AUTO);
+
+				qa.show();
+			}
+
 		});
 	}
 
@@ -215,6 +332,7 @@ public class NowPlayingScreen extends Activity {
 
 			@Override
 			public void onClick(View arg0) {
+				vibrator.vibrate(50);
 				Toast.makeText(NowPlayingScreen.this, "Saving...", Toast.LENGTH_SHORT).show();
 				VibeVault.playList.savePlayList();
 				toggleSaveButton();
@@ -225,6 +343,7 @@ public class NowPlayingScreen extends Activity {
 		saveAsButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
+				vibrator.vibrate(50);
 				
 				AlertDialog.Builder alert = new AlertDialog.Builder(NowPlayingScreen.this);
 
@@ -234,7 +353,7 @@ public class NowPlayingScreen extends Activity {
 				// Set an EditText view to get user input 
 				final EditText input = new EditText(v.getContext());
 				InputFilter[] lengthFilter = new InputFilter[1];
-				lengthFilter[0] = new InputFilter.LengthFilter(10);
+				lengthFilter[0] = new InputFilter.LengthFilter(20);
 				input.setFilters(lengthFilter);
 				input.setInputType(InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE);
 				input.setMaxLines(1);
@@ -259,8 +378,8 @@ public class NowPlayingScreen extends Activity {
 
 				alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 				  public void onClick(DialogInterface dialog, int whichButton) {
-				    // Canceled.
-				  }
+				    dialog.cancel();
+				   }
 				});
 
 				alert.show();
@@ -270,6 +389,7 @@ public class NowPlayingScreen extends Activity {
 		removeButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
+				vibrator.vibrate(50);
 				long selected = playListSpinner.getSelectedItemId();
 				if(selected!=1){
 					VibeVault.db.deletePlaylist(selected);
@@ -307,6 +427,18 @@ public class NowPlayingScreen extends Activity {
 		
 		playListHandle.setSelected(true);
 		
+		slidingDrawer.setOnDrawerScrollListener(new OnDrawerScrollListener(){
+
+			@Override
+			public void onScrollEnded() {
+			}
+
+			@Override
+			public void onScrollStarted() {
+				vibrator.vibrate(50);
+			}
+			
+		});
 		slidingDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener(){
 			@Override
 			public void onDrawerOpened() {
@@ -346,6 +478,8 @@ public class NowPlayingScreen extends Activity {
 		playListSpinner = (Spinner) findViewById(R.id.PlayListSpinner);
 		
 		vibrator = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+		
+		shareButton = (Button) findViewById(R.id.ShareButton);
 
 		songsListView = (DraggableListView) findViewById(R.id.PlayListListView);
 		songsListView.setOnItemClickListener(new OnItemClickListener() {
@@ -355,40 +489,55 @@ public class NowPlayingScreen extends Activity {
 				player.playSongFromPlaylist(position);
 			}
 		});
-		songsListView
-				.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
-					@Override
-					public void onCreateContextMenu(ContextMenu menu, View v,
-							ContextMenu.ContextMenuInfo menuInfo) {
-						menu.add(Menu.NONE, VibeVault.REMOVE_FROM_QUEUE,
-								Menu.NONE, "Remove from playlist");
-					}
-				});
+		songsListView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
+			@Override
+			public void onCreateContextMenu(ContextMenu menu, View v,
+					ContextMenu.ContextMenuInfo menuInfo) {
+				menu.add(Menu.NONE, VibeVault.REMOVE_FROM_QUEUE,
+						Menu.NONE, "Remove from playlist");
+			}
+		});
 		songsListView.setDropListener(new DraggableListView.DropListener() {
 			@Override
 			public void drop(int from, int to) {
+				if(from==VibeVault.nowPlayingPosition){
+					VibeVault.nowPlayingPosition = to;
+				} else if(from<VibeVault.nowPlayingPosition){
+					if(to<VibeVault.nowPlayingPosition){
+					} else{
+						VibeVault.nowPlayingPosition--;
+					}
+				} else{
+					if(to<=VibeVault.nowPlayingPosition){
+						VibeVault.nowPlayingPosition++;
+					} else{
+						
+					}
+				}
+				ArchiveSongObj selected = adapter.getItem(from);
 				
+				VibeVault.playList.removeSong(selected);
+				VibeVault.playList.add(selected,to);
 				
-				ArchiveSongObj selected = adapter.getItem(VibeVault.nowPlayingPosition);
-				ArchiveSongObj item = adapter.getItem(from);
-				//adapter.remove(item);
-				VibeVault.playList.removeSong(item);
-				//adapter.insert(item, to);
-				VibeVault.playList.add(item,to);
-				VibeVault.nowPlayingPosition = VibeVault.playList.exists(selected);
 				
 				refreshTrackList();
 				toggleSaveButton();
-				//songsListView.setSelection(VibeVault.nowPlayingPosition);
+				
+				if(songsListView.lastVisible<=adapter.getCount()){
+					songsListView.setSelection(songsListView.firstVisible);
+				}
 			}
 		});
 		songsListView.setRemoveListener(new DraggableListView.RemoveListener() {
 			@Override
 			public void remove(int which) {
-				VibeVault.playList.removeSong(adapter.getItem(which));
-				if(player.isPlaying()){
-					player.playSongFromPlaylist(VibeVault.nowPlayingPosition);
+				player.stop();
+				if(which<VibeVault.nowPlayingPosition){
+					VibeVault.nowPlayingPosition--;
+				} else if(which == VibeVault.nowPlayingPosition){
+					VibeVault.nowPlayingPosition=-1;
 				}
+				VibeVault.playList.removeSong(adapter.getItem(which));
 				toggleSaveButton();
 			}
 		});
@@ -397,6 +546,7 @@ public class NowPlayingScreen extends Activity {
 		initPlayListControls();
 		hideGUIFeaturesIfOldSDK();
 		songsListView.setBackgroundColor(Color.BLACK);
+		
 		}
 
 	private void refreshTrackList(){
@@ -404,7 +554,7 @@ public class NowPlayingScreen extends Activity {
 		
 		adapter = new PlaylistAdapter(this, R.layout.playlist_row, VibeVault.playList.getList());
 		songsListView.setAdapter(adapter);
-		songsListView.setSelection(VibeVault.nowPlayingPosition);
+		//songsListView.setSelection(VibeVault.nowPlayingPosition);
 	}
 
 	@Override
@@ -486,6 +636,7 @@ public class NowPlayingScreen extends Activity {
 			nowPlayingTextView.setText(title);
 			nowPlayingTextView.setSelected(true);
 			refreshTrackList();
+			songsListView.setSelection(VibeVault.nowPlayingPosition);
 			String status = intent.getStringExtra(PlaybackService.EXTRA_STATUS);
 			if(status.equals("playing")) {
 				pause.setBackgroundResource(R.drawable.pausebutton);
@@ -589,12 +740,10 @@ public class NowPlayingScreen extends Activity {
 				songText.setText(song.toString());
 				artistText.setText(song.getShowArtist());
 				if(position == VibeVault.nowPlayingPosition){
-//					convertView.setBackgroundColor(Color.argb(128, 18, 125, 212));
 					songText.setTextColor(Color.YELLOW);
 					artistText.setTextColor(Color.YELLOW);
 				}
 				else{
-					convertView.setBackgroundColor(Color.argb(0, 0, 0, 0));
 					songText.setTextColor(Color.rgb(18, 125, 212));
 					artistText.setTextColor(Color.WHITE);
 				}
@@ -621,5 +770,39 @@ public class NowPlayingScreen extends Activity {
 			return true;
 		}
 		return false;
+	}
+	
+	private void vote(){
+		ArchiveSongObj voteSong = player.getPlayingSong();
+		if(voteSong!=null){
+			VoteTask t = new VoteTask();
+			String showDate = voteSong.getShowTitle();
+			try{
+				// 10 because 4 chars for year, 2 for month, 2 for day, and 2 hyphens.
+				showDate = showDate.substring(showDate.length()-10);
+			} catch(IndexOutOfBoundsException e){
+				showDate = "";
+			}
+			t.execute(voteSong.getShowIdentifier(),voteSong.getShowArtist(),voteSong.getShowTitle(),showDate);
+		} else{
+			Toast.makeText(getBaseContext(), "No song playing or paused to vote for.", Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+	private class VoteTask extends AsyncTask<String, Void, String> {
+		@Override
+		protected void onPreExecute() {
+			Toast.makeText(getBaseContext(), "Voting...", Toast.LENGTH_SHORT).show();
+		}
+
+		@Override
+		protected String doInBackground(String... showFields) {
+			return Voting.vote(showFields[0], showFields[1], showFields[2], showFields[3]);
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			Toast.makeText(getBaseContext(), result, Toast.LENGTH_SHORT).show();
+		}
 	}
 }

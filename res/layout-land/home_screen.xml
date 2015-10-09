@@ -8,7 +8,7 @@
 		android:id="@+id/HomeHeader"
 		android:textSize="30dip"
 		android:gravity="center"
-		android:text="Vibe Vault V2.0"
+		android:text="Vibe Vault v3"
 		android:textColor="#127DD4"
 		android:layout_width="90dip"
 		android:layout_height="wrap_content"

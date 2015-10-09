@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent" android:layout_height="fill_parent">
-
-	<TextView android:id="@+id/PlayingLabelTextView"
-		android:layout_width="fill_parent" android:layout_height="wrap_content"
+	
+		<Button android:id="@+id/ShareButton" android:drawableTop="@drawable/share"
+  			android:background="@drawable/custombutton"
+			android:layout_alignParentLeft="true"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Vote\nShare"
+			android:textColor="#127DD4"
+			android:textStyle="bold"
+			android:layout_marginTop="5dip"></Button>
+			
+			<TextView android:id="@+id/PlayingLabelTextView"
+		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:layout_alignParentTop="true"
 		android:layout_marginBottom="5dip"
 		android:text="Nothing Playing..."
@@ -12,11 +22,16 @@
 		android:marqueeRepeatLimit="marquee_forever"
 		android:focusable="true"
 		android:focusableInTouchMode="true" android:scrollHorizontally="true"
-		android:textColor="#FFFFFF"></TextView>
+		android:textColor="#FFFFFF"
+		android:layout_toRightOf="@id/ShareButton"
+		></TextView>
+		
 	<RelativeLayout android:id="@+id/ButtonHolder"
 		android:layout_centerHorizontal="true" android:layout_height="wrap_content"
 		android:layout_width="wrap_content" android:layout_below="@id/PlayingLabelTextView"
-		android:layout_marginBottom="5dip">
+		android:layout_marginBottom="5dip"
+		android:layout_toRightOf="@id/ShareButton">
+		
 		<Button android:id="@+id/PrevButton" android:background="@drawable/backbutton"
 			android:layout_width="50dip" android:layout_height="50dip"
 			android:layout_alignParentLeft="true" android:layout_marginLeft="5dip"
@@ -38,7 +53,8 @@
 			android:layout_below="@id/ButtonHolder"
 			android:layout_width="match_parent" android:layout_height="wrap_content"
 			android:orientation="vertical"
-			android:stretchColumns="1">
+			android:stretchColumns="1"
+			android:layout_marginTop="5dip">
 <TableRow android:gravity="center_vertical">
 	<TextView android:id="@+id/TimeCurrent" android:layout_height="30dip"
 		android:layout_width="wrap_content" android:text="0:00"
@@ -63,7 +79,7 @@
 	<com.code.android.vibevault.DraggableListView
 		android:id="@+id/PlayListListView" android:layout_width="wrap_content"
 		android:layout_height="fill_parent" android:layout_below="@id/ProgressBarNowPlayingScreen"
-		android:paddingBottom="32dip" />
+		android:paddingBottom="32dip" android:dividerHeight="2dip" />
 
 	<SlidingDrawer android:id="@+id/SlidingDrawerNowPlayingScreen"
 		android:handle="@+id/HandleTextView" android:content="@+id/ContentRelativeLayoutNowPlayingScreen"
@@ -79,7 +95,7 @@
 		</TextView>
 		<RelativeLayout android:id="@+id/ContentRelativeLayoutNowPlayingScreen"
 			android:layout_width="match_parent" android:layout_height="wrap_content"
-			android:orientation="vertical" android:background="#111111"
+			android:orientation="vertical" android:background="#000000"
 			android:stretchColumns="1">
 			<TextView android:id="@+id/PlayListLabel"
 				android:layout_width="fill_parent" android:layout_height="wrap_content"
@@ -90,6 +106,8 @@
 				android:layout_width="wrap_content" android:layout_height="wrap_content"
 				android:drawableLeft="@drawable/playlistaddbutton"
 				android:text="Save As"
+				android:background="@drawable/custombutton"
+				android:textColor="#FFFFFF"
 				android:gravity="center"
 				android:drawablePadding="1dip"
 				android:layout_below="@id/PlayListLabel"
@@ -100,21 +118,29 @@
 				android:text="Save"
 				android:gravity="center"
 				android:drawablePadding="1dip"
+				android:background="@drawable/custombutton"
+				android:textColor="#FFFFFF"
+				android:padding="5dip"
 				android:layout_below="@id/PlayListLabel"
 				android:layout_toRightOf="@id/SaveAsButton"
 				/>
 			<Button android:id="@+id/RemoveButton"
 				android:layout_width="wrap_content" android:layout_height="wrap_content"
-				android:drawableLeft="@drawable/playlistdeletebutton"
+				android:drawableLeft="@drawable/clearbutton"
 				android:text="Delete"
 				android:gravity="center"
+				android:background="@drawable/custombutton"
+				android:textColor="#FFFFFF"
 				android:drawablePadding="1dip"
+				android:padding="5dip"
 				android:layout_below="@id/PlayListLabel"
-				android:layout_alignParentRight="true"/>
+				android:layout_toRightOf="@id/SaveButton"/>
 			<Spinner android:id="@+id/PlayListSpinner" android:layout_width="fill_parent"
 				android:layout_height="50dip"
-				 android:paddingLeft="15dip"
+				android:paddingTop="5dip"
+				android:paddingLeft="15dip"
 				android:paddingRight="15dip"
+				android:padding="5dip"
 				android:layout_below="@id/SaveButton"/>
 		</RelativeLayout>
 	</SlidingDrawer>

@@ -1,6 +1,6 @@
 /*
  * ActiveDownloadScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -37,7 +37,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -57,8 +56,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import com.code.android.vibevault.R;
 
 public class ActiveDownloadScreen extends Activity {
-
-	private static final String LOG_TAG = ActiveDownloadScreen.class.getName();
 	
 	private DownloadService dService = null;
 	private ListView downloadList;
@@ -124,7 +121,7 @@ public class ActiveDownloadScreen extends Activity {
 			case R.id.clearDownloadedSongs:
 				dService.clearDownloaded();
 				refreshDownloadList();
-				break;
+				return true;
 			case R.id.scrollableDialog:
 				AlertDialog.Builder ad = new AlertDialog.Builder(this);
 				ad.setTitle("Help!");
@@ -136,8 +133,10 @@ public class ActiveDownloadScreen extends Activity {
 				});
 				ad.setView(v);
 				ad.show();
+				return true;
+			default: 
+				return false;
 		}
-		return true;
 	}
 	
 	@Override

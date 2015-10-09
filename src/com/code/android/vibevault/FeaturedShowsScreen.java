@@ -1,6 +1,6 @@
 /*
  * FeaturedShowsScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -117,6 +117,7 @@ public class FeaturedShowsScreen extends Activity {
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
 				menu.add(Menu.NONE, VibeVault.EMAIL_LINK, Menu.NONE, "Email Link to Show");
+				menu.add(Menu.NONE, VibeVault.ADD_TO_FAVORITE_LIST, Menu.NONE, "Bookmark Show");
 			}
 		});
 		
@@ -215,6 +216,9 @@ public class FeaturedShowsScreen extends Activity {
 				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nYou should listen to " + selShow.getArtistAndTitle() + ".  You can find it here: " + selShow.getShowURL() + "\n\nSent using VibeVault for Android.");
 				startActivity(Intent.createChooser(emailIntent, "Send mail..."));
 				return true;
+			case(VibeVault.ADD_TO_FAVORITE_LIST):
+				VibeVault.db.insertFavoriteShow(selShow);
+				return true;
 			default:
 				break;
 			}
@@ -247,13 +251,11 @@ public class FeaturedShowsScreen extends Activity {
 			TextView artistText = (TextView) convertView.findViewById(R.id.ArtistText);
 			TextView showText = (TextView) convertView.findViewById(R.id.ShowText);
 			ImageView ratingsIcon = (ImageView) convertView.findViewById(R.id.rating);
-			TextView showInfoText = (TextView) convertView.findViewById(R.id.ShowInfoText);
 			if (show != null) {
 				artistText.setText(show.getShowArtist());
 				artistText.setSelected(true);
 				showText.setText(show.getShowTitle());
 				showText.setSelected(true);
-				showInfoText.setText(show.getSource());
 				switch ((int) show.getRating()) {
 				case 1:
 					ratingsIcon.setImageDrawable(getBaseContext().getResources().getDrawable(R.drawable.star1));
@@ -370,7 +372,7 @@ public class FeaturedShowsScreen extends Activity {
 				int numItems = docsArray.length();
 				for (int i = 0; i < numItems; i++) {
 					JSONObject songObject = docsArray.getJSONObject(i);
-					VibeVault.featuredShows.add(VibeVault.featuredShows.size(),new ArchiveShowObj(songObject.optString("title"), songObject.optString("identifier"), songObject.optString("date"), songObject.optDouble("avg_rating"), songObject.optString("format"), songObject.optString("show_info")));
+					VibeVault.featuredShows.add(VibeVault.featuredShows.size(),new ArchiveShowObj(songObject.optString("title"), songObject.optString("identifier"), songObject.optString("date"), songObject.optDouble("avg_rating"), songObject.optString("format"), songObject.optString("source")));
 				}
 				// If this isn't the first time you are fetching the information, it is coming from
 				// the list of more featured shows, so you need to pop the top show because you just got it.

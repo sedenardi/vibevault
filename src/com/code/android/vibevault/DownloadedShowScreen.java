@@ -1,6 +1,6 @@
 /*
  * ADownloadedShowScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -100,6 +100,9 @@ public class DownloadedShowScreen extends Activity {
 		// the songs to the playlist.
 		Cursor cur = VibeVault.db.getSongsFromShow(show.getIdentifier());
 		cur.moveToFirst();
+		if(pService == null){
+			attachToPlaybackService();
+		}
 		while (!cur.isAfterLast()) {
 			ArchiveSongObj song = new ArchiveSongObj(cur.getString(cur.getColumnIndex(DataStore.SONG_TITLE)), 
 					cur.getString(cur.getColumnIndex(DataStore.SONG_FILENAME)), 
@@ -131,15 +134,14 @@ public class DownloadedShowScreen extends Activity {
 			switch(item.getItemId()){
 			case (VibeVault.ADD_SONG_TO_QUEUE):
 				pService.enqueue(selSong);
-				break;
+				return true;
 			case (VibeVault.DELETE_SONG):
 				DeletionTask task = new DeletionTask();
 				task.execute(selSong);
-				break;
+				return true;
 			default:
 				return false;
 			}
-			return true;
 		}
 		return false;
 	}
@@ -158,12 +160,12 @@ public class DownloadedShowScreen extends Activity {
 				Intent i = new Intent(DownloadedShowScreen.this, NowPlayingScreen.class);
 				
 				startActivity(i);
-				break;
+				return true;
 			case R.id.recentShows:
 				Intent rs = new Intent(DownloadedShowScreen.this, RecentShowsScreen.class);
 				
 				startActivity(rs);
-				break;
+				return true;
 			case R.id.deleteShow:
 				Cursor c = VibeVault.db.getSongsFromShow(show.getIdentifier());
 				int numSongs = c.getCount();
@@ -177,7 +179,7 @@ public class DownloadedShowScreen extends Activity {
 				c.close();
 				DeletionTask task = new DeletionTask();
 				task.execute(songs.toArray(new ArchiveSongObj[0]));
-				break;
+				return true;
 			case R.id.scrollableDialog:
 				AlertDialog.Builder ad = new AlertDialog.Builder(this);
 				ad.setTitle("Help!");
@@ -189,11 +191,10 @@ public class DownloadedShowScreen extends Activity {
 				});
 				ad.setView(v);
 				ad.show();
-				break;
+				return true;
 			default:
-				break;
+				return false;
 		}
-		return true;
 	}
 	
 	@Override

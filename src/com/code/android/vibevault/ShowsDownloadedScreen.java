@@ -1,6 +1,6 @@
 /*
  * ShowsDownloadedScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -87,6 +87,7 @@ public class ShowsDownloadedScreen extends Activity {
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
 				menu.add(Menu.NONE, VibeVault.DELETE_SHOW, Menu.NONE, "Delete Show");
+				menu.add(Menu.NONE, VibeVault.ADD_TO_FAVORITE_LIST, Menu.NONE, "Bookmark Show");
 			}
 		});
 		refreshShowList();
@@ -112,11 +113,13 @@ public class ShowsDownloadedScreen extends Activity {
 				DeletionTask task = new DeletionTask();
 				task.execute(songs.toArray(new ArchiveSongObj[0]));
 				refreshShowList();
-				break;
+				return true;
+			case(VibeVault.ADD_TO_FAVORITE_LIST):
+				VibeVault.db.insertFavoriteShow(selShow);
+				return true;
 			default:
 				return false;
 			}
-			return true;
 		}
 		return false;
 	}

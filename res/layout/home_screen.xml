@@ -7,14 +7,12 @@
 	<TextView
 		android:id="@+id/HomeHeader"
 		android:textSize="30dip"
-		android:gravity="center"
-		android:text="Vibe Vault V2.0"
+		android:gravity="center_horizontal"
+		android:layout_alignParentTop="true"
+		android:text="Vibe Vault v3"
 		android:textColor="#127DD4"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_weight="1"
-		android:layout_alignParentTop="true"
-		/>
+		android:layout_height="wrap_content"/>
 			<ImageButton
 		android:id="@+id/HomeSearch"
 		android:layout_width="110dip"

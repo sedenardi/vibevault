@@ -41,6 +41,8 @@ public class DraggableListView extends ListView {
 	private final int mTouchSlop;
 	private int dragndropBackgroundColor=0x00000000;
 	private int heightOnThisDevice;
+	public int firstVisible = 0;
+	public int lastVisible = 0;
 
 	public DraggableListView(Context context, AttributeSet attrs) {
 		this(context, attrs, 0);
@@ -318,6 +320,7 @@ public class DraggableListView extends ListView {
 	
 	private void startDragging(Bitmap bm, int y) {
 			stopDragging();
+			
 
 			mWindowParams = new WindowManager.LayoutParams();
 			mWindowParams.gravity = Gravity.TOP;
@@ -365,6 +368,8 @@ public class DraggableListView extends ListView {
 	}
 	
 	private void stopDragging() {
+		firstVisible = this.getFirstVisiblePosition();
+		lastVisible = this.getLastVisiblePosition();
 			if (mDragView != null) {
 					WindowManager wm = (WindowManager)getContext().getSystemService("window");
 					wm.removeView(mDragView);
@@ -375,6 +380,7 @@ public class DraggableListView extends ListView {
 					mDragBitmap.recycle();
 					mDragBitmap = null;
 			}
+			
 	}
 	
 	public void setDragListener(DragListener l) {

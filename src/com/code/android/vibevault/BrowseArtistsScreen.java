@@ -1,6 +1,6 @@
 /*
  * BrowseArtistsScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -27,7 +27,6 @@ package com.code.android.vibevault;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -60,14 +59,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.ExpandableListView.OnGroupClickListener;
 
@@ -124,7 +119,6 @@ public class BrowseArtistsScreen extends Activity {
 			@Override
 			public boolean onChildClick(ExpandableListView parent, View v,
 					int groupPosition, int childPosition, long id) {
-				
 				String s = alphaArtistsList.get(groupPosition).get(childPosition).get("artist");
 				Intent i = new Intent(BrowseArtistsScreen.this, SearchScreen.class);
 				i.putExtra("Requester", "BROWSE_CONSTANT");
@@ -158,10 +152,8 @@ public class BrowseArtistsScreen extends Activity {
 				VibeVault.workerTask.execute();
 				isDownloading = true;
 			} else if(VibeVault.workerTask.getStatus().equals(AsyncTask.Status.RUNNING)){
-				
 				isDownloading = false;
 			} else{
-				
 				VibeVault.workerTask = new ParseArtistsPageTask();
 				VibeVault.workerTask.execute();
 				isDownloading = true;
@@ -280,7 +272,6 @@ public class BrowseArtistsScreen extends Activity {
 		public void onReceive(Context context, Intent intent) {
 			String duration = intent.getStringExtra("progress");
 			statusTextView.setText(duration);
-			
 			if(finished || duration.equals("All done.")){
 				statusTextView.setVisibility(View.GONE);
 				statusProgressBar.setVisibility(View.GONE);

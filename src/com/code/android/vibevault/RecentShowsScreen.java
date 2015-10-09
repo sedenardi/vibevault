@@ -1,6 +1,6 @@
 /*
  * RecentShowsScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -30,7 +30,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -47,8 +46,6 @@ import com.code.android.vibevault.R;
 
 public class RecentShowsScreen extends Activity {
 	
-	private static final String LOG_TAG = RecentShowsScreen.class.getName();
-
 	private ListView showList;
 	
 	@Override
@@ -69,6 +66,7 @@ public class RecentShowsScreen extends Activity {
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
 				menu.add(Menu.NONE, VibeVault.REMOVE_FROM_RECENT_LIST, Menu.NONE, "Remove Show");
 				menu.add(Menu.NONE, VibeVault.EMAIL_LINK, Menu.NONE, "Email Link to Show");
+				menu.add(Menu.NONE, VibeVault.ADD_TO_FAVORITE_LIST, Menu.NONE, "Bookmark Show");
 				}
 		});
 		refreshShowList();
@@ -94,19 +92,23 @@ public class RecentShowsScreen extends Activity {
 	public boolean onContextItemSelected(MenuItem item){
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo)item.getMenuInfo();
 		if(menuInfo!=null){
+			ArchiveShowObj show = VibeVault.db.getShow(menuInfo.id);
 			switch(item.getItemId()){
 			case(VibeVault.REMOVE_FROM_RECENT_LIST):
 				VibeVault.db.deleteRecentShow(menuInfo.id);
 				refreshShowList();
-				break;
+				return true;
 			case (VibeVault.EMAIL_LINK):
 				final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
 				emailIntent.setType("plain/text");
-				ArchiveShowObj show = VibeVault.db.getShow(menuInfo.id);
 				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Great show on archive.org: " + show.getArtistAndTitle());
 				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nYou should listen to " + show.getArtistAndTitle() + ".  You can find it here: " + show.getShowURL() + "\n\nSent using VibeVault for Android.");
 				startActivity(Intent.createChooser(emailIntent, "Send mail..."));
-				break;
+				return true;
+			case(VibeVault.ADD_TO_FAVORITE_LIST):
+				show = VibeVault.db.getShow(menuInfo.id);
+				VibeVault.db.insertFavoriteShow(show);
+				return true;
 			default:
 				return false;
 			}
@@ -129,7 +131,7 @@ public class RecentShowsScreen extends Activity {
 				
 				startActivity(np);
 				break;
-			case R.id.clearRecentShows:
+			case R.id.clearShows:
 				VibeVault.db.clearRecentShows();
 				refreshShowList();
 				break;

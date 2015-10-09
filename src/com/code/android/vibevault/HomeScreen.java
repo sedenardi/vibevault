@@ -1,6 +1,6 @@
 /*
  * HomeScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -54,7 +54,7 @@ public class HomeScreen extends Activity {
 	private ImageButton downloadButton;
 	private ImageButton playingButton;
 //	private Button settingsButton;
-	private ImageButton recentShowsButton;
+	private ImageButton featuredShowsButton;
 	private ImageButton browseArtistsButton;
 	
 	private InitTask workerTask;
@@ -88,7 +88,7 @@ public class HomeScreen extends Activity {
 		recentButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Intent i = new Intent(HomeScreen.this, RecentShowsScreen.class);
+				Intent i = new Intent(HomeScreen.this, StoredShowTabs.class);
 				startActivity(i);
 			}
 		});
@@ -116,11 +116,11 @@ public class HomeScreen extends Activity {
 //				//startActivity(i);
 //			}
 //		});
-		recentShowsButton = (ImageButton) findViewById(R.id.HomeFeatured);
-		recentShowsButton.setOnClickListener(new OnClickListener() {
+		featuredShowsButton = (ImageButton) findViewById(R.id.HomeFeatured);
+		featuredShowsButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Intent i = new Intent(HomeScreen.this, FeaturedShowsScreen.class);
+				Intent i = new Intent(HomeScreen.this, VoteTabs.class);
 				startActivity(i);
 			}
 		});
@@ -137,6 +137,20 @@ public class HomeScreen extends Activity {
 		if(VibeVault.db.needsUpgrade){
 			workerTask = new InitTask(this);
 			workerTask.execute();
+		} else{
+			if(!Boolean.parseBoolean(VibeVault.db.getPref("splashShown"))){
+				AlertDialog.Builder ad = new AlertDialog.Builder(this);
+				ad.setTitle("Welcome!");
+				View v = LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
+				((TextView) v.findViewById(R.id.DialogText)).setText(R.string.splash_screen);
+				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int arg1) {
+					}
+				});
+				ad.setView(v);
+				ad.show();
+				VibeVault.db.updatePref("splashShown", "true");
+			}
 		}
 	}
 	
@@ -281,6 +295,19 @@ public class HomeScreen extends Activity {
 				e.printStackTrace();
 			}
 			
+		}
+		if(!Boolean.parseBoolean(VibeVault.db.getPref("splashShown"))){
+			AlertDialog.Builder ad = new AlertDialog.Builder(this);
+			ad.setTitle("Welcome!");
+			View v = LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
+			((TextView) v.findViewById(R.id.DialogText)).setText(R.string.splash_screen);
+			ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int arg1) {
+				}
+			});
+			ad.setView(v);
+			ad.show();
+			VibeVault.db.updatePref("splashShown", "true");
 		}
 	}
 }

@@ -63,6 +63,27 @@
         android:paddingRight="15dip"
         android:textSize="20dip"
     />
+    			<TextView android:id="@+id/SearchLabel"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_below="@id/SortSpinner"
+			android:layout_alignParentLeft="true"
+			android:paddingTop="15dip"
+			android:paddingLeft="15dip"
+			android:textSize="16dip"
+			android:textStyle="bold"
+			android:textColor="#127DD4"
+			android:text="Search What:">
+			</TextView>
+    <Spinner 
+        android:id="@+id/SearchSpinner"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/SearchLabel"
+        android:paddingLeft="15dip"
+        android:paddingRight="15dip"
+        android:textSize="20dip"
+    />
 		
 	</RelativeLayout>
 </ScrollView>

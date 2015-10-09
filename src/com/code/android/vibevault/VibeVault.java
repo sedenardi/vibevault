@@ -1,6 +1,6 @@
 /*
  * ArchiveApp.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -26,10 +26,14 @@ package com.code.android.vibevault;
 
 import java.util.ArrayList;
 
+import oauth.signpost.OAuthProvider;
+import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+
 import com.code.android.vibevault.BrowseArtistsScreen.ParseArtistsPageTask;
+import com.facebook.android.AsyncFacebookRunner;
+import com.facebook.android.Facebook;
 
 import android.app.Application;
-import android.util.Log;
 
 public class VibeVault extends Application {
 
@@ -60,6 +64,9 @@ public class VibeVault extends Application {
 	public static final int DELETE_SONG = 16;
 	public static final int DELETE_SHOW = 17;
 	public static final int FETCHING_ARTISTS_ID = 18;
+	public static final int REMOVE_FROM_FAVORITE_LIST = 19;
+	public static final int ADD_TO_FAVORITE_LIST = 20;
+	public static final int RETRIEVING_VOTED_DIALOG_ID = 21;
 	
 	/* Default number of objects to return in a JSON query for a show. */
 	public static final int DEFAULT_SHOW_SEARCH_NUM = 10;
@@ -67,21 +74,34 @@ public class VibeVault extends Application {
 	public static final String APP_DIRECTORY = "/archiveApp/";
 	//public static final String DOWNLOAD_PATH = "/archiveApp/";
 	
-	public static String generalSearchText;
 	public static String artistSearchText;
 	public static int dateSearchModifierPos;
-	public static int monthSearchInt;
-	public static int yearSearchInt;
+	public static int yearSearchInt = -1;
 	public static ArrayList<ArchiveShowObj> searchResults;
 	public static ArchivePlaylistObj playList;
 	public static ArrayList<ArchiveSongObj> downloadSongs;
 	public static int nowPlayingPosition = 0;
 	public static int nowDownloadingPosition = 0;
 	public static final String sortChoices[] = {"Date", "Rating"};
+	public static final String searchChoices[] = {"Show/Artist Description", "Artist"};
+	public static final String showResultTypes[] = 
+	{"Top All Time Shows","Top Daily Shows","Top Weekly Shows","Newly Added Shows"};
+	public static final String artistResultTypes[] = 
+	{"Top All Time Artists","Top Daily Artists","Top Weekly Artists","Newly Added Artists"};
+	public static final String showsByArtistResultTypes[] = 
+	{"Top All Time Shows","Top Daily Shows","Top Weekly Shows","Newly Added Shows"};
+	public static String searchPref = "Artist";
 	public static ArrayList<ArchiveShowObj> featuredShows;
 	public static ArrayList<String> moreFeaturedShows;
 	public static ArrayList<ArchivePlaylistObj> savedPlayLists;
 	//public static ArrayList<ArchiveShowObj> downloadedShows;
+	public static Facebook mFacebook;
+	public static AsyncFacebookRunner mAsyncRunner;
+	public static String OAuth_Token_Secret = null;
+	public static String OAuth_Token = null;
+	public static OAuthProvider provider;
+	public static CommonsHttpOAuthConsumer consumer;
+
 
 	public static ParseArtistsPageTask workerTask;
 
@@ -91,10 +111,8 @@ public class VibeVault extends Application {
 	public void onCreate() {
 		
 		super.onCreate();
-		generalSearchText = "";
 		artistSearchText = "";
 		dateSearchModifierPos = 2;
-		monthSearchInt = -1;
 		yearSearchInt = -1;
 		searchResults = new ArrayList<ArchiveShowObj>();
 		playList = new ArchivePlaylistObj();

@@ -28,23 +28,17 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnInfoListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-
 import com.code.android.vibevault.VibeVault;
 
 public class PlaybackService extends Service implements OnPreparedListener,
     OnBufferingUpdateListener, OnCompletionListener, OnErrorListener,
     OnInfoListener {
-
-  private static final String LOG_TAG = PlaybackService.class.getName();
-
   private static final String SERVICE_PREFIX = "com.code.android.vibevault.";
   public static final String SERVICE_CHANGE_NAME = SERVICE_PREFIX + "CHANGE";
   public static final String SERVICE_PLAYLIST_NAME = SERVICE_PREFIX + "PLAYLIST";
@@ -64,7 +58,6 @@ public class PlaybackService extends Service implements OnPreparedListener,
   private boolean isPaused = false;
   private boolean isStreaming = true;
 
-  private StreamProxy proxy;
   private NotificationManager notificationManager;
   private static final int NOTIFICATION_ID = 1;
   private int bindCount = 0;
@@ -76,6 +69,8 @@ public class PlaybackService extends Service implements OnPreparedListener,
   private Intent lastUpdateBroadcast;
   private int lastBufferPercent = 0;
   private Thread updateProgressThread;
+  
+  private FileInputStream fis;
 
   // Amount of time to rewind playback when resuming after call 
   private final static int RESUME_REWIND_TIME = 3000;
@@ -90,7 +85,7 @@ public class PlaybackService extends Service implements OnPreparedListener,
     mediaPlayer.setOnPreparedListener(this);
     notificationManager = (NotificationManager) getSystemService(
         Context.NOTIFICATION_SERVICE);
-    Log.w(LOG_TAG, "Playback service created");
+    
 
     telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
     // Create a PhoneStateListener to watch for offhook and idle events
@@ -134,7 +129,7 @@ public class PlaybackService extends Service implements OnPreparedListener,
     bindCount--;
     
     if (!isPlaying() && bindCount == 0 && !isPreparing && VibeVault.playList.isEmpty()) {
-      Log.w(LOG_TAG, "Will stop self");
+      
       stopSelf();
     } else {
       
@@ -179,11 +174,17 @@ public class PlaybackService extends Service implements OnPreparedListener,
       mediaPlayer.seekTo(pos);
     }
   }
+  
+  public boolean isThisSongPlaying(ArchiveSongObj song){
+	  if(currentSong != null){
+		  return currentSong.equals(song);
+	  } else{
+		  return false;
+	  }
+  }
 
   synchronized public void play() {
-    if (!isPrepared || currentSong == null) {
-      Log.e(LOG_TAG, "play - not prepared");
-      
+    if (!isPrepared || currentSong == null) {      
       return;
     }
     isPaused = false;
@@ -255,13 +256,11 @@ public class PlaybackService extends Service implements OnPreparedListener,
 
   synchronized public void stop() {
     
-    if (isPrepared) {
-      if (proxy != null) {
-        proxy.stop();
-        proxy = null;
-      }
+    if (isPrepared || isPreparing) {
       mediaPlayer.stop();
+      mediaPlayer.reset();
       isPrepared = false;
+      isPreparing = false;
     }
     sendLastChangeBroadcast();
     updateProgress();
@@ -395,11 +394,6 @@ public class PlaybackService extends Service implements OnPreparedListener,
     // From 2.2 on (SDK ver 8), the local mediaplayer can handle Shoutcast
     // streams natively. Let's detect that, and not proxy.
     
-    int sdkVersion = 0;
-    try {
-      sdkVersion = Integer.parseInt(Build.VERSION.SDK);
-    } catch (NumberFormatException e) {
-    }
 
     /*if (stream && sdkVersion < 8) {
       if (proxy == null) {
@@ -415,8 +409,14 @@ public class PlaybackService extends Service implements OnPreparedListener,
     synchronized (this) {
       
       mediaPlayer.reset();
-      mediaPlayer.setDataSource(playUrl);
-      mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+      if(!stream){
+    	  fis = new FileInputStream(playUrl);
+    	  mediaPlayer.setDataSource(fis.getFD());
+      }
+      else{
+    	  mediaPlayer.setDataSource(playUrl);
+      }
+   	  mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
       
       isPreparing = true;
       mediaPlayer.prepareAsync();
@@ -460,14 +460,13 @@ public class PlaybackService extends Service implements OnPreparedListener,
   @Override
   public void onDestroy() {
     super.onDestroy();
-    Log.w(LOG_TAG, "Service exiting");
+    
 
     if (updateProgressThread != null) {
       updateProgressThread.interrupt();
       try {
         updateProgressThread.join(3000);
       } catch (InterruptedException e) {
-        Log.e(LOG_TAG, "", e);
       }
     }
 
@@ -527,34 +526,31 @@ public class PlaybackService extends Service implements OnPreparedListener,
   
   @Override
   public void onCompletion(MediaPlayer mp) {
-    Log.w(LOG_TAG, "onComplete()");
+    
 
     synchronized (this) {
       if (!isPrepared) {
         // This file was not good and MediaPlayer quit
-        Log.w(LOG_TAG,
-            "MediaPlayer refused to play current item. Bailing on prepare.");
       }
     }
 
     cleanup();
-    
-    playNext();
-    
+    if(isPrepared){
+    	playNext();
+    }
     if (bindCount == 0 && !isPlaying() && !isPreparing && VibeVault.playList.isEmpty()) {
-        Log.w(LOG_TAG, "Stopping Service stopSelf()");
+        
       stopSelf();
+      mediaPlayer.release();
     }
   }
 
   @Override
   public boolean onError(MediaPlayer mp, int what, int extra) {
-    Log.w(LOG_TAG, "onError(" + what + ", " + extra + ")");
+    
     synchronized (this) {
       if (!isPrepared) {
         // This file was not good and MediaPlayer quit
-        Log.w(LOG_TAG,
-            "MediaPlayer refused to play current item. Bailing on prepare.");
       }
     }
     return false;
@@ -562,7 +558,7 @@ public class PlaybackService extends Service implements OnPreparedListener,
 
   @Override
   public boolean onInfo(MediaPlayer arg0, int arg1, int arg2) {
-    Log.w(LOG_TAG, "onInfo(" + arg1 + ", " + arg2 + ")");
+    
     return false;
   }
 

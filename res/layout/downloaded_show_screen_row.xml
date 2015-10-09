@@ -10,7 +10,6 @@
         android:layout_weight="1"
         android:textSize="18dip"
         android:textColor="#FFFFFF"
-        android:textStyle="bold"
         android:gravity="center_vertical"
 		android:ellipsize="marquee"
 		android:marqueeRepeatLimit="marquee_forever"

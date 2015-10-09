@@ -13,7 +13,6 @@
             android:maxLines="1"
             android:textSize="18dip"
             android:textColor="#FFFFFF"
-            android:textStyle="bold"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
             android:lines="1"

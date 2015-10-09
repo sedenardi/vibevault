@@ -1,6 +1,6 @@
 /*
  * DataStore.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -45,7 +45,7 @@ public class DataStore extends SQLiteOpenHelper {
 	
 	private static final String DB_NAME = "archivedb";
 	private static String DB_PATH;
-	private static final int DB_VERSION = 9;
+	private static final int DB_VERSION = 14;
 
 	public static final String PREF_TBL = "prefsTbl";
 	public static final String PREF_KEY = "_id";
@@ -80,9 +80,14 @@ public class DataStore extends SQLiteOpenHelper {
 	public static final String PLAYLISTSONG_KEY = "_id";
 	public static final String PLAYLISTSONG_PLAYLIST_KEY = "playlist_id";
 	public static final String PLAYLISTSONG_SONG_KEY = "song_id";
+	
+	public static final String FAVORITE_TBL = "favoriteShowsTbl";
+	public static final String FAVORITE_KEY = "_id";
+	public static final String FAVORITE_SHOW_KEY = "show_id";
 
 	public static final String RECENT_SHOW_VW = "recentShowsVw";
 	public static final String DOWNLOADED_SHOW_VW = "downloadedShowsVw";
+	public static final String FAVORITE_SHOW_VW = "favoriteShowsVw";
 
 	public boolean needsUpgrade = false;
 
@@ -206,18 +211,39 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public String getPref(String pref_name) {
-		Cursor cur = db.rawQuery("SELECT prefValue FROM prefsTbl " 
+		try{
+			Cursor cur = db.rawQuery("SELECT prefValue FROM prefsTbl " 
 				+ "WHERE prefName = '" + sanitize(pref_name) + "'", null);
-		if (cur != null) {
-			cur.moveToFirst();
-			String retString = cur.getString(cur.getColumnIndex(PREF_VALUE));
-			cur.close();
-			return retString;
+			if (cur != null) {
+				cur.moveToFirst();
+				String retString = cur.getString(cur.getColumnIndex(PREF_VALUE));
+				cur.close();
+				return retString;
+			}
+		} catch (SQLiteException e){
+			rebuildPrefsTbl();
+			return getPref(pref_name);
 		}
 		return "NULL";
 	}
+	
+	private void rebuildPrefsTbl(){
+		db.execSQL("DROP TABLE IF EXISTS prefsTbl");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'downloadFormat','VBR'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'downloadPath','/archiveApp/'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'numResults','10'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'streamFormat','VBR'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'sortOrder','Date'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'artistUpdate','2010-01-01'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'splashShown','false'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'userId','0'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'artistResultType','Top All Time Artists'");
+		db.execSQL("Insert into prefsTbl(prefName,prefValue) Select 'showResultType','Top All Time Shows'");
+		db.execSQL("INSERT INTO prefsTbl(prefName,prefValue) Select 'showsByArtistResultType','Top All Time Shows'");
+	}
 
 	public void updatePref(String pref_name, String pref_value) {
+		
 		db.execSQL("UPDATE prefsTbl SET prefValue = '"
 				+ sanitize(pref_value) + "' WHERE prefName = '"
 				+ sanitize(pref_name) + "'");
@@ -242,27 +268,7 @@ public class DataStore extends SQLiteOpenHelper {
 				+ "' "
 				+ "WHERE NOT EXISTS (SELECT 1 FROM showTbl show WHERE show.showIdent = '"
 				+ show.getIdentifier() + "')");
-		/*
-		 * boolean dupe = showExists(show.getIdentifier()); if(!dupe){
-		 * ContentValues value = new ContentValues(); value.put(SHOW_IDENT,
-		 * show.getIdentifier()); value.put(SHOW_TITLE, show.getShowTitle());
-		 * value.put(SHOW_ARTIST, show.getShowArtist()); value.put(SHOW_SOURCE,
-		 * show.getShowSource()); value.put(SHOW_HASVBR, show.hasVBR());
-		 * value.put(SHOW_HASLBR, show.hasLBR()); long row = db.insert(SHOW_TBL,
-		 * null, value); Log.d(LOG_TAG,
-		 * "insertShow() - Inserting show [" + row + "," + show.getIdentifier()
-		 * + "," + show.getArtistAndTitle() + "," + show.hasVBR() + "," +
-		 * show.hasLBR() + "]"); } else{ Log.d(LOG_TAG,
-		 * "insertShow() - Show exists"); }
-		 */
 	}
-
-	/*
-	 * public boolean showExists(String show_ident){ Cursor cur =
-	 * db.query(SHOW_TBL, new String[]{SHOW_IDENT}, SHOW_IDENT + "='" +
-	 * show_ident + "'", null, null, null, null); int results = cur.getCount();
-	 * cur.close(); return results > 0; }
-	 */
 
 	public void insertRecentShow(ArchiveShowObj show) {
 		insertShow(show);
@@ -531,8 +537,22 @@ public class DataStore extends SQLiteOpenHelper {
 	
 	//Returns cursor of all playlists (_id,playlistName)
 	public Cursor getAllPlaylists(){
-		return db.rawQuery("SELECT * FROM playlistTbl " +
+		try{
+			return db.rawQuery("SELECT * FROM playlistTbl " +
 				"ORDER BY _id", null);
+		} catch (SQLiteException e){
+			createPlaylistTbl();
+			return getAllPlaylists();
+		}
+	}
+	
+	private void createPlaylistTbl(){
+		db.execSQL("DROP TABLE IF EXISTS playlistTbl");
+		db.execSQL("INSERT INTO playlistTbl(_id,playlistName) " +
+			"SELECT 1,'Now Playing'");
+		db.execSQL("DROP TABLE IF EXISTS playlistSongsTbl");
+		db.execSQL("CREATE TABLE playlistSongsTbl (_id INTEGER PRIMARY KEY, " +
+				"playlist_id INTEGER, song_id INTEGER, trackNum INTEGER");
 	}
 	
 	//Deletes specific song from playlist
@@ -670,6 +690,50 @@ public class DataStore extends SQLiteOpenHelper {
 	 * db.delete(SONG_TBL, SONG_SHOW_KEY + "='" + show_ident + "' AND " +
 	 * SONG_FILENAME + "='" + fileName + "'", null); }
 	 */
+	
+	public void insertFavoriteShow(ArchiveShowObj show) {
+		insertShow(show);
+		db.execSQL("INSERT INTO favoriteShowsTbl(show_id) "
+				+ "SELECT show._id "
+				+ "FROM showTbl show "
+				+ "WHERE show.showIdent = '"
+				+ show.getIdentifier()
+				+ "' "
+				+ "AND NOT EXISTS (SELECT 1 FROM favoriteShowsVw fav WHERE fav.showIdent = '"
+				+ show.getIdentifier() + "')");
+	}
+
+	public Cursor getFavoriteShows() {
+		
+		/*
+		 * return db.query(RECENT_TBL, new String[] { SHOW_KEY, SHOW_IDENT,
+		 * SHOW_TITLE, SHOW_HASVBR, SHOW_HASLBR }, null, null, null, null,
+		 * null);
+		 */
+		return db.rawQuery("SELECT * FROM " + FAVORITE_SHOW_VW, null);
+	}
+
+	public void deleteFavoriteShow(long show_id) {
+		
+		db.execSQL("DELETE FROM favoriteShowsTbl WHERE show_id=" + show_id);
+	}
+
+	public void clearFavoriteShows() {
+		
+		db.execSQL("DELETE FROM favoriteShowsTbl");
+	}
+	
+	public String[] getArtistsStrings(){
+		Cursor c = db.rawQuery("SELECT artistName FROM artistTbl", null);
+		String[] artists = new String[c.getCount()];
+		int i = 0;
+        while (c.moveToNext())
+        {
+             artists[i] = c.getString(c.getColumnIndex("artistName"));
+             i++;
+         }
+        return artists;
+	}
 
 	public boolean upgradeDB() {
 		SQLiteDatabase oldDB = SQLiteDatabase.openDatabase(DB_PATH, null,
@@ -864,6 +928,25 @@ public class DataStore extends SQLiteOpenHelper {
 			oldDB.execSQL("ALTER TABLE playlistSongsTbl ADD COLUMN trackNum INTEGER");
 			oldDB.execSQL("INSERT INTO playlistTbl(_id,playlistName) " +
 				"SELECT 1,'Now Playing'");
+		case 9:
+			oldDB.execSQL("CREATE TABLE favoriteShowsTbl (_id INTEGER PRIMARY KEY, show_id INTEGER)");
+			oldDB.execSQL("CREATE VIEW favoriteShowsVw AS "
+					+ "SELECT show.* "
+					+ "FROM favoriteShowsTbl fav "
+					+ "	INNER JOIN showTbl show "
+					+ "		ON fav.show_id = show._id "
+					+ "ORDER BY fav._id DESC");
+		case 10:
+			oldDB.execSQL("INSERT INTO prefsTbl (prefName, prefValue) SELECT 'splashShown','false'");
+		case 11:
+			oldDB.execSQL("INSERT INTO prefsTbl (prefName, prefValue) SELECT 'userId','0'");
+		case 12:
+			oldDB.execSQL("INSERT INTO prefsTbl (prefName, prefValue) " +
+					"SELECT 'showResultType','Top All Time Shows' " +
+					"UNION SELECT 'artistResultType','Top All Time Artists'");
+		case 13:
+			oldDB.execSQL("INSERT INTO prefsTbl(prefName,prefValue) " +
+					"Select 'showsByArtistResultType','Top All Time Shows'");
 		}
 		return true;
 	}

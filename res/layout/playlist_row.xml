@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="bottom"
-    android:background="#00000000">
+    android:background="@drawable/rowbackground">
     <ImageView android:id="@+id/icon"
         android:layout_alignParentLeft="true"
         android:layout_width="wrap_content"
@@ -16,7 +16,6 @@
                     android:maxLines="1"
             android:textSize="18dip"
             android:textColor="#127DD4"
-            android:textStyle="bold"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
             android:lines="1"
@@ -31,7 +30,7 @@
         android:maxLines="1"
             android:textSize="16dip"
             android:textColor="#FFFFFF"
-            android:textStyle="bold"
+            android:textStyle="italic"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
             android:scrollHorizontally="true"

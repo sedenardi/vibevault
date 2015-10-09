@@ -11,7 +11,7 @@
 
 	<SlidingDrawer android:id="@+id/SlidingDrawerSearchScreen"
 		android:handle="@+id/HandleTextView" android:content="@+id/ContentRelativeLayout"
-		android:layout_width="match_parent" android:layout_height="225dip"
+		android:layout_width="match_parent" android:layout_height="175dip"
 		android:layout_alignParentBottom="true"
 		>
 		<TextView android:id="@+id/HandleTextView" android:layout_width="fill_parent"
@@ -28,56 +28,44 @@
 
 
 			
-			<EditText android:id="@+id/ArtistSearchBox"
+			<AutoCompleteTextView android:id="@+id/ArtistSearchBox"
 				android:layout_width="fill_parent" android:layout_height="50dip"
-				android:layout_alignParentTop="true" android:hint="Search Artists..."
+				android:layout_alignParentTop="true" android:hint="Search..."
 				android:maxLines="1" />
-			<EditText android:id="@+id/GeneralSearchBox" android:layout_width="fill_parent"
-				android:layout_height="50dip" android:layout_below="@id/ArtistSearchBox"
-				android:hint="Search Show Descriptions..." android:maxLines="1" />
 			<Spinner android:id = "@+id/DateSearchSpinner"
 				android:layout_width="wrap_content"
 				android:layout_height="50dip"
-				android:layout_below="@id/GeneralSearchBox"/>
-			<EditText android:id="@+id/MonthSearchBox"
-				android:inputType="number"
-				android:numeric="integer"
-				android:maxLength="2"
-				android:layout_width="wrap_content" android:layout_height="50dip"
-				android:layout_below="@id/GeneralSearchBox" android:hint="MM"
-				android:layout_toRightOf="@id/DateSearchSpinner"
-				android:maxLines="1" />
+				android:layout_below="@id/ArtistSearchBox"/>
 			<EditText android:id="@+id/YearSearchBox"
 				android:inputType="number"
 				android:numeric="integer"
 				android:maxLength="4"
 				android:layout_width="wrap_content" android:layout_height="50dip"
-				android:layout_below="@id/GeneralSearchBox" android:hint="YYYY"
-				android:layout_toRightOf="@id/MonthSearchBox"
+				android:layout_below="@id/ArtistSearchBox" android:hint="YYYY"
+				android:layout_toRightOf="@id/DateSearchSpinner"
 				android:maxLines="1" />
-				
-
 			<Button android:id="@+id/SearchButton" android:layout_width="wrap_content"
 				android:layout_height="wrap_content" android:drawableLeft="@drawable/searchbutton_plain"
+				android:text="Search" android:textColor="#FFFFFF"
+				android:background="@drawable/custombutton"
 				android:layout_below="@id/DateSearchSpinner"
-				android:gravity="center" android:drawablePadding="1dip" />
-			<Button android:id="@+id/SettingsButton" android:layout_width="wrap_content"
-				android:layout_height="wrap_content" android:drawableLeft="@drawable/settingsbutton"
-				android:layout_below="@id/DateSearchSpinner" android:layout_toRightOf="@id/SearchButton"
-				android:gravity="center"
-				android:drawablePadding="1dip" />
-			<Button android:id="@+id/SearchMoreButton"
-				android:layout_width="wrap_content" android:layout_height="wrap_content"
-				android:drawableLeft="@drawable/morebutton" android:text="More"
-				android:layout_toRightOf="@id/SettingsButton" android:layout_below="@id/DateSearchSpinner"
-				android:gravity="center"
-				android:drawablePadding="1dip" />
+				android:gravity="center" android:drawablePadding="1dip"
+				android:layout_marginRight="5dip" />
 			<Button android:id="@+id/ClearButton"
 				android:layout_width="wrap_content" android:layout_height="wrap_content"
 				android:drawableLeft="@drawable/clearbutton"
-				android:layout_toRightOf="@id/SearchMoreButton" android:layout_below="@id/DateSearchSpinner"
+				android:layout_toRightOf="@id/SearchButton" android:layout_below="@id/DateSearchSpinner"
 				android:text="Clear"
+				android:background="@drawable/custombutton"
+				android:textColor="#FFFFFF"
 				android:gravity="center"
+				android:drawablePadding="1dip" />
+			<Button android:id="@+id/SettingsButton" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:drawableLeft="@drawable/settingsbutton"
+				android:text="Settings" android:textColor="#FFFFFF"
+				android:layout_below="@id/DateSearchSpinner" android:layout_toRightOf="@id/ClearButton"
+				android:gravity="center"
+				android:background="@drawable/custombutton"
 				android:drawablePadding="1dip" />
 
 		</RelativeLayout>

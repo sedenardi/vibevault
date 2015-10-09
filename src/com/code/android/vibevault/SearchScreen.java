@@ -1,6 +1,6 @@
 /*
  * SearchScreen.java
- * VERSION 2.0
+ * VERSION 3.X
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -52,6 +52,9 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Vibrator;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextMenu;
@@ -68,12 +71,14 @@ import android.view.View.OnKeyListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.SlidingDrawer;
+import android.widget.SlidingDrawer.OnDrawerScrollListener;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -97,14 +102,12 @@ public class SearchScreen extends Activity {
 	/* SlidingDrawer Members... */
 	protected SlidingDrawer searchDrawer;
 	protected TextView handleText;
-	protected EditText generalSearchInput;
-	protected EditText artistSearchInput;
-	protected EditText monthSearchInput;
+	protected AutoCompleteTextView artistSearchInput;
 	protected EditText yearSearchInput;
 	protected Spinner dateModifierSpinner;
 	protected ArrayAdapter<CharSequence> spinnerAdapter;
 	protected Button searchButton;
-	protected Button searchMoreButton;
+	//protected Button searchMoreButton;
 	protected Button settingsButton;
 	protected Button clearButton;
 	
@@ -112,6 +115,9 @@ public class SearchScreen extends Activity {
 	
 	private JSONQueryTask workerTask;
 	private boolean dialogShown;
+	
+    private Vibrator vibrator;	
+	
 	
 	
 	/** Persist worker Thread across orientation changes.
@@ -135,6 +141,18 @@ public class SearchScreen extends Activity {
 			dialogShown = true;
 		}
 	}
+	
+	@Override
+	 public void onBackPressed() {
+		if(searchDrawer!=null&&searchDrawer.isOpened()){
+			vibrator.vibrate(25);
+			searchDrawer.close();
+			return;
+		} else{
+			super.onBackPressed();
+	         return;
+		}
+     }
 	
 	/** Dialog creation method.
 	*
@@ -161,23 +179,24 @@ public class SearchScreen extends Activity {
 		setContentView(R.layout.search_screen);
 		
 		this.searchList = (ListView) this.findViewById(R.id.ResultsListView);
-		this.generalSearchInput = (EditText) this.findViewById(R.id.GeneralSearchBox);
-		this.artistSearchInput = (EditText) this.findViewById(R.id.ArtistSearchBox);
-		this.monthSearchInput = (EditText) this.findViewById(R.id.MonthSearchBox);
+		this.artistSearchInput = (AutoCompleteTextView) this.findViewById(R.id.ArtistSearchBox);
 		this.yearSearchInput = (EditText) this.findViewById(R.id.YearSearchBox);
 		this.dateModifierSpinner = (Spinner) this.findViewById(R.id.DateSearchSpinner);
 		this.searchButton = (Button) this.findViewById(R.id.SearchButton);
 		this.settingsButton = (Button) this.findViewById(R.id.SettingsButton);
-		this.searchMoreButton = (Button) this.findViewById(R.id.SearchMoreButton);
+		//this.searchMoreButton = (Button) this.findViewById(R.id.SearchMoreButton);
 		this.clearButton = (Button) this.findViewById(R.id.ClearButton);
 		this.searchDrawer = (SlidingDrawer) this.findViewById(R.id.SlidingDrawerSearchScreen);
 		this.handleText = (TextView) this.findViewById(R.id.HandleTextView);
+		
+		vibrator = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 		
 		searchList.setOnCreateContextMenuListener(new OnCreateContextMenuListener(){
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
 				menu.add(Menu.NONE, VibeVault.EMAIL_LINK, Menu.NONE, "Email Link to Show");
 				menu.add(Menu.NONE, VibeVault.SHOW_INFO, Menu.NONE, "Show Info");
+				menu.add(Menu.NONE, VibeVault.ADD_TO_FAVORITE_LIST, Menu.NONE, "Bookmark Show");
 			}
 		});
 		
@@ -191,31 +210,36 @@ public class SearchScreen extends Activity {
 			workerTask = new JSONQueryTask(this);
 		}
 		if(VibeVault.searchResults.size()!=0){
-			this.searchMoreButton.setEnabled(true);
+			searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.morebutton), null, null, null);
+			searchButton.setText("More");
 			//this.clearButton.setEnabled(true);
 		} else{
-			this.searchMoreButton.setEnabled(false);
-			//this.clearButton.setEnabled(false);
+			searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.searchbutton_plain), null, null, null);
+			searchButton.setText("Search");
 		}
 		this.init();
 		
 		
 		Intent intent = getIntent();
-		String artist;
 		if(intent.hasExtra("Artist")){
 			browseArtist(intent.getStringExtra("Artist"));
 		}
 		
+		if(!VibeVault.db.getPref("artistUpdate").equals("2010-01-01")){
+			artistSearchInput.setAdapter(new ArrayAdapter<String>(this, R.layout.artist_search_row,VibeVault.db.getArtistsStrings()));
+		}
+		
+		if (VibeVault.searchPref.equals("Show/Artist Description")&&artistSearchInput.getText().equals("")){
+			artistSearchInput.setHint("Search Descriptions...");
+		}
 	}
 	
 	public void browseArtist(String artist){
 		artistSearchInput.setText(artist);
 			VibeVault.searchResults.clear();
-			VibeVault.generalSearchText = "";
 			VibeVault.artistSearchText = artist;
-			// If the year and date are set properly, or are unset, search.
-			if(setDate("","")){
-				// "1" is passed to retrieve page number 1.
+			yearSearchInput.setText("");
+			if(setDate()){
 				executeSearch(makeSearchURLString(1));
 				pageNum=1;
 				searchDrawer.close();
@@ -226,16 +250,13 @@ public class SearchScreen extends Activity {
 	*
 	*/
 	private void onTaskCompleted(){
-		this.refreshSearchList();
 		if(dialogShown){
 			try{
 				dismissDialog(VibeVault.SEARCHING_DIALOG_ID);
 			} catch(IllegalArgumentException e){
-				
 				e.printStackTrace();
 			}
 			dialogShown=false;
-			
 		}
 	}
 	
@@ -266,12 +287,15 @@ public class SearchScreen extends Activity {
 				});
 				ad.setView(v);
 				ad.show();
+				return true;
+			case(VibeVault.ADD_TO_FAVORITE_LIST):
+				VibeVault.db.insertFavoriteShow(selShow);
+				return true;
 			default:
-					break;
+				return false;
 			}
-			return false;
 		}
-		return true;
+		return false;
 	}
 		
 	
@@ -295,7 +319,8 @@ public class SearchScreen extends Activity {
 	
 	private void launchSettingsDialog(){
 		final SeekBar seek;
-		final Spinner spin;
+		final Spinner sortSpin;
+		final Spinner searchSpin;
 		final TextView seekValue;
 		
 		// Make the settings dialog.
@@ -310,7 +335,8 @@ public class SearchScreen extends Activity {
 		// Grab all the GUI widgets.
 		seek = (SeekBar)v.findViewById(R.id.NumResultsSeekBar);
 		seek.setProgress(Integer.valueOf(VibeVault.db.getPref("numResults")) - 10);
-		spin = (Spinner)v.findViewById(R.id.SortSpinner);
+		sortSpin = (Spinner)v.findViewById(R.id.SortSpinner);
+		searchSpin = (Spinner)v.findViewById(R.id.SearchSpinner);
 		seekValue = (TextView)v.findViewById(R.id.SeekBarValue);
 		seekValue.setText(VibeVault.db.getPref("numResults"));
 		
@@ -331,21 +357,48 @@ public class SearchScreen extends Activity {
 		});
 		
 		// Set up the spinner, and set up it's OnItemSelectedListener.
-		ArrayAdapter<String> spinAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,VibeVault.sortChoices);
-		spinAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		spin.setAdapter(spinAdapter);
-		int pos = 1;
+		ArrayAdapter<String> sortAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,VibeVault.sortChoices);
+		sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		sortSpin.setAdapter(sortAdapter);
+		int sortPos = 1;
 		String sortOrder = VibeVault.db.getPref("sortOrder");
 		for(int i = 0; i < VibeVault.sortChoices.length; i++){
 			if (VibeVault.sortChoices[i].equals(sortOrder))
-				pos = i;
+				sortPos = i;
 		}
-		spin.setSelection(pos);
-		spin.setOnItemSelectedListener(new OnItemSelectedListener(){
+		sortSpin.setSelection(sortPos);
+		sortSpin.setOnItemSelectedListener(new OnItemSelectedListener(){
 			@Override
 			public void onItemSelected(AdapterView<?> arg0, View view, int arg2, long arg3) {
 				int selected = arg0.getSelectedItemPosition();
 				VibeVault.db.updatePref("sortOrder", VibeVault.sortChoices[selected]);
+			}
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+			}
+			
+		});
+		
+		ArrayAdapter<String> searchAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,VibeVault.searchChoices);
+		searchAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		searchSpin.setAdapter(searchAdapter);
+		int searchPos = 1;
+		String searchOrder = VibeVault.searchPref;
+		for(int i = 0; i < VibeVault.searchChoices.length; i++){
+			if (VibeVault.searchChoices[i].equals(searchOrder))
+				searchPos = i;
+		}
+		searchSpin.setSelection(searchPos);
+		searchSpin.setOnItemSelectedListener(new OnItemSelectedListener(){
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View view, int arg2, long arg3) {
+				int selected = arg0.getSelectedItemPosition();
+				VibeVault.searchPref = VibeVault.searchChoices[selected];
+				if(VibeVault.searchPref.equals("Artist")&&artistSearchInput.getText().equals("")){
+					artistSearchInput.setHint("Search Artists...");
+				} else if (VibeVault.searchPref.equals("Show/Artist Description")&&artistSearchInput.getText().equals("")){
+					artistSearchInput.setHint("Search Descriptions...");
+				}
 			}
 			@Override
 			public void onNothingSelected(AdapterView<?> arg0) {
@@ -359,50 +412,39 @@ public class SearchScreen extends Activity {
 	}
 	
 	/** Returns true if a valid date, or no date at all, was passed.
-	 * Returns false if an improper date is passed.  If an improper date,
-	 * or no date, is passed, VibeVault's month and year ints are set to -1.
-	 * Otherwise, they are set to the right value.
+	 * Returns false if an improper date is passed.
 	 */
-	private boolean setDate(String year, String month){
-		int curYear = -1;
-		int curMonth = -1;
+	private boolean setDate(){
+		String year = yearSearchInput.getText().toString();
 		if(year.equals("")){
-			if(month.equals("")){  // Year and month are blank.
-				VibeVault.monthSearchInt = -1;
-				VibeVault.yearSearchInt = -1;
-				return true;
-			} else{  // Year is blank, month is full.
-				Toast.makeText(getBaseContext(), "Enter a year...", Toast.LENGTH_SHORT).show();
-				VibeVault.monthSearchInt = -1;
-				VibeVault.yearSearchInt = -1;
-				return false;
-			}
-		} else{
-			curYear = Integer.valueOf(year);
-			// If the year is proper, set it with the inputted month, or default to January if the month is bad.
-			if(curYear>=1800 && curYear <= Calendar.getInstance().get(Calendar.YEAR)){
-				VibeVault.yearSearchInt = curYear;
-				try{
-					curMonth = Integer.valueOf(month);
-				} catch (NumberFormatException e){
-					VibeVault.monthSearchInt = 1;
-				}
-				if (curMonth < 1 || curMonth > 12) {
-//					Toast.makeText(getBaseContext(), "Bad Month.  Month defaulting to January...", Toast.LENGTH_SHORT).show();
-					VibeVault.monthSearchInt = 1;
-				} else{
-					VibeVault.monthSearchInt = curMonth;
-				}
+			VibeVault.yearSearchInt = -1;
+			return true;
+		}
+			int yearInt = Integer.valueOf(year);
+			if(yearInt >= 1800 && yearInt <= Calendar.getInstance().get(Calendar.YEAR)){
+				VibeVault.yearSearchInt = yearInt;
 				return true;
 			} else{
 				Toast.makeText(getBaseContext(), "Year must be between now and 1800...", Toast.LENGTH_SHORT).show();
-				VibeVault.monthSearchInt = -1;
-				VibeVault.yearSearchInt = -1;
 				return false;
 			}
+	}
+	
+	private boolean isMoreSearch(String artist, String year){
+		if(VibeVault.searchResults.size()==0){
+			return false;
+		}
+		// Explanation:
+		// If the artist input field is the same as the stored artist search text AND
+		// The year input field is the same as the stored year search int (or if the input is blank, the int is -1),
+		// Return true because you should be fetching more results.  Otherwise, false to search initially.
+		if(artist.equalsIgnoreCase(VibeVault.artistSearchText)&&((year.equals("")&&VibeVault.yearSearchInt==-1)||((!year.equals(""))&&(Integer.valueOf(year)==VibeVault.yearSearchInt)))){
+			return true;
+		} else{
+			return false;
 		}
 	}
-
+	
 	private void init() {
 		
 		// Set up the date selection spinner.
@@ -420,22 +462,77 @@ public class SearchScreen extends Activity {
 		});
 		dateModifierSpinner.setAdapter(spinnerAdapter);
 		dateModifierSpinner.setSelection(VibeVault.dateSearchModifierPos);
-		// Set up the SlidingDrawer open and close listeners.
+		
+		searchDrawer.setOnDrawerScrollListener(new OnDrawerScrollListener(){
+
+			@Override
+			public void onScrollEnded() {
+			}
+
+			@Override
+			public void onScrollStarted() {
+				vibrator.vibrate(50);
+			}
+			
+		});
+		artistSearchInput.addTextChangedListener(new TextWatcher(){
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				if(isMoreSearch(s.toString(),yearSearchInput.getText().toString())){
+					searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.morebutton), null, null, null);
+					searchButton.setText("More");
+				} else{
+					searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.searchbutton_plain), null, null, null);
+					searchButton.setText("Search");
+				}
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {				
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+			}
+			
+		});
+		yearSearchInput.addTextChangedListener(new TextWatcher(){
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				if(isMoreSearch(artistSearchInput.getText().toString(),s.toString())){
+					searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.morebutton), null, null, null);
+					searchButton.setText("More");
+				} else{
+					searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.searchbutton_plain), null, null, null);
+					searchButton.setText("Search");
+				}
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+			}
+			
+		});
 		searchDrawer.setOnDrawerOpenListener(new OnDrawerOpenListener(){
 			@Override
 			public void onDrawerOpened() {
 				searchList.setBackgroundDrawable(getResources().getDrawable(R.drawable.backgrounddrawableblue));
 				searchList.getBackground().setDither(true);
 				searchList.setEnabled(false);
-				handleText.setText("Fill in one or more boxes below...");
+				handleText.setText("Search Panel");
 				handleText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-				generalSearchInput.setText(VibeVault.generalSearchText);
 				artistSearchInput.setText(VibeVault.artistSearchText);
-				if(VibeVault.monthSearchInt!=-1){
-					monthSearchInput.setText(String.valueOf(VibeVault.monthSearchInt));
-				} else{
-					monthSearchInput.setText("");
-				}
+
 				if(VibeVault.yearSearchInt!=-1){
 					yearSearchInput.setText(String.valueOf(VibeVault.yearSearchInt));
 				} else{
@@ -460,44 +557,58 @@ public class SearchScreen extends Activity {
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
 		        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
 		            (keyCode == KeyEvent.KEYCODE_ENTER)) {
-		        	if (!(generalSearchInput.getText().toString().equals("")&&artistSearchInput.getText().toString().equals(""))) {
-						VibeVault.generalSearchText = generalSearchInput.getText().toString();
+		        	if (!(artistSearchInput.getText().toString().equals(""))) {
 						VibeVault.artistSearchText = artistSearchInput.getText().toString();
-						// If the year and date are set properly, or are unset, search.
-						String year = yearSearchInput.getText().toString();
-						String month = monthSearchInput.getText().toString();
-						if(setDate(year,month)){
-							// "1" is passed to retrieve page number 1.
+						if(setDate()){
 							executeSearch(makeSearchURLString(1));
-					        pageNum = 1;
-							searchDrawer.close();
+						    pageNum = 1;
+								searchDrawer.close();
+								return true;
 						}
-						return true;
 		        	}
 		        }
 		        return false;
 		    }
 		};
-		this.generalSearchInput.setOnKeyListener(enterListener);
 		this.artistSearchInput.setOnKeyListener(enterListener);
 		
 		this.searchButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (!(generalSearchInput.getText().toString().equals("")&&artistSearchInput.getText().toString().equals(""))) {
+
+				String query = artistSearchInput.getText().toString();
+				// Blank
+				if (query.equals("")) {
+					vibrator.vibrate(50);
+					Toast.makeText(getBaseContext(), "You need a query first...", Toast.LENGTH_SHORT).show();
+					return;
+				}
+				// Search more
+				else if (isMoreSearch(artistSearchInput.getText().toString(),yearSearchInput.getText().toString())) {
+					searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.morebutton), null, null, null);
+					searchButton.setText("More");
+					dateModifierSpinner.setSelection(VibeVault.dateSearchModifierPos);
+					// pageNum is incremented then searched with to get the next
+					// page.
+					executeSearch(makeSearchURLString(++pageNum));
+					vibrator.vibrate(50);
+					searchDrawer.close();
+				}
+				// New search
+				else {
+					searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.searchbutton_plain), null, null, null);
+					searchButton.setText("Search");
 					VibeVault.searchResults.clear();
-					VibeVault.generalSearchText = generalSearchInput.getText().toString();
 					VibeVault.artistSearchText = artistSearchInput.getText().toString();
-					// If the year and date are set properly, or are unset, search.
-					String year = yearSearchInput.getText().toString();
-					String month = monthSearchInput.getText().toString();
-					if(setDate(year,month)){
+					if (setDate()) {
 						// "1" is passed to retrieve page number 1.
+						vibrator.vibrate(50);
 						executeSearch(makeSearchURLString(1));
-						pageNum=1;
+						pageNum = 1;
 						searchDrawer.close();
 					}
-	        	}
+				}
+
 			}
 		});
 		
@@ -505,44 +616,22 @@ public class SearchScreen extends Activity {
 			@Override
 			public void onClick(View v) {
 				launchSettingsDialog();
+				vibrator.vibrate(50);
 			}
 		});
 		
 		this.clearButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				generalSearchInput.setText("");
 				artistSearchInput.setText("");
-				monthSearchInput.setText("");
 				yearSearchInput.setText("");
-				VibeVault.generalSearchText = "";
 				VibeVault.artistSearchText = "";
-				VibeVault.monthSearchInt = -1;
 				VibeVault.yearSearchInt = -1;
-				searchMoreButton.setEnabled(false);
+				searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.searchbutton_plain), null, null, null);
+				searchButton.setText("Search");
 				VibeVault.searchResults.clear();
 				refreshSearchList();
-			}
-		});
-		
-		this.searchMoreButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (!(generalSearchInput.getText().toString().equals("")&&artistSearchInput.getText().toString().equals(""))) {
-					if(VibeVault.generalSearchText.equals("")&&VibeVault.artistSearchText.equals("")){
-						Toast.makeText(getBaseContext(), "You need a query first...", Toast.LENGTH_SHORT).show();
-						return;
-					} else{
-						generalSearchInput.setText(VibeVault.generalSearchText);
-						artistSearchInput.setText(VibeVault.artistSearchText);
-						monthSearchInput.setText(String.valueOf(VibeVault.monthSearchInt));
-						yearSearchInput.setText(String.valueOf(VibeVault.yearSearchInt));
-						dateModifierSpinner.setSelection(VibeVault.dateSearchModifierPos);
-						// pageNum is incremented then searched with to get the next page.
-						executeSearch(makeSearchURLString(++pageNum));
-						searchDrawer.close();
-					}
-				}
+				vibrator.vibrate(50);
 			}
 		});
 
@@ -566,13 +655,7 @@ public class SearchScreen extends Activity {
 				Toast.makeText(getBaseContext(), "sdcard is unwritable...  is it mounted on the computer?", Toast.LENGTH_SHORT).show();
 			}
 		}
-		generalSearchInput.setText(VibeVault.generalSearchText);
 		artistSearchInput.setText(VibeVault.artistSearchText);
-		if(VibeVault.monthSearchInt!=-1){
-			monthSearchInput.setText(String.valueOf(VibeVault.monthSearchInt));
-		} else{
-			monthSearchInput.setText("");
-		}
 		if(VibeVault.yearSearchInt!=-1){
 			yearSearchInput.setText(String.valueOf(VibeVault.yearSearchInt));
 		} else{
@@ -599,13 +682,13 @@ public class SearchScreen extends Activity {
 			if(VibeVault.yearSearchInt!=-1){
 				switch(VibeVault.dateSearchModifierPos){
 				case 0:	//Before
-					dateModifier = "date:[1800-01-01%20TO%20" + VibeVault.yearSearchInt + "-" + String.format("%02d", VibeVault.monthSearchInt) + "-" + "01]%20AND%20";
+					dateModifier = "date:[1800-01-01%20TO%20" + VibeVault.yearSearchInt + "-01-01]%20AND%20";
 					break;
 				case 1:	//After
 					int curDate = Calendar.getInstance().get(Calendar.DATE);
 					int curMonth = Calendar.getInstance().get(Calendar.MONTH);
 					int curYear = Calendar.getInstance().get(Calendar.YEAR);
-					dateModifier = "date:[" + VibeVault.yearSearchInt + "-" + String.format("%02d", VibeVault.monthSearchInt) + "-" + "01" + "%20TO%20" + curYear + "-" + String.format("%02d",curMonth) + "-" + String.format("%02d",curDate) + "]%20AND%20";
+					dateModifier = "date:[" + VibeVault.yearSearchInt + "-01-01%20TO%20" + curYear + "-" + String.format("%02d",curMonth) + "-" + String.format("%02d",curDate) + "]%20AND%20";
 					break;
 				case 2:	// In Year.
 					dateModifier = "date:[" + VibeVault.yearSearchInt + "-01-01%20TO%20" + VibeVault.yearSearchInt + "-12-31]%20AND%20";
@@ -615,12 +698,10 @@ public class SearchScreen extends Activity {
 			// We search creator:(random's artist)%20OR%20creator(randoms artist) because
 			// archive.org does not like apostrophes in the creator query.
 			String specificSearch = "";
-			if(VibeVault.generalSearchText.equals("")){
+			if(VibeVault.searchPref.equals("Artist")){
 				specificSearch = "(creator:(" + URLEncoder.encode(VibeVault.artistSearchText,"UTF-8") + ")" + "%20OR%20creator:(" + URLEncoder.encode(VibeVault.artistSearchText.replace("'", "").replace("\"", ""),"UTF-8") + "))";
-			} else if(VibeVault.artistSearchText.equals("")){
-				specificSearch = "description:(" + URLEncoder.encode(VibeVault.generalSearchText,"UTF-8") + ")";
-			} else{
-				specificSearch = "(creator:(" + URLEncoder.encode(VibeVault.artistSearchText,"UTF-8") + ")" + "%20OR%20creator:(" + URLEncoder.encode(VibeVault.artistSearchText.replace("'", "").replace("\"", ""),"UTF-8") + "))%20AND%20" + "description:(" + URLEncoder.encode(VibeVault.generalSearchText,"UTF-8") + ")";
+			} else if(VibeVault.searchPref.equals("Show/Artist Description")){
+				specificSearch = "(creator:(" + URLEncoder.encode(VibeVault.artistSearchText,"UTF-8") + ")" + "%20OR%20description:(" + URLEncoder.encode(VibeVault.artistSearchText.replace("'", "").replace("\"", ""),"UTF-8") + "))";
 			}
 			String mediaType = "mediatype:(etree)";	
 			
@@ -636,13 +717,15 @@ public class SearchScreen extends Activity {
 	}
 
 	private void refreshSearchList() {
-		searchList.setAdapter(new RatingsAdapter(this,
-				R.layout.search_list_row, VibeVault.searchResults));
+		searchList.setAdapter(new RatingsAdapter(this, R.layout.search_list_row, VibeVault.searchResults));
 		if(VibeVault.searchResults.size()!=0){
-			searchMoreButton.setEnabled(true);
+			searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.morebutton), null, null, null);
+			searchButton.setText("More");
 			//clearButton.setEnabled(true);
 		} else{
-			searchMoreButton.setEnabled(false);
+			searchDrawer.open();
+			searchButton.setText("Search");
+			searchButton.setCompoundDrawablesWithIntrinsicBounds(getResources().getDrawable(R.drawable.searchbutton_plain), null, null, null);
 			//clearButton.setEnabled(false);
 		}
 	}
@@ -670,13 +753,11 @@ public class SearchScreen extends Activity {
 					.findViewById(R.id.ShowText);
 			ImageView ratingsIcon = (ImageView) convertView
 					.findViewById(R.id.rating);
-			TextView showInfoText = (TextView) convertView.findViewById(R.id.ShowInfoText);
 			if (show != null) {
-				artistText.setText(show.getShowArtist());
+				artistText.setText(show.getShowArtist() + " ");
 				artistText.setSelected(true);
 				showText.setText(show.getShowTitle());
 				showText.setSelected(true);
-				showInfoText.setVisibility(View.GONE);
 				switch ((int) show.getRating()) {
 				case 1:
 					ratingsIcon.setImageDrawable(getBaseContext().getResources().getDrawable(R.drawable.star1));
@@ -740,7 +821,6 @@ public class SearchScreen extends Activity {
 	
 	private void closeKeyboard(){
 		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(generalSearchInput.getWindowToken(), 0);
 		imm.hideSoftInputFromWindow(artistSearchInput.getWindowToken(), 0);
 	}
 
@@ -826,7 +906,9 @@ public class SearchScreen extends Activity {
 
 		protected void onPostExecute(String JSONString) {
 			
-			
+			// This is 0 unless you are finding more results, in which case
+			// we use this value later to set the ListView's position to the new results.
+			int startVal = VibeVault.searchResults.size();
 			if(JSONString==null){
 				Toast.makeText(getBaseContext(), "Invalid query?", Toast.LENGTH_SHORT).show();
 			}
@@ -864,6 +946,9 @@ public class SearchScreen extends Activity {
 				Log.e(LOG_TAG, e.toString());
 			}
 			refreshSearchList();
+			if(startVal!=0){
+				searchList.setSelection(startVal-1);
+			}
 			completed=true;
 			notifyActivityTaskCompleted();
 		}

@@ -1,33 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.code.android.vibevault" android:versionCode="14"
-	android:installLocation="auto"
-	xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="2.0.0">
-	<application android:icon="@drawable/icon" android:label="@string/app_name" android:name="com.code.android.vibevault.VibeVault">
+<manifest package="com.code.android.vibevault"
+	android:versionCode="21" android:installLocation="auto"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:versionName="3.0.3">
+	<application android:icon="@drawable/icon" android:label="@string/app_name"
+		android:name="com.code.android.vibevault.VibeVault" android:debuggable="false">
 		<activity android:name="com.code.android.vibevault.HomeScreen">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
-			<receiver android:name=".headphoneIntentReceiver" android:enabled="true">
-			<intent-filter>
-				<action android:name="android.intent.action.HEADSET_PLUG" />
-			</intent-filter>
+			<receiver android:name=".headphoneIntentReceiver"
+				android:enabled="true">
+				<intent-filter>
+					<action android:name="android.intent.action.HEADSET_PLUG" />
+				</intent-filter>
+
 			</receiver>
 		</activity>
-		<activity android:name="com.code.android.vibevault.SearchScreen" android:label="@string/app_name"></activity>
-		<activity android:name="com.code.android.vibevault.ShowDetailsScreen" android:label="@string/app_name">
-		<intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="www.archive.org" android:pathPrefix="/details/"/> 
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="www.archive.org" android:pathPrefix="/download/"/> 
-            </intent-filter>
+		<activity android:name="com.code.android.vibevault.SearchScreen"
+			android:label="@string/app_name"></activity>
+		<activity android:name="com.code.android.vibevault.ShowDetailsScreen"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" android:host="www.archive.org"
+					android:pathPrefix="/details/" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" android:host="archive.org"
+					android:pathPrefix="/details/" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" android:host="www.archive.org"
+					android:pathPrefix="/download/" />
+			</intent-filter>
+
+			
 		</activity>
 		<activity android:name="com.code.android.vibevault.NowPlayingScreen"></activity>
 		<activity android:name="com.code.android.vibevault.RecentShowsScreen"></activity>
@@ -37,25 +54,42 @@
 		<activity android:name="com.code.android.vibevault.DownloadedShowScreen"></activity>
 		<activity android:name="com.code.android.vibevault.FeaturedShowsScreen"></activity>
 		<activity android:name="com.code.android.vibevault.BrowseArtistsScreen"></activity>
+		<activity android:name="com.code.android.vibevault.FacebookCon"></activity>
+		<activity android:name="com.code.android.vibevault.TwitterCon" android:launchMode="singleTask">
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="VibeVault" android:host="tweet" />
+			</intent-filter>
+		</activity>
 		
-<service android:name="com.code.android.vibevault.PlayerService"></service>
-<service android:name="com.code.android.vibevault.DownloadService"></service>
+		
+
+		<service android:name="com.code.android.vibevault.PlayerService"></service>
+		<service android:name="com.code.android.vibevault.DownloadService"></service>
 
 
 
-<service android:name="PlaybackService"></service>
-</application>
+		<service android:name="PlaybackService"></service>
+		<activity android:name="FavoriteShowsScreen"></activity>
+		<activity android:name="StoredShowTabs"></activity>
+		<activity android:name="VotedShowsScreen"></activity>
+		<activity android:name="VoteTabs"></activity>
+		<activity android:name="VotedArtistsScreen"></activity>
+		<activity android:name="VotedShowsByArtistScreen"></activity>
+	</application>
 	<uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
 
 
 
-<uses-permission android:name="android.permission.READ_PHONE_DATA"></uses-permission>
-<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
-<uses-permission android:name="android.permission.BROADCAST_STICKY"></uses-permission>
+	<uses-permission android:name="android.permission.READ_PHONE_DATA"></uses-permission>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+	<uses-permission android:name="android.permission.BROADCAST_STICKY"></uses-permission>
 
-<uses-permission android:name="android.permission.VIBRATE"></uses-permission>
+	<uses-permission android:name="android.permission.VIBRATE"></uses-permission>
 
 
 </manifest> 
