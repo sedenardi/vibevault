@@ -5,23 +5,32 @@
     android:descendantFocusability="blocksDescendants">
        	<TextView
         	android:id="@+id/RatingText"
-        	android:layout_marginTop="2dip"
         	android:layout_width="wrap_content"
         	android:layout_height="wrap_content"
         	android:maxLines="1"
-            android:textSize="18dip"
+            android:textSize="@dimen/text_height_tall"
             android:textColor="#FFFFFF"
             android:textStyle="italic"
             android:lines="1"
-        	android:layout_alignParentTop="true"
-        	android:layout_alignParentRight="true" />
-        	<TextView
+        	android:layout_alignParentRight="true"
+        	android:layout_alignParentTop="true" />
+       	    <ImageView
+        android:id="@+id/MenuIcon"
+        android:layout_width="@dimen/home_buffer_large"
+        android:layout_height="@dimen/home_buffer_large"
+        android:layout_below="@id/RatingText"
+        android:layout_alignParentRight="true"
+        android:layout_alignBottom="@+id/ShowText"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        android:src="@drawable/spinner_default_holo_dark" />
+        <TextView
             android:id="@+id/ArtistText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@id/RatingText"
             android:maxLines="1"
-            android:textSize="18dip"
+            android:textSize="@dimen/text_height_tall"
             android:textColor="#127DD4"
             android:textStyle="italic"
             android:ellipsize="marquee"
@@ -35,8 +44,10 @@
             android:id="@+id/ShowText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/MenuIcon"
+            android:layout_alignParentLeft="true"
             android:maxLines="1"
-            android:textSize="18dip"
+            android:textSize="@dimen/text_height_tall"
             android:textColor="#FFFFFF"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"

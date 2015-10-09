@@ -11,5 +11,7 @@
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
 			android:layout_below="@+id/ShowSpinner"
-			android:layout_alignParentBottom="true"></ListView>
+			android:layout_alignParentBottom="true"
+			android:background="#000000"
+		android:overScrollFooter="@null"></ListView>
 </RelativeLayout>

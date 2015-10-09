@@ -1,6 +1,6 @@
 /*
  * ArchiveShowObj.java
- * VERSION 3.X
+ * VERSION 3.1
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -28,10 +28,7 @@ import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-
-import android.net.Uri;
-
-public class ArchiveShowObj implements Serializable {
+public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
 
 	/**
 	 * 
@@ -49,7 +46,6 @@ public class ArchiveShowObj implements Serializable {
 	private boolean lbrShow = false;
 	private boolean hasSelectedSong = false;
 	private String selectedSong = "";
-	private int votes;
 	
 	/** Create an object which represents a show returned from an archive.org search.
 	 * 
@@ -141,10 +137,10 @@ public class ArchiveShowObj implements Serializable {
 		}
 	}
 	
-	public ArchiveShowObj(Uri uri, boolean hasSelected) {
+	public ArchiveShowObj(String linkString, boolean hasSelected) {
 		wholeTitle = "";
 		// This should take care of any prefix (eg. http://, http://www., www.).
-		identifier = uri.toString().split("archive.org/details/")[1];
+		identifier = linkString.split("archive.org/details/")[1];
 		showTitle = "";
 		showArtist = "";
 		source = "";
@@ -152,7 +148,7 @@ public class ArchiveShowObj implements Serializable {
 		lbrShow = true;
 		hasSelectedSong = hasSelected;
 		try{
-			showURL = new URL(uri.toString());
+			showURL = new URL(linkString);
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
@@ -177,6 +173,7 @@ public class ArchiveShowObj implements Serializable {
 	}
 	
 	public void setFullTitle(String s){
+		 
 		wholeTitle = s;
 		String artistAndShowTitle[] = s.split(" Live at ");
 		if(artistAndShowTitle.length < 2){
@@ -185,7 +182,8 @@ public class ArchiveShowObj implements Serializable {
 		if(artistAndShowTitle.length < 2){
 			artistAndShowTitle = s.split(" Live ");
 		}
-		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		showArtist = artistAndShowTitle[0];
+		 
 		if(artistAndShowTitle.length >= 2){
 			showTitle = artistAndShowTitle[1];
 		}
@@ -225,10 +223,6 @@ public class ArchiveShowObj implements Serializable {
 	
 	public String getDate(){
 		return date;
-	}
-	
-	public int getVotes(){
-		return votes;
 	}
 
 	@Override

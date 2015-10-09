@@ -1,5 +1,7 @@
 package com.code.android.vibevault;
 
+import com.code.android.vibevault.R;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
@@ -184,7 +186,7 @@ public class DraggableListView extends ListView {
 							}
 					}
 					ViewGroup.LayoutParams params = v.getLayoutParams();
-					params.height = params.MATCH_PARENT;
+					params.height = ViewGroup.LayoutParams.MATCH_PARENT;
 					v.setLayoutParams(params);
 					v.setVisibility(View.VISIBLE);
 			}
@@ -213,11 +215,11 @@ public class DraggableListView extends ListView {
 			for (int i = 0;; i++) {
 					View vv = getChildAt(i);
 					if (vv == null) {
-							break;
+						break;
 					}
 					ViewGroup.LayoutParams params = vv.getLayoutParams();
 
-					int height = params.MATCH_PARENT;
+					int height = ViewGroup.LayoutParams.MATCH_PARENT;
 					int visibility = View.VISIBLE;
 					if (vv.equals(first)) {
 							// processing the item that is being dragged

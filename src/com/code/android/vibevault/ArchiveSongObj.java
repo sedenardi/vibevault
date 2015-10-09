@@ -1,6 +1,6 @@
 /*
  * ArchiveSongObj.java
- * VERSION 3.X
+ * VERSION 3.1
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -25,13 +25,18 @@
 package com.code.android.vibevault;
 
 import java.io.File;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import android.os.Environment;
 
-public class ArchiveSongObj {
+public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	// I'm pretty sure that URL objects are bigger
 	// than String objects, so we don't store the
 	// URL's as actual URL's unless the user indicates
@@ -42,8 +47,8 @@ public class ArchiveSongObj {
 	private String showIdent;
 	private String showArtist;
 	private String fileName;
+	private String folderName;
 	private int status;
-	private boolean exists = false;
 	private ArchiveShowObj downloadShow;
 	
 	/**
@@ -61,6 +66,9 @@ public class ArchiveSongObj {
 	 * @param showTit The title of the show which the song is a part of.
 	 */
 	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent){
+		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
+		showTitle = showTit;
+		
 		String artistAndShowTitle[] = showTit.split(" Live at ");
 		if(artistAndShowTitle.length < 2){
 			artistAndShowTitle = tit.split(" Live @ ");
@@ -72,30 +80,27 @@ public class ArchiveSongObj {
 		
 		urlString = urlStr;
 		status = -1;
-		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
-		showTitle = showTit;
+		
 		
 		this.showIdent = showIdent;
 		String splitArray[] = urlStr.split("/");
 		fileName = splitArray[splitArray.length-1];
-		checkExists();
-		/*File showRootDir = new File(Environment.getExternalStorageDirectory() + ArchiveApp.APP_DIRECTORY + showTitle);
-		File postCmplt = new File(showRootDir, title.replace(">", "_") + ".mp3");
-		if(postCmplt.exists()){
-			downloaded=true;
-			return;
-		} else{
-			File posIncmplt = new File(showRootDir, ArchiveApp.INCOMPLETE_DL_STRING + sanitizeForFilename(title) + ".mp3");
-			if(posIncmplt.exists()){
-				started=true;
-				return;
-			}
-		}*/
+		if (showIdent.equalsIgnoreCase(splitArray[splitArray.length-3])) {
+			folderName = splitArray[splitArray.length-2];
+		}
+		else {
+			folderName = "";
+		}
 	}
 	
-	// Constructor from DB, doesn't call db
-	public ArchiveSongObj(String tit, String fileStr, String showTit, String showIdent, boolean isDownloaded){
-		urlString = "http://www.archive.org/download/" + showIdent + "/" + fileStr;
+	// Constructor from DB
+	public ArchiveSongObj(String tit, String folder, String fileStr, String showTit, String showIdent, boolean isDownloaded, int ID){
+		if (!folder.equals("")) {
+			urlString = "http://www.archive.org/download/" + showIdent + "/" +  folder + "/" + fileStr;
+		} else {
+			urlString = "http://www.archive.org/download/" + showIdent + "/" + fileStr;
+		}
+		folderName = folder;
 		status = -1;
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
@@ -108,70 +113,29 @@ public class ArchiveSongObj {
 		}
 		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
 		this.showIdent = showIdent;
-		String splitArray[] = fileStr.split("/");
 		fileName = fileStr;
-		exists = isDownloaded;
-		//checkExists();
-		/*File showRootDir = new File(Environment.getExternalStorageDirectory() + ArchiveApp.APP_DIRECTORY + showTitle);
-		File postCmplt = new File(showRootDir, title.replace(">", "_") + ".mp3");
-		if(postCmplt.exists()){
-			downloaded=true;
-			return;
-		} else{
-			File posIncmplt = new File(showRootDir, ArchiveApp.INCOMPLETE_DL_STRING + sanitizeForFilename(title) + ".mp3");
-			if(posIncmplt.exists()){
-				started=true;
-				return;
-			}
-		}*/
+		DBID = ID;
 	}
 	
 	public static String sanitizeForFilename(String s){
 		return s.replaceAll("[^a-zA-Z0-9]", "");
 	}
 	
-	/** If song is downloaded, return File object representing local .mp3 file.
-	 * 
-	 * @return File object is local .mp3 for the song.
-	 */
-	public File getSongFile(){
-		if(status == DownloadSongThread.COMPLETE){
-			File showRootDir = new File(Environment.getExternalStorageDirectory() + VibeVault.APP_DIRECTORY + showIdent);
-			File postCmplt = new File(showRootDir, title + ".mp3");
-			return postCmplt;
-		} else{
-			return null;
-		}
-	}
-	
 	public String getFileName(){
 		return fileName;
 	}
 	
-	public boolean doesExist(){
-		checkExists();
-		return exists;
-	}
-	
-	private void checkExists(){
-		/*File checkCmplt = new File(getFilePath());
-		if(checkCmplt.exists()){
-			exists = true;
+	public boolean doesExist(StaticDataStore db){
+		if(db.songIsDownloaded(fileName) && new File(getFilePath()).exists()){
+			return true;
 		}
 		else{
-			exists = false;
-		}*/
-		if(VibeVault.db.songIsDownloaded(fileName) && new File(getFilePath()).exists()){
-			exists = true;
-		}
-		else{
-			exists = false;
+			return false;
 		}
 	}
 	
-	public String getSongPath(){
-		checkExists();
-		if(exists){
+	public String getSongPath(StaticDataStore db){
+		if(db.songIsDownloaded(fileName) && new File(getFilePath()).exists()){
 			return getFilePath();
 		}
 		else{
@@ -181,7 +145,7 @@ public class ArchiveSongObj {
 	
 	public String getFilePath(){
 		return Environment.getExternalStorageDirectory() + 
-			VibeVault.APP_DIRECTORY + showIdent + '/' +
+			Downloading.APP_DIRECTORY + showIdent + '/' +
 			fileName;
 	}
 	
@@ -193,12 +157,12 @@ public class ArchiveSongObj {
 		return downloadShow;
 	}
 
-	public void setDownloadStatus(int status){
-		this.status = status;
-		if(status == DownloadSongThread.COMPLETE){
-			checkExists();
-		}
-	}
+//	public void setDownloadStatus(int status){
+//		this.status = status;
+//		if(status == DownloadSongThread.COMPLETE){
+//			checkExists();
+//		}
+//	}
 	
 	public int getDownloadStatus(){
 		return status;
@@ -215,6 +179,14 @@ public class ArchiveSongObj {
 	public String getShowArtist(){
 		return showArtist;
 	}
+	
+	public String getSongTitle(){
+		return title;
+	}
+	
+	public String getSongArtistAndTitle(){
+		return showArtist + " - " + title;
+	}
 
 	/** Returns a URL object of the lowest bitrate for a song.
 	 * 
@@ -227,12 +199,19 @@ public class ArchiveSongObj {
 				return new URL(urlString);
 			} catch (MalformedURLException e) {
 				return null;
-				// TODO Auto-generated catch block
 				
 			}
 		} else{
 			return null;
 		}
+	}
+	
+	public boolean hasFolder() {
+		return !folderName.equals("");
+	}
+	
+	public String getFolder() {
+		return folderName;
 	}
 	
 	@Override

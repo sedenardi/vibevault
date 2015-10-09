@@ -3,70 +3,177 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical"
 	android:layout_width="fill_parent"
-	android:layout_height="fill_parent">
+	android:layout_height="fill_parent"
+	android:background="#000000">
 	<TextView
 		android:id="@+id/HomeHeader"
-		android:textSize="30dip"
+		android:textSize="@dimen/heading_size"
 		android:gravity="center_horizontal"
 		android:layout_alignParentTop="true"
-		android:text="Vibe Vault v3"
+		android:text="Vibe Vault 4"
 		android:textColor="#127DD4"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"/>
-			<ImageButton
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="@dimen/home_buffer_small"/>
+	<ImageButton
 		android:id="@+id/HomeSearch"
-		android:layout_width="110dip"
-		android:layout_height="110dip"
+		android:layout_width="@dimen/home_icon_heightwidth"
+		android:layout_height="@dimen/home_icon_heightwidth"
 		android:background="@drawable/searchbutton"
-		android:layout_marginLeft="10dip"
+		android:layout_marginLeft="@dimen/home_buffer_large"
 		android:layout_alignParentLeft="true"
 		android:layout_below="@id/HomeHeader"
+		android:layout_marginBottom="@dimen/home_buffer_medium"
 		/>
 	<ImageButton
 		android:id="@+id/HomeRecent"
-		android:layout_width="110dip"
-		android:layout_height="110dip"
+		android:layout_width="@dimen/home_icon_heightwidth"
+		android:layout_height="@dimen/home_icon_heightwidth"
 		android:background="@drawable/recentshowsbutton"
-		android:layout_marginRight="10dip"
+		android:layout_marginRight="@dimen/home_buffer_large"
 		android:layout_alignParentRight="true"
 		android:layout_below="@id/HomeHeader"
-		/>		
+		android:layout_marginBottom="@dimen/home_buffer_medium"
+		/>
+	<ImageView android:id="@+id/separator1" 
+			 android:background="#127DD4" 
+			 android:layout_width="fill_parent"
+			 android:layout_height="2dip"
+			 android:layout_below="@+id/ButtonLabel2"
+			 android:layout_marginTop="@dimen/home_buffer_medium">
+	</ImageView>
 	<ImageButton
 		android:id="@+id/HomeDownload"
-		android:layout_width="110dip"
-		android:layout_height="110dip"
+		android:layout_width="@dimen/home_icon_heightwidth"
+		android:layout_height="@dimen/home_icon_heightwidth"
 		android:background="@drawable/downloadsbutton"
-		android:layout_marginLeft="10dip"
+		android:layout_marginLeft="@dimen/home_buffer_large"
 		android:layout_alignParentLeft="true"
 		android:layout_below="@id/HomeSearch"
+		android:layout_marginBottom="@dimen/home_buffer_medium"
+		android:layout_marginTop="@dimen/home_buffer_large"
 		/>
 	<ImageButton
 		android:id="@+id/HomePlaying"
-		android:layout_width="110dip"
-		android:layout_height="110dip"
+		android:layout_width="@dimen/home_icon_heightwidth"
+		android:layout_height="@dimen/home_icon_heightwidth"
 		android:background="@drawable/nowplayingbutton"
-		android:layout_marginRight="10dip"
+		android:layout_marginRight="@dimen/home_buffer_large"
 		android:layout_alignParentRight="true"
 		android:layout_below="@id/HomeRecent"
+		android:layout_marginBottom="@dimen/home_buffer_medium"
+		android:layout_marginTop="@dimen/home_buffer_large"
 		/>
+	<ImageView android:id="@+id/separator2" 
+			 android:background="#127DD4" 
+			 android:layout_width="fill_parent"
+			 android:layout_height="2dip"
+			 android:layout_below="@+id/ButtonLabel4"
+			 android:layout_marginTop="@dimen/home_buffer_medium">
+	</ImageView>
 			<ImageButton
 		android:id="@+id/HomeFeatured"
-		android:layout_width="110dip"
-		android:layout_height="110dip"
+		android:layout_width="@dimen/home_icon_heightwidth"
+		android:layout_height="@dimen/home_icon_heightwidth"
 		android:background="@drawable/featuredbutton"
-		android:layout_marginLeft="10dip"
+		android:layout_marginLeft="@dimen/home_buffer_large"
 		android:layout_alignParentLeft="true"
 		android:layout_below="@id/HomeDownload"
+				android:layout_marginTop="@dimen/home_buffer_large"
+		
 		/>
 					<ImageButton
 		android:id="@+id/HomeBrowse"
-		android:layout_width="110dip"
-		android:layout_height="110dip"
+		android:layout_width="@dimen/home_icon_heightwidth"
+		android:layout_height="@dimen/home_icon_heightwidth"
 		android:background="@drawable/browsebutton"
-		android:layout_marginRight="10dip"
+		android:layout_marginRight="@dimen/home_buffer_large"
 		android:layout_alignParentRight="true"
 		android:layout_below="@id/HomePlaying"
+		android:layout_marginTop="@dimen/home_buffer_large"
 		/>
+		<TextView
+		    android:id="@+id/ButtonLabel1"
+		    android:layout_width="@dimen/home_icon_heightwidth"
+		    android:layout_height="wrap_content"
+		    android:text="Search"
+		    android:textSize="@dimen/text_height_small"
+		    android:textStyle="bold"
+		    android:layout_above="@id/HomeDownload"
+		    android:layout_alignLeft="@id/HomeSearch"
+		    android:gravity="center_horizontal"
+		    android:textColor="#FFFFFFFF">
+		</TextView>
+		<TextView
+		    android:id="@id/ButtonLabel2"
+		    android:layout_width="@dimen/home_icon_heightwidth"
+		    android:layout_height="wrap_content"
+		    android:text="Your Shows"
+		    android:textSize="@dimen/text_height_small"
+		    android:textStyle="bold"
+		    android:layout_above="@id/HomePlaying"
+		    android:layout_alignLeft="@id/HomeRecent"
+		    android:gravity="center_horizontal"
+		    android:textColor="#FFFFFFFF"
+		    >
+		</TextView>
+		<TextView
+		    android:id="@+id/ButtonLabel3"
+		    android:layout_width="@dimen/home_icon_heightwidth"
+		    android:layout_height="wrap_content"
+		    android:text="Downloads"
+		    android:textSize="@dimen/text_height_small"
+		    android:textStyle="bold"
+		    android:layout_above="@id/HomeFeatured"
+		    android:layout_alignLeft="@id/HomeDownload"
+		    android:gravity="center_horizontal"
+		    android:textColor="#FFFFFFFF">
+		</TextView>
+		<TextView
+		    android:id="@id/ButtonLabel4"
+		    android:layout_width="@dimen/home_icon_heightwidth"
+		    android:layout_height="wrap_content"
+		    android:text="Now Playing"
+		    android:textSize="@dimen/text_height_small"
+		    android:textStyle="bold"
+		    android:layout_above="@id/HomeBrowse"
+		    android:layout_alignLeft="@id/HomePlaying"
+		    android:gravity="center_horizontal"
+		    android:textColor="#FFFFFFFF"
+		    >
+		</TextView>
+		<TextView
+		    android:id="@+id/ButtonLabel5"
+		    android:layout_width="@dimen/home_icon_heightwidth"
+		    android:layout_height="wrap_content"
+		    android:text="Browse Artists"
+		    android:textSize="@dimen/text_height_small"
+		    android:textStyle="bold"
+		    android:layout_below="@id/HomeBrowse"
+		    android:layout_alignLeft="@id/HomeBrowse"
+		    android:gravity="center_horizontal"
+		    android:textColor="#FFFFFFFF">
+		</TextView>
+		<TextView
+		    android:id="@+id/ButtonLabel6"
+		    android:layout_width="@dimen/home_icon_heightwidth"
+		    android:layout_height="wrap_content"
+		    android:text="User Votes"
+		    android:textSize="@dimen/text_height_small"
+		    android:textStyle="bold"
+		    android:layout_below="@id/HomeFeatured"
+		    android:layout_alignLeft="@id/HomeFeatured"
+		    android:gravity="center_horizontal"
+		    android:textColor="#FFFFFFFF">
+		</TextView>
+		<ImageView android:id="@+id/separator3" 
+			 android:background="#127DD4" 
+			 android:layout_width = "2dip"
+			 android:layout_height="fill_parent"
+			 android:layout_centerHorizontal="true"
+			 android:layout_below="@id/HomeHeader"
+			 android:layout_above="@id/ButtonLabel5">
+		</ImageView>
 <!--	<Button-->
 <!--		android:id="@+id/HomeSettings"-->
 <!--		android:layout_below="@id/HomePlaying"-->

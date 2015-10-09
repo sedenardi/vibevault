@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="normal_height">80dp</dimen>
+    <dimen name="expanded_height">160dp</dimen>
+    <dimen name="text_height_tall">18dip</dimen>
+    <dimen name="text_height_small">14dip</dimen>
+    <dimen name="text_height_label">20dip</dimen>
+    <dimen name="row_icon_heightwidth">25dip</dimen>
+    <dimen name="home_icon_heightwidth">110dip</dimen>
+    <dimen name="heading_size">53dip</dimen>
+    <dimen name="home_buffer_small">10dip</dimen>
+    <dimen name="home_buffer_medium">13dip</dimen>
+    <dimen name="home_buffer_large">26dip</dimen>
+    
+</resources>

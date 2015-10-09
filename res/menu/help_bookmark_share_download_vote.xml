@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/VoteButton" android:icon="@drawable/votebutton" android:title="Vote" android:showAsAction="ifRoom"></item>
+<item android:id="@+id/ShareButton" android:icon="@drawable/sharebutton" android:title="Share" android:actionProviderClass="android.widget.ShareActionProvider" android:showAsAction="ifRoom"></item>
+<item android:id="@+id/BookmarkButton" android:icon="@drawable/starbutton" android:title="Bookmark" android:showAsAction="ifRoom"></item>
+<item android:id="@+id/HelpButton" android:title="Help" android:showAsAction="ifRoom"></item>
+<item android:id="@+id/DownloadButton" android:showAsAction="ifRoom" android:title="Download Whole Show"></item>
+</menu>

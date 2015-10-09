@@ -1,21 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vibe Vault</string>
-    <string name="search_screen_help">Drag up the search panel to search. \n\ \n\ You can search individually in the artist and show description fields, or you can search them both at the same time.  You can add date restrictions to further refine your search. \n\ \n\ Hit the magnifying glass button to search. \n\ If you have results, you can hit the more results button for more. \n\ Hit the settings button for more search options.</string>
-    <string name="home_screen_help">Developed by Andrew Pearson and Sanders DeNardi \n\ \n\ \u00a9 Copyright 2011.</string>
-    <string name="show_details_screen_help">This screen lists all of the songs for whichever show was selected.  You have a few options with what you can do here... \n\ \n\ Click on the "Share/Vote" button at the top of the screen to vote on the show, post it to Facebook, or Tweet it. \n\ \n\ If you want to just play a song, click on it.  It will start playing in the background.  Playing a song will take you to the "Now Playing" screen.  You can also get there by dragging down from the status bar, or selected "Now Playing" from the menu after clicking the menu button.  The entire show will be queued to play if you click on a song.. \n\ \n\ If you want to download a song, long-press on the song, and you will have the option to do so.  You can even choose to download the entire show!  If a song is downloaded, a star will appear next to it, and it will play from your phone (instead of from the Internet) if you click on it.  You can also play it by going to "Downloaded Songs" from the home screen. \n\ \n\ If you want to reccomend a song to a friend, long-press on the song and you will have the option to do so.</string>
-	<string name="download_screen_help">Active Downloads shows you the status of songs that you have (or are) downloading in this Vibe Vault session. \n\ \n\ Shows Downloaded gives you a list of shows from which you\'ve downloaded songs.  Click a show to see what songs you\'ve downloaded from it.  Click a song to start playing it immediately (and queue up the whole show), or long-press on a song to add it to the current PlayList.</string>
-	<string name="stored_tabs_screen_help">Recent Shows contain every show you\'ve navigated to. \n\ \n\ Bookmarked Shows contain the shows you\'ve bookmarked through the show\'s detail page.</string>
-	<string name="now_playing_screen_help">Use the playback controls at the top of the screen to manage your now playing list.  Grab the icon on the left side of the song to move it.  Sliding it to the right will delete it (you can also accomplish this by long-pressing on the song).  The currently playing song is in yellow text. \n\ \n\ Drag up the PlayList bar at the bottom of the screen.  You can save the current PlayList, delete PlayLists, load old PlayLists, etc.</string>
-	<string name="recent_shows_screen_help">A list of recently viewed shows.  Click one to open it up.</string>
-	<string name="favorite_shows_screen_help">A list of bookmarked shows.  Click one to open it up.</string>
-	<string name="downloaded_show_screen_help">Click on a song to start playing it immediately (and queue up the rest of the show), or long-press on a song to add it to the current PlayList.</string>
-	<string name="browse_artists_screen_help">The first time that you open this screen, Vibe Vault will automatically fetch a list of every artist available and the number of shows that they respectively have which are available.  After that, simply clicking on a letter will show the artists whose name begins with that letter.  Clicking on the artist will bring up the Search Screen, populated with that artist.</string>
-	<string name="splash_screen">Thank you for downloading Vibe Vault v3. \n\ \n\ In this new version, we have introduced a lot of new features which we are very excited about.  You are now able to vote on any show that you view in Vibe Vault.  These votes are tallied in real time, and you can check out a variety of different rankings by clicking on the new "User Votes" icon.  We\'ve also introduced Facebook and Twitter integration for easy sharing of music.  All of these features are accessible through the new "Vote/Share" button when you open up any show.  On top of all this, enjoy an improved user interface,  numerous bug fixes, and many other improvements. \n\ \n\ We hope that you enjoy the new version.  If you enjoy our app, please recommend it to a friend, give us a good rating, or like us on facebook.  Enjoy the music and feel free to drop us a line.  \n\ \n\ -Andrew and Sanders (the Vibe Vault devs)</string>
-	<string name="voting_screen">Select whether you would like to view the voting results for shows or for artists.  Refine your search by selecting all time, weekly, daily, or newly added items.</string>
+    <string name="search_screen_help">Search by pressing the search button up top.  For each result, you can see artist, date, venue, and some information about the source of the recording. \n\ \n\ The settings button allows you to search for shows in specific date ranges.  Additionally, it lets you control the number of results a search should retrieve, and provides the option to have results sorted chronologically or by show rating. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+    <string name="home_screen_help">Developed by Andrew Pearson and Sanders DeNardi \n\ \n\ vibevault@gmail.com \n\ \n\ \u00a9 Copyright 2013.</string>
+    <string name="show_details_screen_help">The setlist for the show.  Click on any song to play it, or select the triangle on the bottom-right side of any row for more options.  You can download a song, share it any way that your device allows, or add it to the play queue. \n\ \n\ The controls at the top of the screen give you more options.  You can vote for the show in Vibe Vault\'s rankings, or share the show.  You can bookmark it for future reference, or choose to download every song to your device. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="download_screen_help">See what songs you\'ve downloaded.  Select a show to see what songs you\'ve downloaded from it. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="stored_tabs_screen_help">The dropdown menu at the top lets you choose to view shows that you have recently visited, or shows that you have bookmarked. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="now_playing_screen_help">Displays the now playing list.  The playback controls at the bottom of the screen let you control playback.  The icon to the left of each song title allows you to drag the corresponding song to a new position in the playlist.  The controls at the top of the screen allow you to vote for the currently playing song\'s show in Vibe Vault\'s rankings, to bookmark the show for future reference, or to download every song in the playlist. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="recent_shows_screen_help">See your history of shows, as well as any others you may have bookmarked. Click one to open it up. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="favorite_shows_screen_help">A list of bookmarked shows.  Click one to open it up. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="downloaded_show_screen_help">Click on a song to start playing it immediately (and queue up the rest of the show), or long-press on a song to add it to the current playlist. You can download the remining songs or delete an entire show using the menu to the right of each show. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="browse_artists_screen_help">Vibe Vault will automatically fetch a list of every artist available and the number of shows that each has which are available.  After that, simply clicking on a letter will show the artists whose name begins with that letter.  Clicking on the artist will bring up the Search Screen, populated with shows from that artist.</string>
+	<string name="splash_screen">Thank you for downloading Vibe Vault v4, and welcome to Android\'s premiere community for people who enjoy free and live music. \n\ \n\ In this update, you will find an easier to use search interface, more access to voting and social media options, and tons of other improvements, enhancements, and bug fixes.  We encourage you to use the voting and sharing features so that other users can learn about your favorite shows and artists.  It only takes one click (or tap).  You can access the voting and social media functionality by using the buttons that appear on the top of the screen when you\'re viewing a show\'s track listing, or when you are at the now playing screen.  The same options can be accessed by clicking on the small triangle in the bottom-right corner of listed tracks and shows. \n\ \n\ We hope that you enjoy the new version.  If you enjoy our app, please recommend it to a friend, give us a good rating, or like us on facebook.  Enjoy the music and feel free to drop us a line.  \n\ \n\ -Andrew and Sanders (the Vibe Vault devs) \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="voting_screen">See voting results for shows or artists.  You can filter by all time, weekly, daily, or newly added items. Click the vote icon when viewing or listening to a show to share it with others. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string-array name="date_modifier">
 		<item>Before</item>
 		<item>After</item>
 		<item>In Year</item>
 	</string-array>
+	<string-array name="voting_array">
+	    <item>Shows (Most Recent)</item>
+        <item>Shows (All Time)</item>
+        <item>Shows (Weekly)</item>
+        <item>Shows (Daily)</item>
+        <item>Artists (Most Recent)</item>
+        <item>Artists (All Time)</item>
+        <item>Artists (Weekly)</item>
+        <item>Artists (Daily)</item>
+    </string-array>
+    <string-array name="voting_by_artist">
+        <item>By Artist (Most Recent)</item>
+        <item>By Artist (All Time)</item>
+        <item>By Artist (Weekly)</item>
+        <item>By Artist (Daily)</item>
+    </string-array>
+    <string-array name="stored_array">
+    	<item>Recently Viewed</item>
+    	<item>Favorites</item>
+    </string-array>
 </resources>

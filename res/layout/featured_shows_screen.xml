@@ -17,6 +17,8 @@
 		android:layout_width="fill_parent" android:layout_height="fill_parent"
 		android:layout_below="@id/SelectedShowsLabel"
 		android:scrollbarDefaultDelayBeforeFade="2000"
-		android:scrollbarAlwaysDrawVerticalTrack="true" />
+		android:scrollbarAlwaysDrawVerticalTrack="true"
+		android:background="#000000"
+		android:overScrollFooter="@null" />
 		
 </RelativeLayout>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/ShareButton" android:icon="@drawable/sharebutton" android:title="Share Show" android:actionProviderClass="android.widget.ShareActionProvider" android:showAsAction="ifRoom"></item>
+<!-- <item android:id="@+id/DownloadButton" android:showAsAction="ifRoom" android:title="Download Show"></item> -->
+<item android:id="@+id/AddButton" android:showAsAction="ifRoom" android:title="Add Show To Queue"></item>
+<!-- <item android:id="@+id/DeleteButton" android:showAsAction="ifRoom" android:title="Delete Downloaded"></item> -->
+</menu>

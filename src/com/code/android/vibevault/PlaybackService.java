@@ -14,564 +14,649 @@
 
 package com.code.android.vibevault;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
-import android.media.MediaPlayer.OnInfoListener;
 import android.media.MediaPlayer.OnPreparedListener;
-import android.os.Binder;
+import android.media.RemoteControlClient.MetadataEditor;
+import android.media.RemoteControlClient;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.widget.Toast;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import com.code.android.vibevault.VibeVault;
+import java.util.ArrayList;
+import com.code.android.vibevault.R;
 
-public class PlaybackService extends Service implements OnPreparedListener,
-    OnBufferingUpdateListener, OnCompletionListener, OnErrorListener,
-    OnInfoListener {
-  private static final String SERVICE_PREFIX = "com.code.android.vibevault.";
-  public static final String SERVICE_CHANGE_NAME = SERVICE_PREFIX + "CHANGE";
-  public static final String SERVICE_PLAYLIST_NAME = SERVICE_PREFIX + "PLAYLIST";
-  public static final String SERVICE_UPDATE_NAME = SERVICE_PREFIX + "UPDATE";
-  
-  public static final String EXTRA_TITLE = "title";
-  public static final String EXTRA_DOWNLOADED = "downloaded";
-  public static final String EXTRA_DURATION = "duration";
-  public static final String EXTRA_POSITION = "position";
-  public static final String EXTRA_STATUS = "status";
-  
-  private ArchiveSongObj currentSong;
+public class PlaybackService extends Service implements 
+		OnPreparedListener, OnBufferingUpdateListener, OnCompletionListener,
+		OnErrorListener, AudioManager.OnAudioFocusChangeListener{
 
-  private MediaPlayer mediaPlayer;
-  private boolean isPrepared = false;
-  private boolean isPreparing = false;
-  private boolean isPaused = false;
-  private boolean isStreaming = true;
+	private static final String LOG_TAG = PlaybackService.class.getName();
 
-  private NotificationManager notificationManager;
-  private static final int NOTIFICATION_ID = 1;
-  private int bindCount = 0;
-  
-  private TelephonyManager telephonyManager;
-  private PhoneStateListener listener;
-  private boolean isPausedInCall = false;
-  private Intent lastChangeBroadcast;
-  private Intent lastUpdateBroadcast;
-  private int lastBufferPercent = 0;
-  private Thread updateProgressThread;
-  
-  private FileInputStream fis;
-
-  // Amount of time to rewind playback when resuming after call 
-  private final static int RESUME_REWIND_TIME = 3000;
-
-  @Override
-  public void onCreate() {
-    mediaPlayer = new MediaPlayer();
-    mediaPlayer.setOnBufferingUpdateListener(this);
-    mediaPlayer.setOnCompletionListener(this);
-    mediaPlayer.setOnErrorListener(this);
-    mediaPlayer.setOnInfoListener(this);
-    mediaPlayer.setOnPreparedListener(this);
-    notificationManager = (NotificationManager) getSystemService(
-        Context.NOTIFICATION_SERVICE);
-    
-
-    telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-    // Create a PhoneStateListener to watch for offhook and idle events
-    listener = new PhoneStateListener() {
-      @Override
-      public void onCallStateChanged(int state, String incomingNumber) {
-        switch (state) {
-        case TelephonyManager.CALL_STATE_OFFHOOK:
-        case TelephonyManager.CALL_STATE_RINGING:
-          // Phone going offhook or ringing, pause the player.
-          if (isPlaying()) {
-            pause();
-            isPausedInCall = true;
-          }
-          break;
-        case TelephonyManager.CALL_STATE_IDLE:
-          // Phone idle. Rewind a couple of seconds and start playing.
-          if (isPausedInCall) {
-            seekTo(Math.max(0, getPosition() - RESUME_REWIND_TIME));
-            play();
-          }
-          break;
-        }
-      }
-    };
-
-    // Register the listener with the telephony manager.
-    telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
-    sendLastChangeBroadcast();
-  }
-
-  @Override
-  public IBinder onBind(Intent arg0) {
-    bindCount++;
-    
-    return new ListenBinder();
-  }
-
-  @Override
-  public boolean onUnbind(Intent arg0) {
-    bindCount--;
-    
-    if (!isPlaying() && bindCount == 0 && !isPreparing && VibeVault.playList.isEmpty()) {
-      
-      stopSelf();
-    } else {
-      
-    }
-    return false;
-  }
-
-  synchronized public boolean isPlaying() {
-    if (isPrepared) {
-      return mediaPlayer.isPlaying();
-    }
-    return false;
-  }
-  
-  synchronized public boolean isStopped(){
-	  return !isPlaying();
-  }
-
-  synchronized public int getPosition() {
-    if (isPrepared) {
-      return mediaPlayer.getCurrentPosition();
-    }
-    return 0;
-  }
-
-  synchronized public int getDuration() {
-    if (isPrepared) {
-      return mediaPlayer.getDuration();
-    }
-    return 0;
-  }
-
-  synchronized public int getCurrentPosition() {
-    if (isPrepared) {
-      return mediaPlayer.getCurrentPosition();
-    }
-    return 0;
-  }
-
-  synchronized public void seekTo(int pos) {
-    if (isPrepared) {
-      mediaPlayer.seekTo(pos);
-    }
-  }
-  
-  public boolean isThisSongPlaying(ArchiveSongObj song){
-	  if(currentSong != null){
-		  return currentSong.equals(song);
-	  } else{
-		  return false;
-	  }
-  }
-
-  synchronized public void play() {
-    if (!isPrepared || currentSong == null) {      
-      return;
-    }
-    isPaused = false;
-    
-    mediaPlayer.start();
-
-    int icon = R.drawable.musicnote;
-    CharSequence contentText = currentSong.getShowTitle();
-    long when = System.currentTimeMillis();
-    Notification notification = new Notification(icon, contentText, when);
-    notification.flags = Notification.FLAG_NO_CLEAR
-        | Notification.FLAG_ONGOING_EVENT;
-    Context c = getApplicationContext();
-    CharSequence title = currentSong.toString();
-    Intent notificationIntent;
-    notificationIntent = new Intent(this, NowPlayingScreen.class);
-    notificationIntent.setAction(Intent.ACTION_VIEW);
-    notificationIntent.addCategory(Intent.CATEGORY_DEFAULT);
-    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    PendingIntent contentIntent = PendingIntent.getActivity(c, 0,
-        notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-    notification.setLatestEventInfo(c, title, contentText, contentIntent);
-    notificationManager.notify(NOTIFICATION_ID, notification);
-
-    sendLastChangeBroadcast();
-  }
-  
-  private void sendLastChangeBroadcast(){
-	  if (lastChangeBroadcast != null) {
-	      getApplicationContext().removeStickyBroadcast(lastChangeBroadcast);
-	    }
-	    lastChangeBroadcast = new Intent(SERVICE_CHANGE_NAME);
-	    if(mediaPlayer.isPlaying()){
-	    	lastChangeBroadcast.putExtra(EXTRA_TITLE, currentSong.getShowTitle() + " - " + currentSong.toString());
-	    	lastChangeBroadcast.putExtra(EXTRA_STATUS, "playing");
-	    }
-	    else if(isPaused){
-	    	lastChangeBroadcast.putExtra(EXTRA_TITLE, currentSong.getShowTitle() + " - " + currentSong.toString());
-	    	lastChangeBroadcast.putExtra(EXTRA_STATUS, "paused");
-	    }
-	    else if(isPreparing){
-	    	lastChangeBroadcast.putExtra(EXTRA_TITLE, "Buffering " + currentSong.toString() + "...");
-	    	lastChangeBroadcast.putExtra(EXTRA_STATUS, "preparing");
-	    }
-	    else{
-	    	lastChangeBroadcast.putExtra(EXTRA_TITLE, "Nothing Playing...");
-	    	lastChangeBroadcast.putExtra(EXTRA_STATUS, "stopped");
-	    }
-	    getApplicationContext().sendStickyBroadcast(lastChangeBroadcast);
-	  }
-
-  synchronized public void pause() {
-    
-    if (isPrepared) {
-      mediaPlayer.pause();
-      isPaused = true;
-    }
-    sendLastChangeBroadcast();
-    notificationManager.cancel(NOTIFICATION_ID);
-  }
-  
-  public boolean isPaused(){
-	  return isPaused;
-  }
-  
-  public boolean isStreaming(){
-	  return isStreaming;
-  }
-
-  synchronized public void stop() {
-    
-    if (isPrepared || isPreparing) {
-      mediaPlayer.stop();
-      mediaPlayer.reset();
-      isPrepared = false;
-      isPreparing = false;
-    }
-    sendLastChangeBroadcast();
-    updateProgress();
-    cleanup();
-  }
-  
-  public void playSong(ArchiveSongObj song){
-	  
-	  if(currentSong == null || !currentSong.equals(song) || !isPlaying()){
-	    try {
-	    	currentSong = song;
-			listen(song.getSongPath(),!song.doesExist());
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-	  }
-  }
-
-  public void playSongFromPlaylist(int position){
-	  if(!VibeVault.playList.isEmpty() && position > -1 && position < VibeVault.playList.size())
-		{
-			VibeVault.nowPlayingPosition = position;
-			
-			playSong(VibeVault.playList.getSong(VibeVault.nowPlayingPosition));
-		} else{
-			stop();
-		}
-  }
+	private static final String SERVICE_PREFIX = "com.code.android.vibevault.playbackservice.";
+	public static final String SERVICE_PLAYLIST = SERVICE_PREFIX + "PLAYLIST";
+	public static final String SERVICE_UPDATE = SERVICE_PREFIX + "UPDATE";
 	
-	public int getPlayingIndex(){
-		return currentSong != null ? VibeVault.nowPlayingPosition : -1;
-	}
+	// Intent Extras
+	public static final String EXTRA_STATUS = SERVICE_PREFIX + "EXTRA_STATUS";
+	public static final String EXTRA_PLAY_DURATION = SERVICE_PREFIX + "EXTRA_PLAY_DURATION";
+	public static final String EXTRA_PLAY_PROGRESS = SERVICE_PREFIX + "EXTRA_PLAY_PROGRESS";
+	public static final String EXTRA_BUFFER_PROGRESS = SERVICE_PREFIX + "EXTRA_BUFFER_PROGRESS";
+	public static final String EXTRA_TITLE = SERVICE_PREFIX + "EXTRA_TITLE";
+	public static final String EXTRA_PLAYLIST = SERVICE_PREFIX + "EXTRA_PLAYLIST";
+	public static final String EXTRA_PLAYLIST_POSITION = SERVICE_PREFIX + "EXTRA_PLAYLIST_POSITION";
+	public static final String EXTRA_SEEK_POSITON = SERVICE_PREFIX + "EXTRA_SEEK_POSITON";
+	public static final String EXTRA_SONG = SERVICE_PREFIX + "EXTRA_SONG";
+	public static final String EXTRA_DO_PLAY = SERVICE_PREFIX + "EXTRA_DO_PLAY";
+	public static final String EXTRA_MOVE_FROM = SERVICE_PREFIX + "EXTRA_MOVE_FROM";
+	public static final String EXTRA_MOVE_TO = SERVICE_PREFIX + "EXTRA_MOVE_TO";
 	
-	public int enqueue(ArchiveSongObj song){
+	// Actions
+	public static final String ACTION_TOGGLE = SERVICE_PREFIX + "ACTION_TOGGLE";
+	public static final String ACTION_PLAY = SERVICE_PREFIX + "ACTION_PLAY";
+	public static final String ACTION_PLAY_POSITION = SERVICE_PREFIX + "ACTION_PLAY_POSITION";
+	public static final String ACTION_PAUSE = SERVICE_PREFIX + "ACTION_PAUSE";
+	public static final String ACTION_NEXT = SERVICE_PREFIX + "ACTION_NEXT";
+	public static final String ACTION_PREV = SERVICE_PREFIX + "ACTION_PREV";
+	public static final String ACTION_STOP = SERVICE_PREFIX + "ACTION_STOP";
+	public static final String ACTION_SEEK = SERVICE_PREFIX + "ACTION_SEEK";
+	public static final String ACTION_QUEUE_SONG = SERVICE_PREFIX + "ACTION_QUEUE_SONG";
+	public static final String ACTION_QUEUE_SHOW = SERVICE_PREFIX + "ACTION_QUEUE_SHOW";
+	public static final String ACTION_MOVE = SERVICE_PREFIX + "ACTION_MOVE";
+	public static final String ACTION_DELETE = SERVICE_PREFIX + "ACTION_DELETE";
+	public static final String ACTION_DOWNLOAD = SERVICE_PREFIX + "ACTION_DOWNLOAD";
+	public static final String ACTION_POLL = SERVICE_PREFIX + "ACTION_POLL";
+	
+	// Statuses
+	public static final int STATUS_STOPPED = 0; // Player is stopped
+	public static final int STATUS_BUFFERING = 1; // Player is buffering and is
+													// not playing
+	public static final int STATUS_PLAYING = 2; // Player is playing
+	public static final int STATUS_PAUSED = 3; // Player is paused and can be
+												// played instantaneously
+
+	private int playerStatus;
+	
+	private ArrayList<ArchiveSongObj> songArray;
+	private int nowPlayingPosition = -1;
+
+	private MediaPlayer mediaPlayer;
+	private boolean isStreaming = false;
+	private WifiLock wifiLock;
+
+	private NotificationManager notificationManager;
+	private Notification.Builder mBuilder;
+	private static final int NOTIFICATION_ID = 1;
+	
+	private AudioManager audioManager;
+	private ComponentName remoteReceiver;
+	private RemoteControlClient remoteControlClient;
+	private Bitmap albumArt;
+	
+	private StaticDataStore db;
+
+	private TelephonyManager telephonyManager;
+	private PhoneStateListener listener;
+	private boolean isPausedInCall = false;
+	private int lastBufferPercent = 0;
+	private static Thread updateProgressThread;
+	// Amount of time to rewind playback when resuming after call
+	private final static int RESUME_REWIND_TIME = 3000;
+
+	@Override
+	public void onCreate() {
+		 
 		
-		return VibeVault.playList.enqueue(song);
-	}
-	
-	public void dequeue(int position){
-		if(position > -1 && position <= VibeVault.playList.size()){
-			if(VibeVault.nowPlayingPosition == position){
-				stop();
-				if(VibeVault.playList.size() >= 1){
-					if(position == VibeVault.playList.size()){
-						VibeVault.nowPlayingPosition = VibeVault.nowPlayingPosition - 1;
+		db = StaticDataStore.getInstance(this);
+		
+		songArray = db.getNowPlayingSongs();
+		
+		wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "vvLock");
+		
+		notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		
+		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		remoteReceiver = new ComponentName(this, RemoteControlReceiver.class);
+		albumArt = BitmapFactory.decodeResource(getResources(), R.drawable.big_icon);
+		
+		telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+		// Create a PhoneStateListener to watch for offhook and idle events
+		listener = new PhoneStateListener() {
+			@Override
+			public void onCallStateChanged(int state, String incomingNumber) {
+				switch (state) {
+				case TelephonyManager.CALL_STATE_OFFHOOK:
+				case TelephonyManager.CALL_STATE_RINGING:
+					// Phone going offhook or ringing, pause the player.
+					if (playerStatus == STATUS_PLAYING) {
+						pause();
+						isPausedInCall = true;
 					}
-					currentSong = VibeVault.playList.getSong(VibeVault.nowPlayingPosition);
-				}
-				else{
-					VibeVault.nowPlayingPosition = -1;
-					currentSong = null;
+					break;
+				case TelephonyManager.CALL_STATE_IDLE:
+					// Phone idle. Rewind a couple of seconds and start playing.
+					if (isPausedInCall && playerStatus == STATUS_PAUSED) {
+						mediaPlayer.seekTo(mediaPlayer.getDuration() - RESUME_REWIND_TIME);
+						play();
+						isPausedInCall = false;
+					}
+					break;
 				}
 			}
-			else{
-				VibeVault.nowPlayingPosition = VibeVault.playList.exists(currentSong);
+		};
+
+		// Register the listener with the telephony manager.
+		telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
+		playerStatus = STATUS_STOPPED;
+		 
+	}
+	
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		if (intent != null) {
+			String action = intent.getAction();
+			 
+			if (action == ACTION_TOGGLE) togglePlayPause();
+			else if (action == ACTION_PLAY) play();
+			else if (action == ACTION_PLAY_POSITION) playPos(intent); 
+			else if (action == ACTION_PAUSE) pause(); 
+			else if (action == ACTION_NEXT) next(); 
+			else if (action == ACTION_PREV) previous(); 
+			else if (action == ACTION_STOP) stop();
+			else if (action == ACTION_SEEK) seekTo(intent);
+			else if (action == ACTION_QUEUE_SONG) queueSong(intent);
+			else if (action == ACTION_QUEUE_SHOW) queueShow(intent);
+			else if (action == ACTION_MOVE) moveSong(intent);
+			else if (action == ACTION_DELETE) deleteSong(intent);
+			else if (action == ACTION_DOWNLOAD) downloadShow();
+			else if (action == ACTION_POLL) {
+				sendPlayerChangeBroadcast();
+				sendPlaylistChangeBroadcast();
 			}
-		    getApplicationContext().sendBroadcast(new Intent(SERVICE_PLAYLIST_NAME));
 		}
+		
+		return START_NOT_STICKY;
 	}
 	
-	public void playPrev()
-	{
-		if(VibeVault.nowPlayingPosition > 0)
-		{
+	private void createMediaPlayer() {
+		if (mediaPlayer == null){
+			 
+			mediaPlayer = new MediaPlayer();
 			
-			VibeVault.nowPlayingPosition--;
-			playSong(VibeVault.playList.getSong(VibeVault.nowPlayingPosition));
-		}
-	}
-	
-	public void playNext()
-	{
-		if(VibeVault.nowPlayingPosition + 1 < VibeVault.playList.size())
-		{
+			mediaPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
 			
-			VibeVault.nowPlayingPosition++;
-			playSong(VibeVault.playList.getSong(VibeVault.nowPlayingPosition));
+			mediaPlayer.setOnBufferingUpdateListener(this);
+			mediaPlayer.setOnCompletionListener(this);
+			mediaPlayer.setOnErrorListener(this);
+			mediaPlayer.setOnPreparedListener(this);
+		}
+		else {
+			mediaPlayer.reset();
+		}
+	}
+
+	@Override
+	public IBinder onBind(Intent arg0) {
+		return null;
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		 
+		playerStatus = PlaybackService.STATUS_STOPPED; 
+		releaseResources();		
+		telephonyManager.listen(listener, PhoneStateListener.LISTEN_NONE);
+	}
+
+	@Override
+	public void onBufferingUpdate(MediaPlayer mp, int progress) {
+		synchronized(this) {
+			lastBufferPercent = progress;
+		}
+		sendPlayerChangeBroadcast();
+	}
+
+	@Override
+	public void onCompletion(MediaPlayer mp) {
+		playerStatus = STATUS_STOPPED;
+		if (nowPlayingPosition < (songArray.size() - 1)) {
+			 
+			next();
+		}
+		else {
+			 
+			playerStatus = STATUS_STOPPED;
+			notificationManager.cancel(NOTIFICATION_ID);
+			
+			if (updateProgressThread != null) {
+				updateProgressThread.interrupt();
+				try {
+					updateProgressThread.join(500);
+				} catch (InterruptedException e) {
+				}
+			}
+			notificationManager.cancel(NOTIFICATION_ID);
+			remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+			releaseResources();			
+			sendPlayerChangeBroadcast();
+		}
+	}
+
+	@Override
+	public boolean onError(MediaPlayer mp, int what, int extra) {
+		playerStatus = STATUS_STOPPED;
+		sendPlayerChangeBroadcast();
+		remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+		audioManager.abandonAudioFocus(this);
+		releaseResources();
+		if (extra == -1004) {
+			Toast.makeText(this, "Error playing song, check internet conneciton", Toast.LENGTH_SHORT).show();
+		}
+		return true;
+	}
+
+	@Override
+	public void onAudioFocusChange(int focusChange) {
+		
+	}
+
+	private void listen(String url, boolean stream){
+		 
+				
+		createMediaPlayer();
+		
+		isStreaming = stream;
+		try {
+			mediaPlayer.setDataSource(url);
+		} catch (Exception e) {
+			 
+			e.printStackTrace();
+		} 
+		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		
+		if (isStreaming) {
+			wifiLock.acquire();
+		} else if (wifiLock.isHeld()) {
+			wifiLock.release();
+		}
+
+		 
+		mediaPlayer.prepareAsync();
+		playerStatus = STATUS_BUFFERING;
+		sendPlayerChangeBroadcast();
+		setUpNotification();
+		setUpRemoteControl(true);
+		remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_BUFFERING);
+	}
+
+	@Override
+	public void onPrepared(MediaPlayer mp) {
+		startPlayer();
+	}
+
+	private void startPlayer() {
+		 
+		mediaPlayer.start();
+
+		
+		if (updateProgressThread != null) {
+			updateProgressThread.interrupt();
+			try {
+				updateProgressThread.join(500);
+			} catch (InterruptedException e) {
+			}
+		}
+		updateProgressThread = new Thread() {
+			public void run() {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					return;
+				}
+				while (!this.isInterrupted()) {
+					sendPlayerChangeBroadcast();
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						break;
+					}
+				}
+			}
+		};
+		updateProgressThread.start();
+		playerStatus = STATUS_PLAYING;
+		setUpRemoteControl(false);
+		setUpNotification();		
+		remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+		sendPlayerChangeBroadcast();		
+	}
+	
+	private void setUpRemoteControl(boolean buffering) {
+		audioManager.registerMediaButtonEventReceiver(remoteReceiver);
+		if (remoteControlClient == null) {
+			Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+			intent.setComponent(remoteReceiver);
+			remoteControlClient = new RemoteControlClient(PendingIntent.getBroadcast(this, 0, intent, 0));
+			audioManager.registerRemoteControlClient(remoteControlClient);
+			remoteControlClient.setTransportControlFlags(
+					RemoteControlClient.FLAG_KEY_MEDIA_PLAY |
+					RemoteControlClient.FLAG_KEY_MEDIA_PAUSE |
+					RemoteControlClient.FLAG_KEY_MEDIA_NEXT |
+					RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS |
+					RemoteControlClient.FLAG_KEY_MEDIA_STOP |
+					RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE );
+		}
+		remoteControlClient.editMetadata(true)
+			.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, getCurrentSong().getShowArtist())
+			.putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, getCurrentSong().getShowTitle())
+			.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, getCurrentSong().getSongTitle() + (buffering ? " (buffering)" : ""))
+			.putBitmap(MetadataEditor.BITMAP_KEY_ARTWORK, albumArt)
+			.apply();
+		audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void setUpNotification() {
+		ArchiveSongObj currentSong = getCurrentSong();
+		String state = "";
+		if (playerStatus == STATUS_BUFFERING)
+			state = " (buffering)";
+		else if (playerStatus == STATUS_PAUSED)
+			state = " (paused)";
+		mBuilder = new Notification.Builder(this)
+				.setSmallIcon(R.drawable.musicnote)
+				.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.icon))
+				.setContentTitle(currentSong.getSongTitle() + state)
+				.setContentText(currentSong.getShowTitle())
+				.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, SearchScreen.class).putExtra("type", 2).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_UPDATE_CURRENT))
+				.setOngoing(true);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+			finishNewNotification(mBuilder);
+		}
+		else {
+			startForeground(NOTIFICATION_ID, mBuilder.getNotification());
 		}
 	}
 	
-	// CAN RETURN NULL CALLER MUST CHECK!!!!!!!!
-	public ArchiveSongObj getPlayingSong(){
-		if(VibeVault.playList.size()!=0&&!isStopped()){
-			return VibeVault.playList.getSong(VibeVault.nowPlayingPosition);
+	@TargetApi(16)
+	private void finishNewNotification(Notification.Builder mBuilder) {
+		mBuilder.addAction(R.drawable.previousbutton, "", PendingIntent.getService(this, 0, new Intent(PlaybackService.ACTION_PREV), PendingIntent.FLAG_UPDATE_CURRENT));
+		if (playerStatus == STATUS_PLAYING || playerStatus == STATUS_BUFFERING)
+			mBuilder.addAction(R.drawable.pausebutton, "", PendingIntent.getService(this, 0, new Intent(PlaybackService.ACTION_PAUSE), PendingIntent.FLAG_UPDATE_CURRENT));
+		else
+			mBuilder.addAction(R.drawable.playbutton, "", PendingIntent.getService(this, 0, new Intent(PlaybackService.ACTION_PLAY), PendingIntent.FLAG_UPDATE_CURRENT));
+		mBuilder.addAction(R.drawable.nextbutton, "", PendingIntent.getService(this, 0, new Intent(PlaybackService.ACTION_NEXT), PendingIntent.FLAG_UPDATE_CURRENT));
+		startForeground(NOTIFICATION_ID, mBuilder.build());
+	}
+	
+	private void releaseResources() {
+		// Set service as background and remove notifications
+		stopForeground(true);
+		audioManager.unregisterRemoteControlClient(remoteControlClient);
+		audioManager.unregisterMediaButtonEventReceiver(remoteReceiver);
+		
+		if (mediaPlayer != null){
+			mediaPlayer.reset();
+			mediaPlayer.release();
+			mediaPlayer = null;
+		}
+		
+		if (wifiLock.isHeld()) {
+			wifiLock.release();
+		}
+	}
+	
+	private void pausePlayer() {
+		mediaPlayer.pause();
+		playerStatus = STATUS_PAUSED;
+		setUpNotification();
+		if (updateProgressThread != null) {
+			updateProgressThread.interrupt();
+			try {
+				updateProgressThread.join(500);
+			} catch (InterruptedException e) {
+			}
+		}
+		remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+		sendPlayerChangeBroadcast();
+	}
+	
+	private void stopPlayer() {
+		mediaPlayer.stop();
+		mediaPlayer.reset();
+		playerStatus = STATUS_STOPPED;
+		if (updateProgressThread != null) {
+			updateProgressThread.interrupt();
+			try {
+				updateProgressThread.join(500);
+			} catch (InterruptedException e) {
+			}
+		}
+		notificationManager.cancel(NOTIFICATION_ID);
+		remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+		releaseResources();
+		sendPlayerChangeBroadcast();
+	}
+	
+	private void togglePlayPause() {
+		if (playerStatus == STATUS_PLAYING) {
+			pausePlayer();
+		} else if (playerStatus == STATUS_PAUSED) {
+			startPlayer();
+		}
+		else if (playerStatus == STATUS_STOPPED && songArray.size() > 0) {
+			nowPlayingPosition = (nowPlayingPosition == -1 || nowPlayingPosition > songArray.size()) ? 0 : nowPlayingPosition;
+			playPosition(nowPlayingPosition);
+		}
+	}
+	
+	private void play() {
+		if (playerStatus == STATUS_PAUSED) {
+			startPlayer();
+		}
+		else if (playerStatus == STATUS_STOPPED && songArray.size() > 0) {
+			nowPlayingPosition = (nowPlayingPosition == -1 || nowPlayingPosition > songArray.size()) ? 0 : nowPlayingPosition;
+			playPosition(nowPlayingPosition);
+		}
+	}
+	
+	private void pause() {
+		if (playerStatus == STATUS_PLAYING) {
+			pausePlayer();
+		}
+	}
+	
+	private void stop() {
+		if (playerStatus != STATUS_STOPPED) {
+			stopPlayer();
+		}
+	}
+	
+	private void next() {
+		if (nowPlayingPosition < songArray.size() - 1) {
+			playPosition(nowPlayingPosition+1);
+		}
+	}
+	
+	private void previous() {
+		if (nowPlayingPosition > 0) {
+			playPosition(nowPlayingPosition-1);
+		}
+	}
+	
+	private void seekTo(Intent intent) {
+		if (playerStatus == STATUS_PLAYING || playerStatus == STATUS_PAUSED) {
+			mediaPlayer.seekTo(intent.getIntExtra(EXTRA_SEEK_POSITON, 0));
+		}
+	}
+	
+	private void playPos(Intent intent) {
+		playPosition(intent.getIntExtra(EXTRA_PLAYLIST_POSITION,0));
+	}
+	
+	private void playPosition(int pos) {
+		 
+		if (nowPlayingPosition != pos || playerStatus == STATUS_STOPPED) {
+			nowPlayingPosition = pos;
+			ArchiveSongObj currentSong = getCurrentSong();
+			 
+			try {
+				listen(currentSong.getSongPath(db),!currentSong.doesExist(db));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			sendPlaylistChangeBroadcast();
+		}
+		else if (nowPlayingPosition == pos && playerStatus == STATUS_PAUSED){
+			 
+			startPlayer();
+		}
+	}
+	
+	private void queueSong(Intent intent) {
+		songArray.add((ArchiveSongObj)intent.getSerializableExtra(EXTRA_SONG));
+		db.addSongToNowPlaying((ArchiveSongObj)intent.getSerializableExtra(EXTRA_SONG));
+		if(intent.getBooleanExtra(EXTRA_DO_PLAY, false)){
+			this.playPosition(songArray.size()-1);
+		}
+		sendPlaylistChangeBroadcast();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void queueShow(Intent intent) {
+		stop();
+		songArray.clear();
+		songArray.addAll((ArrayList<ArchiveSongObj>)intent.getSerializableExtra(EXTRA_PLAYLIST));
+		db.setNowPlayingSongs(songArray);
+		 
+		nowPlayingPosition = -1;
+		if (intent.getBooleanExtra(EXTRA_DO_PLAY, false)) {
+			playPosition(intent.getIntExtra(EXTRA_PLAYLIST_POSITION, 0));
+		}
+		sendPlaylistChangeBroadcast();
+	}
+	
+	private void moveSong(Intent intent) {
+		int from = intent.getIntExtra(EXTRA_MOVE_FROM, 0);
+		int to = intent.getIntExtra(EXTRA_MOVE_TO, 0);
+		 
+		 
+		ArchiveSongObj song = songArray.get(from);
+		songArray.remove(from);
+		songArray.add(to, song);
+		db.setNowPlayingSongs(songArray);
+		if(from==nowPlayingPosition){
+			 
+			nowPlayingPosition=to;
+		} else if(from<nowPlayingPosition){
+			if(to>=nowPlayingPosition){
+				 
+				nowPlayingPosition--;
+			}
 		} else{
+			if(to<=nowPlayingPosition){
+				 
+				nowPlayingPosition++;
+			}
+		}
+		 
+//		nowPlayingPosition = nowPlayingPosition == from ? to : nowPlayingPosition > from ? 1 : 0;
+		sendPlaylistChangeBroadcast();
+	}
+	
+	private void deleteSong(Intent intent) {
+		
+	}
+	
+	/** Warning, the caller of this method must check for null returns.
+	 * 
+	 */
+	private ArchiveSongObj getCurrentSong() {
+		if(nowPlayingPosition==-1){
 			return null;
 		}
+		return songArray.get(nowPlayingPosition);
 	}
 	
-	public ArchiveSongObj getSong(int index){
-		if(index > -1 && index < VibeVault.playList.size()){
-			return VibeVault.playList.getSong(index);
+	private int getCurrentDuration() {
+		if (playerStatus == STATUS_PLAYING || playerStatus == STATUS_PAUSED) {
+			return mediaPlayer.getDuration();
 		}
-		else{
-			return null;
-		}
-	}
-	
-	/*public String getPlayingSongTitle(){
-		return currentSong.toString();
-	}
-	
-	public String getPlayingShowTitle(){
-		return currentSong.getShowTitle();
-	}*/
-	
-	public String getPlayingShowArtist(){
-		return currentSong.getShowArtist();
-	}
-	
-	public void updatePlaying(){
-		if(currentSong!=null){
-			VibeVault.nowPlayingPosition = VibeVault.playList.getList().indexOf(currentSong);
+		else {
+			return 0;
 		}
 	}
-  
-  /**
-   * Start listening to the given URL.
-   */
-  public void listen(String url, boolean stream)
-      throws IllegalArgumentException, IllegalStateException, IOException {
-    // First, clean up any existing audio.
-	  
-	  if (isPlaying()) {
-      stop();
-    }
-	isStreaming = stream;
-    
-    String playUrl = url;
-    // From 2.2 on (SDK ver 8), the local mediaplayer can handle Shoutcast
-    // streams natively. Let's detect that, and not proxy.
-    
+	
+	private int getPlayProgress() {
+		if (playerStatus == STATUS_PLAYING || playerStatus == STATUS_PAUSED) {
+			return mediaPlayer.getCurrentPosition();
+		}
+		else {
+			return 0;
+		}
+	}
+	
+	private int getBufferProgress() {
+		synchronized(this) {
+			if (playerStatus == STATUS_PLAYING || playerStatus == STATUS_PAUSED){
+				return (int) (isStreaming ? ((lastBufferPercent / 100.0) * mediaPlayer.getDuration()) : mediaPlayer.getDuration());
+			}
+			else {
+				return 0;
+			}
+		}
+	}
 
-    /*if (stream && sdkVersion < 8) {
-      if (proxy == null) {
-        proxy = new StreamProxy();
-        proxy.init();
-        proxy.start();
-      }
-      String proxyUrl = String.format("http://127.0.0.1:%d/%s",
-          proxy.getPort(), url);
-      playUrl = proxyUrl;
-    }*/
-
-    synchronized (this) {
-      
-      mediaPlayer.reset();
-      if(!stream){
-    	  fis = new FileInputStream(playUrl);
-    	  mediaPlayer.setDataSource(fis.getFD());
-      }
-      else{
-    	  mediaPlayer.setDataSource(playUrl);
-      }
-   	  mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-      
-      isPreparing = true;
-      mediaPlayer.prepareAsync();
-      sendLastChangeBroadcast();
-      
-    }
-  }
-
-  @Override
-  public void onPrepared(MediaPlayer mp) {
-    
-    synchronized (this) {
-      if (mediaPlayer != null) {
-        isPrepared = true;
-      }
-    }
-    play();
-    isPreparing = false;
-    updateProgressThread = new Thread(new Runnable() {
-      public void run() {
-        // Initially, don't send any updates, since it takes a while for the
-        // media player to settle down. 
-        try {
-          Thread.sleep(2000);
-        } catch (InterruptedException e) {
-          return;
-        }
-        while (true) {
-          updateProgress();
-          try {
-            Thread.sleep(500);
-          } catch (InterruptedException e) {
-            break;
-          }
-        }
-      }
-    });
-    updateProgressThread.start();
-  }
-
-  @Override
-  public void onDestroy() {
-    super.onDestroy();
-    
-
-    if (updateProgressThread != null) {
-      updateProgressThread.interrupt();
-      try {
-        updateProgressThread.join(3000);
-      } catch (InterruptedException e) {
-      }
-    }
-
-    stop();
-    synchronized (this) {
-      if (mediaPlayer != null) {
-        mediaPlayer.release();
-        mediaPlayer = null;
-      }
-    }
-
-    telephonyManager.listen(listener, PhoneStateListener.LISTEN_NONE);
-  }
-
-  public class ListenBinder extends Binder {
-
-    public PlaybackService getService() {
-      return PlaybackService.this;
-    }
-  }
-
-  @Override
-  public void onBufferingUpdate(MediaPlayer mp, int progress) {
-    if (isPrepared) {
-      lastBufferPercent = progress;
-      updateProgress();
-    }
-  }
-
-  /**
-   * Sends an UPDATE broadcast with the latest info.
-   */
-  private synchronized void updateProgress() {
-    if (lastUpdateBroadcast != null) {
-        getApplicationContext().removeStickyBroadcast(lastUpdateBroadcast);
-      }
-    if (isPrepared && mediaPlayer != null && (mediaPlayer.isPlaying() || isPaused)) {
-      // Update broadcasts are sticky, so when a new receiver connects, it will
-      // have the data without polling.
-      
-      lastUpdateBroadcast = new Intent(SERVICE_UPDATE_NAME);
-      lastUpdateBroadcast.putExtra(EXTRA_DURATION, mediaPlayer.getDuration());
-      lastUpdateBroadcast.putExtra(EXTRA_DOWNLOADED, isStreaming ?
-          (int) ((lastBufferPercent / 100.0) * mediaPlayer.getDuration()) : mediaPlayer.getDuration());
-      lastUpdateBroadcast.putExtra(EXTRA_POSITION,
-          mediaPlayer.getCurrentPosition());
-      getApplicationContext().sendStickyBroadcast(lastUpdateBroadcast);
-    }
-    else{
-    	lastUpdateBroadcast = new Intent(SERVICE_UPDATE_NAME);
-        lastUpdateBroadcast.putExtra(EXTRA_DURATION, 0);
-        lastUpdateBroadcast.putExtra(EXTRA_DOWNLOADED, 0);
-        lastUpdateBroadcast.putExtra(EXTRA_POSITION, 0);
-        getApplicationContext().sendStickyBroadcast(lastUpdateBroadcast);
-    }
-  }
-  
-  @Override
-  public void onCompletion(MediaPlayer mp) {
-    
-
-    synchronized (this) {
-      if (!isPrepared) {
-        // This file was not good and MediaPlayer quit
-      }
-    }
-
-    cleanup();
-    if(isPrepared){
-    	playNext();
-    }
-    if (bindCount == 0 && !isPlaying() && !isPreparing && VibeVault.playList.isEmpty()) {
-        
-      stopSelf();
-      mediaPlayer.release();
-    }
-  }
-
-  @Override
-  public boolean onError(MediaPlayer mp, int what, int extra) {
-    
-    synchronized (this) {
-      if (!isPrepared) {
-        // This file was not good and MediaPlayer quit
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public boolean onInfo(MediaPlayer arg0, int arg1, int arg2) {
-    
-    return false;
-  }
-
-  /**
-   * Remove all intents and notifications about the last media.
-   */
-  private void cleanup() {
-    notificationManager.cancel(NOTIFICATION_ID);
-    if (lastChangeBroadcast != null) {
-      getApplicationContext().removeStickyBroadcast(lastChangeBroadcast);
-    }
-    if (lastUpdateBroadcast != null) {
-      getApplicationContext().removeStickyBroadcast(lastUpdateBroadcast);
-    }
-  }
+	private void sendPlayerChangeBroadcast() {
+		Intent lastUpdateBroadcast = new Intent(SERVICE_UPDATE);
+		lastUpdateBroadcast.putExtra(EXTRA_STATUS,this.playerStatus);
+		lastUpdateBroadcast.putExtra(EXTRA_PLAY_PROGRESS, getPlayProgress());
+		lastUpdateBroadcast.putExtra(EXTRA_PLAY_DURATION, getCurrentDuration());
+		lastUpdateBroadcast.putExtra(EXTRA_BUFFER_PROGRESS, getBufferProgress());
+		if (nowPlayingPosition > -1) {
+			lastUpdateBroadcast.putExtra(EXTRA_TITLE,playerStatus == STATUS_PAUSED ? songArray.get(nowPlayingPosition).getSongTitle() 
+					: songArray.get(nowPlayingPosition).getSongArtistAndTitle());
+		}
+		else {
+			lastUpdateBroadcast.putExtra(EXTRA_TITLE, "");
+		}
+		
+		sendBroadcast(lastUpdateBroadcast);
+	}
+	
+	private void sendPlaylistChangeBroadcast() {
+		Intent lastPlaylistBroadcast = new Intent(SERVICE_PLAYLIST);
+		lastPlaylistBroadcast.putExtra(EXTRA_PLAYLIST, songArray);
+		lastPlaylistBroadcast.putExtra(EXTRA_PLAYLIST_POSITION, this.nowPlayingPosition);
+		sendBroadcast(lastPlaylistBroadcast);
+	}
+	
+	private void downloadShow() {
+		if (songArray.size() > 0) {
+			DownloadingAsyncTask task = new DownloadingAsyncTask(this);
+			task.execute(songArray.toArray(new ArchiveSongObj[songArray.size()]));
+		}
+	}
 }

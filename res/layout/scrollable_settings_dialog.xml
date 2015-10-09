@@ -12,23 +12,28 @@
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:layout_alignParentTop="true"
+			android:layout_alignParentLeft="true"
 			android:paddingLeft="15dip"
 			android:paddingRight="15dip"
-			android:textSize="16dip"
+			android:textSize="@dimen/text_height_tall"
 			android:textStyle="bold"
 			android:textColor="#127DD4"
 			android:text="Max Search Results Per Search:">
 			</TextView>
-			<TextView android:id="@+id/SeekBarValue"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_below="@id/NumResultsLabel"
-			android:layout_alignParentLeft="true"
-			android:paddingLeft="15dip"
-			android:textSize="16dip"
-			android:textStyle="bold"
-			android:textColor="#FFFFFF"
-			android:text="10">
+
+			<TextView
+			    android:id="@+id/SeekBarValue"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_above="@+id/SortLabel"
+			    android:layout_alignParentLeft="true"
+			    android:paddingLeft="15dip"
+			    android:layout_centerVertical="true"
+			    android:text="20"
+			    android:textColor="#FFFFFF"
+			    android:textSize="@dimen/text_height_tall"
+			    android:textStyle="bold" >
+
 			</TextView>
 			
 		<SeekBar android:id="@+id/NumResultsSeekBar"
@@ -36,22 +41,26 @@
 			android:layout_height="wrap_content"
 			android:layout_below="@id/NumResultsLabel"
 			android:layout_toRightOf="@+id/SeekBarValue"
+			android:layout_marginTop="5dip"
 			android:paddingLeft="15dip"
 			android:paddingRight="15dip"
-			android:max="40">
+			android:max="40"
+			>
 			</SeekBar>
 			
-			<TextView android:id="@+id/SortLabel"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:layout_below="@id/NumResultsSeekBar"
-			android:layout_alignParentLeft="true"
-			android:paddingTop="15dip"
-			android:paddingLeft="15dip"
-			android:textSize="16dip"
-			android:textStyle="bold"
-			android:textColor="#127DD4"
-			android:text="Search Based On:">
+			<TextView
+			    android:id="@+id/SortLabel"
+			    android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    android:layout_alignParentLeft="true"
+			    android:layout_below="@id/NumResultsSeekBar"
+			    android:paddingLeft="15dip"
+			    android:paddingTop="15dip"
+			    android:text="Search Based On:"
+			    android:textColor="#127DD4"
+			    android:textSize="@dimen/text_height_tall"
+			    android:textStyle="bold" >
+
 			</TextView>
 			
 			<Spinner 
@@ -61,29 +70,81 @@
         android:layout_below="@id/SortLabel"
         android:paddingLeft="15dip"
         android:paddingRight="15dip"
-        android:textSize="20dip"
+        android:textSize="@dimen/text_height_tall"
     />
-    			<TextView android:id="@+id/SearchLabel"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:layout_below="@id/SortSpinner"
-			android:layout_alignParentLeft="true"
-			android:paddingTop="15dip"
-			android:paddingLeft="15dip"
-			android:textSize="16dip"
-			android:textStyle="bold"
-			android:textColor="#127DD4"
-			android:text="Search What:">
-			</TextView>
-    <Spinner 
-        android:id="@+id/SearchSpinner"
+<!--     			<TextView android:id="@+id/SearchLabel" -->
+<!-- 			android:layout_width="fill_parent" -->
+<!-- 			android:layout_height="wrap_content" -->
+<!-- 			android:layout_below="@id/SortSpinner" -->
+<!-- 			android:layout_alignParentLeft="true" -->
+<!-- 			android:paddingTop="15dip" -->
+<!-- 			android:paddingLeft="15dip" -->
+<!-- 			android:textSize="@dimen/text_height_tall" -->
+<!-- 			android:textStyle="bold" -->
+<!-- 			android:textColor="#127DD4" -->
+<!-- 			android:text="Search by artist or show description:"> -->
+<!-- 			</TextView> -->
+
+
+
+<!--     <CheckBox -->
+<!--         android:id="@+id/SaveCheckBox" -->
+<!--         android:layout_width="wrap_content" -->
+<!--         android:layout_height="wrap_content" -->
+<!--         android:layout_alignParentBottom="true" -->
+<!--         android:layout_alignParentLeft="true" -->
+<!--         android:layout_below="@id/SettingsOkayButton" -->
+<!--         android:text="Save as default settings" -->
+<!--         android:textSize="@dimen/text_height_small" /> -->
+
+    <TextView
+        android:id="@+id/DateLabel"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/SearchLabel"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@id/SortSpinner"
         android:paddingLeft="15dip"
-        android:paddingRight="15dip"
-        android:textSize="20dip"
-    />
+        android:paddingTop="15dip"
+        android:text="Search When?"
+        android:textColor="#127DD4"
+        android:textSize="@dimen/text_height_tall"
+        android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/DateSpinner"
+            android:layout_width="150dip"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/DateText"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@id/DateLabel"
+            android:layout_toLeftOf="@+id/DateText"
+            android:paddingLeft="15dip"
+            android:paddingRight="15dip"
+            android:textSize="@dimen/text_height_tall" />
+
+        <EditText
+            android:id="@+id/DateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/DateLabel"
+            android:hint="YYYY"
+            android:inputType="number"
+            android:lines="1"
+            android:maxLength="4"
+            android:textSize="@dimen/text_height_tall" >
+
+        </EditText>
+        
+           <Button
+        android:id="@+id/SettingsOkayButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/DateText"
+        android:layout_marginTop="5dip"
+        android:text="Okay"
+        android:layout_centerHorizontal="true">
+    </Button>
 		
 	</RelativeLayout>
 </ScrollView>

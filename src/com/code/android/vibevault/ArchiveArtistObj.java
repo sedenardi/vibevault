@@ -1,6 +1,6 @@
 /*
  * ArchiveArtistObj.java
- * VERSION 3.X
+ * VERSION 3.1
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -26,13 +26,12 @@ package com.code.android.vibevault;
 
 import java.io.Serializable;
 
-public class ArchiveArtistObj implements Serializable {
+public class ArchiveArtistObj extends ArchiveVoteObj implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private int artistId;
 	private String artistName;
 	private double rating;
-	private int votes;
 	private String voteTime;
 	
 	public ArchiveArtistObj(int id, String name, double rat, int vote, String lastVote) {
@@ -57,10 +56,6 @@ public class ArchiveArtistObj implements Serializable {
 	
 	public double getRating(){
 		return rating;
-	}
-	
-	public int getVotes(){
-		return votes;
 	}
 	
 	public String toString(){

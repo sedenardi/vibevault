@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu
-  xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:id="@+id/nowPlaying" android:title="Now Playing"></item>
-<item android:id="@+id/bookmark" android:title="Bookmark Show"></item>
-<item android:id="@+id/emailLink" android:title="Email Show Link"></item>
-<item android:id="@+id/scrollableDialog" android:title="Help"></item>
-<item android:id="@+id/downloadShow" android:title="Download Whole Show"></item>
-</menu>

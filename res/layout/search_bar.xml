@@ -1,0 +1,23 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/SearchBar"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content" >
+                
+                <ImageButton
+                    android:id="@+id/SearchButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/searchbutton_plain1"
+                    android:drawablePadding="1dip"/>
+
+                <AutoCompleteTextView android:id="@+id/ArtistSearchBox"
+				android:layout_width="fill_parent" android:layout_height="wrap_content"
+				android:layout_toLeftOf="@id/SearchButton"
+				android:textSize="@dimen/text_height_tall"
+				android:hint="Search..."
+				android:maxLines="1"
+				android:popupBackground="#127DD4" />
+                
+</RelativeLayout>

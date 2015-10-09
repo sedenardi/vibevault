@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-  xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:id="@+id/scrollableDialog" android:title="Help"></item>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/scrollableDialog" android:title="Help" android:icon="@drawable/helpbutton" android:showAsAction="ifRoom"></item>
+<item android:id="@+id/SettingsButton" android:title="Settings" android:icon="@drawable/settingsbutton" android:showAsAction="ifRoom"></item>
 </menu>
