@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/scrollableDialog" android:title="@string/help_text" android:icon="@drawable/helpbutton" android:showAsAction="ifRoom"></item>
+<item android:id="@+id/SyncFolder" android:title="@string/scan_folder_text" android:icon="@drawable/searchbutton_plain1" android:showAsAction="never"></item>
+<item android:id="@+id/ChangeFolder" android:title="@string/change_folder_text" android:icon="@drawable/savebutton" android:showAsAction="never"></item>
+</menu>

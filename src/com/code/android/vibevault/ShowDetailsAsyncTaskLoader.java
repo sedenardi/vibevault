@@ -1,12 +1,9 @@
 package com.code.android.vibevault;
 
 import java.util.ArrayList;
-
-
 import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 
 public class ShowDetailsAsyncTaskLoader extends AsyncTaskLoader<Bundle> {
 	private static final String LOG_TAG = ShowDetailsAsyncTaskLoader.class.getName();
@@ -37,7 +34,7 @@ public class ShowDetailsAsyncTaskLoader extends AsyncTaskLoader<Bundle> {
 			mSongs = new ArrayList<ArchiveSongObj>();
 		}
 		Searching.getSongs(mShow, mSongs, db);
-		 
+		Logging.Log(LOG_TAG, "Title: " + mShow.getShowTitle());
 		b.putSerializable("songs", mSongs);
 		b.putSerializable("show", mShow);
 		return b;
@@ -46,13 +43,13 @@ public class ShowDetailsAsyncTaskLoader extends AsyncTaskLoader<Bundle> {
 	@Override
 	public void deliverResult(Bundle b) {
 		
-		 
+		Logging.Log(LOG_TAG, "Delivering results.");
 		
 		if(isReset()) {
 			// An async query came in while the loader is stopped. We
 			// don't need the result.
 			if (b != null) {
-				 
+				Logging.Log(LOG_TAG, "RESET.");
 			}
 		}
 		super.deliverResult(b);
@@ -61,7 +58,7 @@ public class ShowDetailsAsyncTaskLoader extends AsyncTaskLoader<Bundle> {
 	@Override 
 	protected void onStartLoading() {
         if (b != null) {
-        	 
+        	Logging.Log(LOG_TAG, "Already have some results.");
             // If we currently have a result available, deliver it immediately.
             deliverResult(b);
         }

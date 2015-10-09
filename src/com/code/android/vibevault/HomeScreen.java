@@ -47,16 +47,10 @@ import android.graphics.drawable.GradientDrawable.Orientation;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.code.android.vibevault.R;
@@ -124,7 +118,7 @@ public class HomeScreen extends Activity {
 		Object retained = getLastNonConfigurationInstance();
 		
 		if(retained instanceof UpgradeTask){		
-			 
+			Logging.Log(LOG_TAG,"UpgradeTask retained");
 			upgradeTask = (UpgradeTask)retained;
 			upgradeTask.setActivity(this);
 		} else{
@@ -180,37 +174,37 @@ public class HomeScreen extends Activity {
 		searchButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Toast.makeText(HomeScreen.this, "Upgrading DB", Toast.LENGTH_SHORT).show();
+				Toast.makeText(HomeScreen.this, R.string.db_upgrade_message_text, Toast.LENGTH_SHORT).show();
 			}
 		});
 		recentButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Toast.makeText(HomeScreen.this, "Upgrading DB", Toast.LENGTH_SHORT).show();
+				Toast.makeText(HomeScreen.this, R.string.db_upgrade_message_text, Toast.LENGTH_SHORT).show();
 			}
 		});
 		downloadButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Toast.makeText(HomeScreen.this, "Upgrading DB", Toast.LENGTH_SHORT).show();
+				Toast.makeText(HomeScreen.this, R.string.db_upgrade_message_text, Toast.LENGTH_SHORT).show();
 			}
 		});
 		playingButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Toast.makeText(HomeScreen.this, "Upgrading DB", Toast.LENGTH_SHORT).show();
+				Toast.makeText(HomeScreen.this, R.string.db_upgrade_message_text, Toast.LENGTH_SHORT).show();
 			}
 		});
 		featuredShowsButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Toast.makeText(HomeScreen.this, "Upgrading DB", Toast.LENGTH_SHORT).show();
+				Toast.makeText(HomeScreen.this, R.string.db_upgrade_message_text, Toast.LENGTH_SHORT).show();
 			}
 		});
 		browseArtistsButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
-				Toast.makeText(HomeScreen.this, "Upgrading DB", Toast.LENGTH_SHORT).show();
+				Toast.makeText(HomeScreen.this, R.string.db_upgrade_message_text, Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
@@ -288,7 +282,7 @@ public class HomeScreen extends Activity {
 		String dateString = db.getPref("artistUpdate");
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 		try {
-			 
+			Logging.Log(LOG_TAG, "Trying date parse: " + dateString);
 			Date dbDate = format.parse(dateString);
 			GregorianCalendar cal1 = new GregorianCalendar();
 			cal1.add(Calendar.MONTH, -2);
@@ -296,7 +290,7 @@ public class HomeScreen extends Activity {
 			GregorianCalendar cal2 = new GregorianCalendar();
 			cal2.add(Calendar.YEAR, 1);
 			Date yearLater = cal2.getTime();
-			 
+			Logging.Log(LOG_TAG, "Comparing " + upgradeDate.toString() + " .after(" + dbDate.toString());
 			if (upgradeDate.after(dbDate) || yearLater.before(dbDate)) {
 				return true;
 			}
@@ -304,35 +298,10 @@ public class HomeScreen extends Activity {
 				return false;
 			}
 		} catch (java.text.ParseException e) {
-			 
+			Logging.Log(LOG_TAG, "Error Getting Artists");
 			e.printStackTrace();
 			return false;
 		}
-	}
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.help_options, menu);
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected (MenuItem item){
-		switch (item.getItemId()){
-			case R.id.scrollableDialog:
-				AlertDialog.Builder ad = new AlertDialog.Builder(this);
-				ad.setTitle("Help!");
-				View v =LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
-				((TextView)v.findViewById(R.id.DialogText)).setText(R.string.home_screen_help);
-				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int arg1) {
-					}
-				});
-				ad.setView(v);
-				ad.show();
-		}
-		return true;
 	}
 	
 	@Override
@@ -350,9 +319,9 @@ public class HomeScreen extends Activity {
 //		@Override
 //		protected Integer doInBackground(Integer... params) {
 //			ArrayList<ArchiveShowObj> shows = db.getBadShows();
-//			 
+//			Logging.Log(LOG_TAG, "Looking for shows to fix, found "  + shows.size());
 //			if (shows.size() > 0) {
-//				 
+//				Logging.Log(LOG_TAG, "Starting to fix shows");
 //				for (ArchiveShowObj s : shows) {
 //					Searching.getSongs(s, null, db, false);
 //				}
@@ -361,7 +330,7 @@ public class HomeScreen extends Activity {
 //		}
 //		
 //		protected void onPostExecute(Integer arg0) {
-//			 
+//			Logging.Log(LOG_TAG, "Finished fixing shows");
 //		}
 //		
 //	}
@@ -395,7 +364,7 @@ public class HomeScreen extends Activity {
 		}
 		
 		protected void onPreExecute(){
-			 
+			Logging.Log(LOG_TAG, "Starting UpgradeTask");
 			if (db.needsUpgrade) {
 				parentScreen.showDialog(UPGRADE_DB);
 			}
@@ -406,7 +375,7 @@ public class HomeScreen extends Activity {
 			/*Upgrade or copy*/
 			//Upgrade existing
 			if (db.needsUpgrade) {
-				 
+				Logging.Log(LOG_TAG, "Upgrading DB");
 				success = db.upgradeDB();
 				//Copy new one if failure upgrading
 				
@@ -421,8 +390,8 @@ public class HomeScreen extends Activity {
 				try {
 					db.openDataBase();
 				} catch (SQLException e) {
-					 
-					 
+					Logging.Log(LOG_TAG, "Unable to open database");
+					Logging.Log(LOG_TAG, e.getStackTrace().toString());
 				}
 				//DB is now ready to use
 				db.updatePref("splashShown", "true");
@@ -431,20 +400,23 @@ public class HomeScreen extends Activity {
 			
 			//Fix bad shows
 			ArrayList<ArchiveShowObj> shows = db.getBadShows();
-			 
+			Logging.Log(LOG_TAG, "Looking for shows to fix, found "  + shows.size());
 			if (shows.size() > 0) {
-				 
+				Logging.Log(LOG_TAG, "Starting to fix shows");
 				for (ArchiveShowObj s : shows) {
 					Searching.getSongs(s, null, db, false);
 				}
+				publishProgress(50);
 			}
-			publishProgress(50);
 			
 			//Update Artists if necessary
 			if (needsArtistFetching()) {
 				Searching.updateArtists(db);
 				publishProgress(75);
 			}
+			
+			Downloading.syncFilesDirectory(parentScreen, db);
+			
 			return "Completed";
 		}
 
@@ -459,7 +431,7 @@ public class HomeScreen extends Activity {
 				notifyActivityTaskCompleted();
 			}
 			if (progress[0] == 50) {
-				 
+				Logging.Log(LOG_TAG, "Finished fixing shows");
 			}
 			if (progress[0] == 75) {
 				String message = "Updated Artists";

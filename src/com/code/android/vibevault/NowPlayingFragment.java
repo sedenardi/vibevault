@@ -25,6 +25,7 @@
 package com.code.android.vibevault;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -48,7 +49,6 @@ import android.widget.RelativeLayout;
 import android.widget.ShareActionProvider;
 import android.widget.TableLayout;
 import android.widget.Toast;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -62,6 +62,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+
 import com.code.android.vibevault.R;
 
 public class NowPlayingFragment extends Fragment {
@@ -70,10 +71,10 @@ public class NowPlayingFragment extends Fragment {
 
 	private static final int MENU_REMOVE = 0;
 	
-	private static final String TIME_FORMAT = String.format("%%0%dd", 2);  
+	private static final String TIME_FORMAT = String.format(Locale.getDefault(),"%%0%dd", 2);  
 	
-	private BroadcastReceiver playerChangedReceiver = new PlaybackChangeReceiver();
-	private BroadcastReceiver playlistChangedReceiver = new PlaylistChangeReceiver();
+	private BroadcastReceiver stateChangedReceiver = new StateChangeReceiver();
+	private BroadcastReceiver positionChangedReceiver = new PositionChangeReceiver();
 	
     // private Vibrator vibrator;
 	
@@ -111,8 +112,8 @@ public class NowPlayingFragment extends Fragment {
 	private boolean newExternalPositionPlayed = false;
 	
 	public interface PlayerListener {
-		public void registerReceivers(BroadcastReceiver playerChangedBroadcast, BroadcastReceiver playlistChangedBroadcast);
-		public void unregisterReceivers(BroadcastReceiver playerChangedBroadcast, BroadcastReceiver playlistChangedBroadcast);
+		public void registerReceivers(BroadcastReceiver stateChangedBroadcast, BroadcastReceiver positionChangedBroadcast);
+		public void unregisterReceivers(BroadcastReceiver stateChangedBroadcast, BroadcastReceiver positionChangedBroadcast);
 	}
 	
 	// Called right before onCreate(), which is right before onCreateView().
@@ -184,12 +185,12 @@ public class NowPlayingFragment extends Fragment {
 							db.openDataBase();
 							db.insertFavoriteShow(bookmarkShow);
 							db.close();
-							Toast.makeText(getActivity(), "Bookmarked!", Toast.LENGTH_SHORT).show();
+							Toast.makeText(getActivity(), R.string.confirm_bookmarked_message_text, Toast.LENGTH_SHORT).show();
 							return true;
 						}
 					}
 				}
-				Toast.makeText(getActivity().getBaseContext(), "No song playing or paused to bookmark.", Toast.LENGTH_SHORT).show();
+				Toast.makeText(getActivity().getBaseContext(), R.string.error_no_song_bookmark_message_text, Toast.LENGTH_SHORT).show();
 				return false;
 			default:
 				return false;
@@ -283,7 +284,7 @@ public class NowPlayingFragment extends Fragment {
 					} else{
 						songsListView.setSelection(currentPos-1);
 					}
-					 
+					Logging.Log(LOG_TAG, "Selection set to: " + songsListView.getSelectedItemPosition());
 					draggableListViewState = songsListView.onSaveInstanceState();
 				}
 			}
@@ -312,7 +313,7 @@ public class NowPlayingFragment extends Fragment {
 					} else{ 
 						songsListView.setSelection(currentPos-1);
 					}
-					 
+					Logging.Log(LOG_TAG, "Selection set to: " + songsListView.getSelectedItemPosition());
 					draggableListViewState = songsListView.onSaveInstanceState();
 				}
 			}			
@@ -365,7 +366,7 @@ public class NowPlayingFragment extends Fragment {
 	}
 
 	private void refreshTrackList(ArrayList<ArchiveSongObj> list){
-		 
+		Logging.Log(LOG_TAG, "Refresh called...");
 		adapter = new PlaylistAdapter(getActivity(), R.layout.playlist_row, list);
 		songsListView.setAdapter(adapter);
 		if(draggableListViewState!=null){
@@ -376,20 +377,20 @@ public class NowPlayingFragment extends Fragment {
 		// There seems to be some sort of race condition issue here.  If we don't wait,
 		// we are unable to play songs, because
 		if(newExternalPositionPlayed == true && !adapter.isEmpty()) {
-			 
+			Logging.Log(LOG_TAG, "newExternalPositionPlayed is set to true, adapter has songs.");
 			songsListView.postDelayed(new Runnable() {
 				@Override
 				public void run() {
-					 
+					Logging.Log(LOG_TAG, "currentPos is: " + currentPos);
 					if(currentPos <= 0){
 						songsListView.smoothScrollToPosition(0);
 					} else {
 						int scrollPosition = currentPos+songsListView.getChildCount()-2;
-						 
-						 
-						 
+						Logging.Log(LOG_TAG, "Scroll position: " + scrollPosition);
+						Logging.Log(LOG_TAG, "Adapter size: " + adapter.getCount());
+						Logging.Log(LOG_TAG, "Number of items in ListView: " + songsListView.getChildCount());
 						scrollPosition = scrollPosition>=adapter.getCount()?adapter.getCount()-1:scrollPosition;
-						 
+						Logging.Log(LOG_TAG, "Scrolling to: " + (scrollPosition));
 						songsListView.smoothScrollToPosition(scrollPosition);
 					}
 				}
@@ -414,21 +415,21 @@ public class NowPlayingFragment extends Fragment {
 	}
 
 	private void attachToPlaybackService() {
-		playerListener.registerReceivers(playerChangedReceiver, playlistChangedReceiver);
+		playerListener.registerReceivers(stateChangedReceiver, positionChangedReceiver);
 		Intent intent = new Intent(PlaybackService.ACTION_POLL);
 		this.getActivity().startService(intent);
-		 
+		Logging.Log(LOG_TAG, "Attached to Playback Service");
 	}
 
 	private void detachFromPlaybackService() {
-		playerListener.unregisterReceivers(playerChangedReceiver, playlistChangedReceiver);
+		playerListener.unregisterReceivers(stateChangedReceiver, positionChangedReceiver);
 	}
 	
 	private void checkAndUpdatePlayerSongs(){
 		if(this.getArguments()!=null){
 			if(this.getArguments().containsKey("position")){
 				currentPos = this.getArguments().getInt("position");
-				 
+				Logging.Log(LOG_TAG, "Position passed in Intent... " + currentPos);
 				this.getArguments().remove("position");
 				this.newExternalPositionPlayed=true;
 			}
@@ -444,9 +445,10 @@ public class NowPlayingFragment extends Fragment {
 		}
 	}
 	
-	private class PlaybackChangeReceiver extends BroadcastReceiver {
+	private class StateChangeReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			Logging.Log(LOG_TAG, "StateChangeReceiver...");
 			int pauseIcon = R.drawable.mediapausebutton;
 			
 			int status = intent.getIntExtra(PlaybackService.EXTRA_STATUS, PlaybackService.STATUS_STOPPED);
@@ -459,20 +461,10 @@ public class NowPlayingFragment extends Fragment {
 					pauseIcon = R.drawable.mediaplaybutton;
 					progressBar.setEnabled(true);
 					nowPlaying = intent.getStringExtra(PlaybackService.EXTRA_TITLE);
-					progressBar.setMax(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0));
-					progressBar.setProgress(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0));
-					progressBar.setSecondaryProgress(intent.getIntExtra(PlaybackService.EXTRA_BUFFER_PROGRESS, 0));
-					timeCurrent.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0)));
-					timeTotal.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0)));
 					break;
 				case PlaybackService.STATUS_PLAYING:
 					progressBar.setEnabled(true);
 					nowPlaying = intent.getStringExtra(PlaybackService.EXTRA_TITLE);
-					progressBar.setMax(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0));
-					progressBar.setProgress(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0));
-					progressBar.setSecondaryProgress(intent.getIntExtra(PlaybackService.EXTRA_BUFFER_PROGRESS, 0));
-					timeCurrent.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0)));
-					timeTotal.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0)));
 					break;
 				case PlaybackService.STATUS_STOPPED:
 					nowPlaying = "";
@@ -480,6 +472,17 @@ public class NowPlayingFragment extends Fragment {
 					progressBar.setEnabled(false);
 					break;
 			}
+			
+			progressBar.setMax(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0));
+			progressBar.setProgress(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0));
+			progressBar.setSecondaryProgress(intent.getIntExtra(PlaybackService.EXTRA_BUFFER_PROGRESS, 0));
+			timeCurrent.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0)));
+			timeTotal.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0)));
+			ArrayList<ArchiveSongObj> songs = (ArrayList<ArchiveSongObj>) intent.getSerializableExtra(PlaybackService.EXTRA_PLAYLIST);
+			currentPos = intent.getIntExtra(PlaybackService.EXTRA_PLAYLIST_POSITION, 0);
+			draggableListViewState = songsListView.onSaveInstanceState();
+			refreshTrackList(songs);
+			
 			if(!nowPlayingTextView.getText().equals(nowPlaying)){
 				nowPlayingTextView.setText(nowPlaying);
 				nowPlayingTextView.setSelected(true);
@@ -490,6 +493,20 @@ public class NowPlayingFragment extends Fragment {
 
 			pause.setBackgroundResource(pauseIcon);
 			hideGUIFeaturesIfOldSDK(status);
+		}
+	}
+	
+	private class PositionChangeReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			int status = intent.getIntExtra(PlaybackService.EXTRA_STATUS, PlaybackService.STATUS_STOPPED);
+			if (status == PlaybackService.STATUS_PLAYING || status == PlaybackService.STATUS_PAUSED) {
+				progressBar.setMax(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0));
+				progressBar.setProgress(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0));
+				progressBar.setSecondaryProgress(intent.getIntExtra(PlaybackService.EXTRA_BUFFER_PROGRESS, 0));
+				timeCurrent.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_PROGRESS, 0)));
+				timeTotal.setText(getElapsedTimeHoursMinutesSecondsString(intent.getIntExtra(PlaybackService.EXTRA_PLAY_DURATION, 0)));
+			}
 		}
 	}
 	
@@ -507,24 +524,13 @@ public class NowPlayingFragment extends Fragment {
 		}
 	}
 
-	private class PlaylistChangeReceiver extends BroadcastReceiver {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			 
-			ArrayList<ArchiveSongObj> songs = (ArrayList<ArchiveSongObj>) intent.getSerializableExtra(PlaybackService.EXTRA_PLAYLIST);
-			currentPos = intent.getIntExtra(PlaybackService.EXTRA_PLAYLIST_POSITION, 0);
-			draggableListViewState = songsListView.onSaveInstanceState();
-			refreshTrackList(songs);
-		}
-	}
-	
 	private void updateShareIntent(){
-		 
+		Logging.Log(LOG_TAG, "Updating Intent for sharing... method called..");
 		if(songsListView!=null&&songsListView.getAdapter()!=null && !songsListView.getAdapter().isEmpty()){
-			 
+			Logging.Log(LOG_TAG,"Updating Intent for sharing... songsListView is not null, and has an adapter...");
 			ArchiveSongObj song = (ArchiveSongObj)this.songsListView.getAdapter().getItem(this.currentPos>=0&&this.currentPos<this.songsListView.getAdapter().getCount()?this.currentPos:0);
 			if(song!=null){
-				 
+				Logging.Log(LOG_TAG, "Song is not null, setting new Intent for sharing.");
 				Intent i = new Intent(Intent.ACTION_SEND);
 				i.setType("text/plain");
 				// Add data to the intent, the receiving app will decide what to do with it.
@@ -605,7 +611,7 @@ public class NowPlayingFragment extends Fragment {
 							updateShareIntent();
 							switch (item.getItemId()) {
 								case (R.id.DownloadButton):
-									 
+									Logging.Log(LOG_TAG,"Downloading " + song.getSongTitle());
 									DownloadingAsyncTask task = new DownloadingAsyncTask(getActivity());
 									task.execute(song);
 									break;
@@ -617,9 +623,9 @@ public class NowPlayingFragment extends Fragment {
 //									break;
 								case (DELETE_SONG):
 									if(Downloading.deleteSong(getContext(), song, db)){
-										Toast.makeText(getContext(), "Song deleted.", Toast.LENGTH_SHORT).show();
+										Toast.makeText(getContext(), R.string.confirm_song_deleted_message_text, Toast.LENGTH_SHORT).show();
 									} else{
-										Toast.makeText(getContext(), "Error, song not deleted.", Toast.LENGTH_SHORT).show();
+										Toast.makeText(getContext(), R.string.error_song_not_deleted_message_text, Toast.LENGTH_SHORT).show();
 									}
 									break;
 								case (DELETE_SHOW):
@@ -673,14 +679,14 @@ public class NowPlayingFragment extends Fragment {
 				return;
 			}
 		}
-		Toast.makeText(getActivity().getBaseContext(), "No song playing or paused to vote for.", Toast.LENGTH_SHORT).show();
+		Toast.makeText(getActivity().getBaseContext(), R.string.error_no_song_vote_message_text, Toast.LENGTH_SHORT).show();
 	}
 	
 	private class VoteTask extends AsyncTask<String, Void, String> {
 				
 		@Override
 		protected void onPreExecute() {
-			Toast.makeText(getActivity().getBaseContext(), "Voting...", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity().getBaseContext(), R.string.confirm_voting_message_text, Toast.LENGTH_SHORT).show();
 		}
 
 		@Override

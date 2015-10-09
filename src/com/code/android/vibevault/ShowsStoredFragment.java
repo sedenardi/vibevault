@@ -12,7 +12,6 @@ import android.content.Loader;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +26,8 @@ import android.widget.ListView;
 public class ShowsStoredFragment extends Fragment implements
 		LoaderManager.LoaderCallbacks<ArrayList<ArchiveShowObj>>,
 		OnItemClickListener, ActionBar.OnNavigationListener {
+	
+	private static final String LOG_TAG = ShowsStoredFragment.class.getName();
 
 	private DialogAndNavigationListener dialogAndNavigationListener;
 
@@ -35,6 +36,8 @@ public class ShowsStoredFragment extends Fragment implements
 	private StaticDataStore db;
 
 	private SearchActionListener searchActionListener;
+	
+	private int stored_type = -1;
 
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -99,7 +102,7 @@ public class ShowsStoredFragment extends Fragment implements
 		setHasOptionsMenu(true);
 		getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActivity().getActionBar().setTitle("Your Shows");
-		 
+		Logging.Log(LOG_TAG, "ACTION MODE: " + getActivity().getActionBar().getNavigationMode());
 		getActivity().getActionBar().setNavigationMode(
 				ActionBar.NAVIGATION_MODE_LIST);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
@@ -114,6 +117,9 @@ public class ShowsStoredFragment extends Fragment implements
 		Bundle b = new Bundle();
 		b.putInt("storedType", itemPosition);
 		lm.restartLoader(2, b, ShowsStoredFragment.this);
+		stored_type = (itemPosition == ShowsStoredAsyncTaskLoader.STORED_RECENT_SHOWS ?
+				ScrollingShowAdapter.MENU_RECENT : ScrollingShowAdapter.MENU_BOOKMARK);
+				
 		return true;
 	}
 
@@ -152,18 +158,18 @@ public class ShowsStoredFragment extends Fragment implements
 		this.dialogAndNavigationListener
 				.showLoadingDialog("Getting stored shows...");
 		int storedType = args.getInt("storedType");
-		 
+		Logging.Log("Stored Frag", "Created Loader");
 		return new ShowsStoredAsyncTaskLoader(getActivity(), storedType);
 	}
 
 	@Override
 	public void onLoadFinished(Loader<ArrayList<ArchiveShowObj>> arg0,
 			ArrayList<ArchiveShowObj> arg1) {
-		 
+		Logging.Log("Stored Frag", "Loader Finished");
 		this.dialogAndNavigationListener.hideDialog();
 
 		ScrollingShowAdapter showAdapter = new ScrollingShowAdapter(
-				getActivity(), R.id.StoredListView, arg1, db);
+				getActivity(), R.id.StoredListView, arg1, db, stored_type);
 		storedList.setAdapter(showAdapter);
 	}
 

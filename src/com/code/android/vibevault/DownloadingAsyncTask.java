@@ -2,15 +2,16 @@ package com.code.android.vibevault;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 public class DownloadingAsyncTask extends AsyncTask<ArchiveSongObj,Integer,Integer> {
+	
+	private static final String LOG_TAG = DownloadingAsyncTask.class.getName();
 
 	private Context ctx;
 	private StaticDataStore db;
 	
 	public DownloadingAsyncTask(Context context) {
-		 
+		Logging.Log(LOG_TAG,"Constructor");
 		ctx = context;
 		db = StaticDataStore.getInstance(ctx);
 	}

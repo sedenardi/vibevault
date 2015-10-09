@@ -100,10 +100,10 @@ public class SongAdapter extends ArrayAdapter<ArchiveSongObj> {
 							break;
 						case (102):
 							if(Downloading.deleteSong(getContext(), song, db)){
-								Toast.makeText(getContext(), "Song deleted.", Toast.LENGTH_SHORT).show();
+								Toast.makeText(getContext(), R.string.confirm_song_deleted_message_text, Toast.LENGTH_SHORT).show();
 								icon.setVisibility(View.GONE);
 							} else{
-								Toast.makeText(getContext(), "Error, song not deleted.", Toast.LENGTH_SHORT).show();
+								Toast.makeText(getContext(), R.string.error_song_not_deleted_message_text, Toast.LENGTH_SHORT).show();
 							}
 						break;
 						default:

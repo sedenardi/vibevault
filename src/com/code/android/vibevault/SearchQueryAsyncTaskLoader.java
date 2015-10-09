@@ -1,12 +1,8 @@
 package com.code.android.vibevault;
 
 import java.util.ArrayList;
-
-
-
 import android.content.AsyncTaskLoader;
 import android.content.Context;
-import android.util.Log;
 
 public class SearchQueryAsyncTaskLoader extends AsyncTaskLoader<ArrayList<ArchiveShowObj>> {
 	
@@ -20,24 +16,24 @@ public class SearchQueryAsyncTaskLoader extends AsyncTaskLoader<ArrayList<Archiv
 	public SearchQueryAsyncTaskLoader(Context context, String passedQuery) {
 		super(context);
 //		sameArtist=mQuery.equals(passedQuery)?true:false;
-		 
+		Logging.Log(LOG_TAG, mQuery);
 		if(mQuery.equals(passedQuery)){
 			sameArtist = true;
-			 
+			Logging.Log(LOG_TAG, mQuery);
 
-			 
+			Logging.Log(LOG_TAG, "QUERY IS THE SAME.");
 		} else{
 			sameArtist = false;
-			 
+			Logging.Log(LOG_TAG, mQuery);
 
-			 
+			Logging.Log(LOG_TAG, "QUERY IS NOT THE SAME.");
 		}
 		mQuery = passedQuery;
 	}
 
 	@Override
 	public ArrayList<ArchiveShowObj> loadInBackground() {
-		 
+		Logging.Log(LOG_TAG, "HERE.");
 		if(mSearchResults == null || sameArtist == false){
 			mSearchResults = new ArrayList<ArchiveShowObj>();
 		}
@@ -48,13 +44,13 @@ public class SearchQueryAsyncTaskLoader extends AsyncTaskLoader<ArrayList<Archiv
 	@Override
 	public void deliverResult(ArrayList<ArchiveShowObj> shows) {
 		
-		 
-		 
+		Logging.Log(LOG_TAG, this.isStarted());
+		Logging.Log(LOG_TAG, this.isReset());
 		if(isReset()) {
 			// An async query came in while the loader is stopped. We
 			// don't need the result.
 			if (shows != null) {
-				 
+				Logging.Log(LOG_TAG, "RESET.");
 			}
 		}
 		if(isStarted()) {

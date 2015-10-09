@@ -11,4 +11,13 @@
     <dimen name="home_buffer_small">12dip</dimen>
     <dimen name="home_buffer_medium">15dip</dimen>
     <dimen name="home_buffer_large">30dip</dimen>
+        <dimen name="widget_margin">0dp</dimen>
+    <dimen name="widget_button_width">36dp</dimen>
+    <dimen name="widget_button_margin">11dp</dimen>
+    <dimen name="widget_text_margin">16dp</dimen>
+    <dimen name="widget_text_height_small">16dip</dimen>
+    <dimen name="widget_text_height_tiny">14dip</dimen>
+    <dimen name="widget_text_list_height">22dip</dimen>
+    <dimen name="widget_round">11dp</dimen>
+    <dimen name="widget_list_margin">6dp</dimen>
 </resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="bottom" >
+
+	<TextView
+	    android:id="@+id/SongTitle"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentTop="true"
+	    android:ellipsize="marquee"
+	    android:lines="1"
+	    android:marqueeRepeatLimit="marquee_forever"
+	    android:maxLines="1"
+	    android:paddingLeft="9dip"
+	    android:scrollHorizontally="true"
+	    android:textColor="#127DD4"
+	    android:textSize="@dimen/widget_text_list_height" />
+	
+</RelativeLayout>

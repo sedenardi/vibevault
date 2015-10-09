@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="normal_height">144dp</dimen>
+    <dimen name="expanded_height">288dp</dimen>
+    <dimen name="text_height_tall">32dip</dimen>
+    <dimen name="text_height_small">25dip</dimen>
+    <dimen name="text_height_label">36dip</dimen>
+    <dimen name="row_icon_heightwidth">44dip</dimen>
+    <dimen name="home_icon_heightwidth">198dip</dimen>
+    <dimen name="heading_size">96dip</dimen>
+    <dimen name="home_buffer_small">18dip</dimen>
+    <dimen name="home_buffer_medium">23dip</dimen>
+    <dimen name="home_buffer_large">47dip</dimen>
+        <dimen name="widget_margin">0dp</dimen>
+    <dimen name="widget_button_width">58dp</dimen>
+    <dimen name="widget_button_margin">18dp</dimen>
+    <dimen name="widget_text_margin">25dp</dimen>
+    <dimen name="widget_text_height_tall">25dip</dimen>
+    <dimen name="widget_text_height_small">25dip</dimen>
+    <dimen name="widget_text_height_tiny">22dip</dimen>
+        <dimen name="widget_text_list_height">22dip</dimen>
+    
+    <dimen name="widget_round">18dp</dimen>
+    <dimen name="widget_list_margin">11dp</dimen>
+    
+</resources>

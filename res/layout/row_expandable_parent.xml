@@ -6,7 +6,7 @@
 
     <TextView android:id="@+id/childname"
 		 android:paddingLeft="50dip"
-         android:textSize="22dip"
+         android:textSize="22sp"
          android:textStyle="bold"
          android:textColor="#127DD4"
          android:layout_width="fill_parent"

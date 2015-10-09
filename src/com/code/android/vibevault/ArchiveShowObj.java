@@ -29,11 +29,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
+	
+	private static final String LOG_TAG = ArchiveShowObj.class.getName();
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	public static final String ArchiveShowPrefix = "http://www.archive.org/details/";
+	
 	private String wholeTitle = "";
 	private URL showURL = null;
 	private String identifier = "";
@@ -75,7 +79,7 @@ public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
 		source = src;
 		this.parseFormatList(format);
 		try{
-			showURL = new URL("http://www.archive.org/details/" + identifier);
+			showURL = new URL(ArchiveShowPrefix + identifier);
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
@@ -94,7 +98,7 @@ public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
 	}
 	
 	// Constructor called from DB version > 5
-	public ArchiveShowObj(String ident, String title, String artist, String src, String hasVBR, String hasLBR){
+	public ArchiveShowObj(String ident, String title, String artist, String src, String hasVBR, String hasLBR, int dbid){
 		wholeTitle = artist + " Live at " + title;
 		identifier = ident;
 		showTitle = title;
@@ -102,8 +106,9 @@ public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
 		source = src;
 		vbrShow = Boolean.valueOf(hasVBR);
 		lbrShow = Boolean.valueOf(hasLBR);
+		DBID = dbid;
 		try{
-			showURL = new URL("http://www.archive.org/details/" + identifier);
+			showURL = new URL(ArchiveShowPrefix + identifier);
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
@@ -131,7 +136,7 @@ public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
 			lbrShow = true;
 		}
 		try{
-			showURL = new URL("http://www.archive.org/details/" + identifier);
+			showURL = new URL(ArchiveShowPrefix + identifier);
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
@@ -156,24 +161,34 @@ public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
 	
 	// Constructor called from vote return
 	public ArchiveShowObj(String ident, String title, String artist, String date, String src, double rat, int numVotes){
-		wholeTitle = artist + " Live at " + title;
+		wholeTitle = title;
 		identifier = ident;
 		showTitle = title;
 		showArtist = artist;
+		String artistAndShowTitle[] = title.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = title.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = title.split(" Live ");
+		}
+		if(artistAndShowTitle.length >= 2){
+			showTitle = artistAndShowTitle[1];
+		}
 		source = src;
 		vbrShow = true;
 		lbrShow = false;
 		rating = rat;
 		votes = numVotes;
 		try{
-			showURL = new URL("http://www.archive.org/details/" + identifier);
+			showURL = new URL(ArchiveShowPrefix + identifier);
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
 	}
 	
 	public void setFullTitle(String s){
-		 
+		Logging.Log(LOG_TAG, s);
 		wholeTitle = s;
 		String artistAndShowTitle[] = s.split(" Live at ");
 		if(artistAndShowTitle.length < 2){
@@ -183,7 +198,7 @@ public class ArchiveShowObj extends ArchiveVoteObj implements Serializable {
 			artistAndShowTitle = s.split(" Live ");
 		}
 		showArtist = artistAndShowTitle[0];
-		 
+		Logging.Log(LOG_TAG, "SHOW ARTIST: " + showArtist);
 		if(artistAndShowTitle.length >= 2){
 			showTitle = artistAndShowTitle[1];
 		}

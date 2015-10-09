@@ -31,11 +31,9 @@ import org.json.JSONObject;
 
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
-import android.util.Log;
 
 public class Searching {
-	
-	
+		
 	private static final String LOG_TAG = Searching.class.getName();
 	
 	private static final String SEARCHING_PREFIX = "com.code.android.vibevault.searching.";
@@ -50,7 +48,7 @@ public class Searching {
 	public static final int STATUS_COMPLETED = 2;
 	public static final int STATUS_ERROR = 3;
 
-	public static String makeSearchURLString(int pageNum, int yearSearchInt, String artistSearchText, int numSearchResults, String sortResults, int dateType){
+	public static String makeSearchURLString(int pageNum, int monthSearchInt, int daySearchInt, int yearSearchInt, String artistSearchText, int numSearchResults, String sortResults, int dateType){
 		int numResults = numSearchResults;
 		String sortPref = sortResults;
 		if(sortPref.equalsIgnoreCase("Date")){
@@ -65,21 +63,27 @@ public class Searching {
 			// FIXME
 				switch(dateType){
 					case SearchSettingsDialogFragment.ANYTIME:
-							 
-							break;
+						Logging.Log(LOG_TAG, "ANYTIME.");
+						break;
 					case SearchSettingsDialogFragment.BEFORE:	//Before
-						 
-						dateModifier = "date:[1800-01-01%20TO%20" + yearSearchInt + "-01-01]%20AND%20";
+						Logging.Log(LOG_TAG, "BEFORE.");
+						dateModifier = "date:[1800-01-01%20TO%20" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"01") + "-01]%20AND%20";
 						break;
 					case SearchSettingsDialogFragment.AFTER:	//After
 						int curDate = Calendar.getInstance().get(Calendar.DATE);
 						int curMonth = Calendar.getInstance().get(Calendar.MONTH);
 						int curYear = Calendar.getInstance().get(Calendar.YEAR);
-						dateModifier = "date:[" + yearSearchInt + "-01-01%20TO%20" + curYear + "-" + String.format("%02d",curMonth) + "-" + String.format("%02d",curDate) + "]%20AND%20";
+						dateModifier = "date:[" + (monthSearchInt>0?yearSearchInt:yearSearchInt+1) + "-" + 
+								(monthSearchInt>0?String.format("%02d",monthSearchInt):"01")  + "-01%20TO%20" + curYear + "-" + String.format("%02d",curMonth) + "-" + String.format("%02d",curDate) + "]%20AND%20";
 						break;
 					case SearchSettingsDialogFragment.DURING:	// In Year.
-						dateModifier = "date:[" + yearSearchInt + "-01-01%20TO%20" + yearSearchInt + "-12-31]%20AND%20";
+						dateModifier = "date:[" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"01") + 
+						"-01%20TO%20" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"12") + "-31]%20AND%20";
 						break;
+					case SearchSettingsDialogFragment.SPECIFIC:
+						String specific = yearSearchInt + "-" + String.format("%02d",monthSearchInt) + "-" + String.format("%02d",daySearchInt);
+						dateModifier = "date:[" + specific + "%20TO%20" + specific + "]%20AND%20";
+						break;						
 					}
 			// We search creator:(random's artist)%20OR%20creator(randoms artist) because
 			// archive.org does not like apostrophes in the creator query.
@@ -95,11 +99,11 @@ public class Searching {
 			+ "(" + dateModifier + mediaType + "%20AND%20format:(mp3)" +  "%20AND%20(" + specificSearch + "))"
 			+ "&fl[]=date&fl[]=avg_rating&fl[]=source&fl[]=format&fl[]=identifier&fl[]=mediatype&fl[]=title&sort[]="
 			+ sortPref + "&sort[]=&sort[]=&rows="
-			+ String.valueOf(numResults) + "&page=" + String.valueOf(pageNum) + "&output=json&callback=callback&save=yes";
+			+ String.valueOf(numResults) + "&page=" + String.valueOf(pageNum) + "&output=json&save=yes";
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		 
+		Logging.Log(LOG_TAG,queryString);
 		return queryString;
 	}
 	
@@ -136,7 +140,7 @@ public class Searching {
 			e.printStackTrace();
 		}
 		
-		 
+		Logging.Log(LOG_TAG, "JSON grabbed.");
 		
 		/*
 		 * Parse the JSON String (queryResult) that we got from archive.org. If the
@@ -147,11 +151,11 @@ public class Searching {
 		 */
 		JSONObject jObject;
 		try {
-			jObject = new JSONObject(queryResult.replace("callback(", "")).getJSONObject("response");
+			jObject = new JSONObject(queryResult).getJSONObject("response");
 			JSONArray docsArray = jObject.getJSONArray("docs");
 			int numItems = docsArray.length();
 			if(numItems == 0){
-				 
+				Logging.Log(LOG_TAG, "Artist may not have content on archive.org...");
 			}
 			for (int i = 0; i < numItems; i++) {
 				if (docsArray.getJSONObject(i).optString("mediatype").equals("etree")) {
@@ -161,11 +165,11 @@ public class Searching {
 			}
 		} catch (JSONException e) {
 			// DEBUG
-			 
-			 
+			Logging.Log(LOG_TAG, "JSON error: " + queryResult);
+			Logging.Log(LOG_TAG, e.toString());
 		}
 		
-		 
+		Logging.Log(LOG_TAG, "Returning results.");
 	}
 
 	
@@ -209,7 +213,7 @@ public class Searching {
 		
 		if (db.getShowExists(show) && processSongs) {
 			
-			 
+			Logging.Log(LOG_TAG, "Show exists.  Setting title to: " + db.getShow(show.getIdentifier()).getArtistAndTitle());
 			songs.addAll(db.getSongsFromShow(show.getIdentifier()));
 			show.setFullTitle(db.getShow(show.getIdentifier()).getArtistAndTitle());
 			return;
@@ -236,14 +240,14 @@ public class Searching {
 						queryString += "_64kb.m3u";
 					} else if (show.hasVBR()) {
 						queryString += "_vbr.m3u";
-						 
+						Logging.Log(LOG_TAG, "Show has no low bitrate stream...  Reverting to VBR.");
 					}
 				} else {
 					if (show.hasVBR()) {
 						queryString +=  "_vbr.m3u";
 					} else if (show.hasLBR()) {
 						queryString += "_64kb.m3u";
-						 
+						Logging.Log(LOG_TAG, "Show has no VBR stream...  Reverting to low bitrate stream.");
 					}
 				}
 								
@@ -264,7 +268,7 @@ public class Searching {
 					String m3uLinks[] = m3uString.split("\n");
 					for (String link : m3uLinks) {
 						songLinks.add(link);
-	
+						Logging.Log(LOG_TAG, link);
 					}
 	
 					// Now use an XPATH evaluation to find all of the javascript scripts on the page.
@@ -274,7 +278,8 @@ public class Searching {
 					// download links make ArchiveSongObjs and add them to the list of songs.
 					Object[] titleNodes = node.evaluateXPath(m3uXPath);
 					for (Object titleNode : titleNodes) {
-	//					 
+	//					Logging.Log(LOG_TAG, jsonString);
+						Logging.Log(LOG_TAG, "SONG TITLE:");
 						List x = ((TagNode) titleNode).getChildren();
 						String songTitle = "";
 						for(Object y : x){
@@ -282,21 +287,26 @@ public class Searching {
 								songTitle = ((ContentNode)y).toString();
 								songTitle = songTitle.trim();
 								if(songTitle.startsWith("Play(")){
-									String[] titles = songTitle.split("\\{\"title\"");
-									for(int i = 1; i < titles.length; i++){
-										try{
-										String title = titles[i].substring(nthIndexOf(titles[i], '"', 1),nthIndexOf(titles[i], '"', 2));
-										songTitles.add(title.substring(title.indexOf('.')+2));
+									Logging.Log(LOG_TAG, songTitle);
+									JSONArray jArray;
+									String song = "";
+									try {
+										jArray = new JSONArray(songTitle.substring(songTitle.indexOf(',')+1));
+										Logging.Log(LOG_TAG, jArray.length());
+										for(int i = 0;i < jArray.length();i++){
+											song = jArray.getJSONObject(i).getString("title");
+											songTitles.add(song.substring(song.indexOf('.')+2));
 										}
-										catch(StringIndexOutOfBoundsException e){
-										}
+									} catch(JSONException e){
+										Logging.Log(LOG_TAG, "Show does not return a JSONArray, or there is no JSONObject in the array named \"title\".");
+										Logging.Log(LOG_TAG, songTitle.substring(songTitle.indexOf(',')));
 									}											
 								}
 							}
 						}
 					}
 					if(show.getShowTitle().length()<2){
-						 
+						Logging.Log(LOG_TAG, "Setting title.");
 						String s = ((TagNode)node.evaluateXPath(titlePath)[0]).getChildren().toString().replaceFirst(Pattern.quote("["), "");
 						show.setFullTitle(s.substring(0, s.lastIndexOf(": Free")-1));
 						showTitle = show.getArtistAndTitle();
@@ -305,7 +315,7 @@ public class Searching {
 					
 					if (processSongs) {
 						if(songLinks.size()==0){
-							 
+							Logging.Log(LOG_TAG, "Sorry, no mp3's for this show.  This might be because the show was recently released commercially.");
 						}
 						else {
 							//Do things for successful show parse
@@ -313,6 +323,8 @@ public class Searching {
 						}
 						// If we have the same amount of song titles as song links,
 						// we should be all set.
+						Logging.Log(LOG_TAG, songTitles.size());
+						Logging.Log(LOG_TAG, songLinks.size());
 						if (songTitles.size() == songLinks.size()) {
 							for (int i = 0; i < songTitles.size(); i++) {
 								String songLink = songLinks.get(i);
@@ -345,7 +357,7 @@ public class Searching {
 							db.setShowExists(show);
 							db.insertRecentShow(show);
 						} else {
-							 
+							Logging.Log(LOG_TAG, "Show not parsable...");
 						}
 					}
 					
@@ -388,7 +400,7 @@ public class Searching {
 	}
 	
 	public static Boolean updateArtists(StaticDataStore db){
-		 
+		Logging.Log(LOG_TAG, "Fetching Artists");
 		ArrayList<ArrayList<String>> artists = new ArrayList<ArrayList<String>>();
 		int numArtists;
 		
@@ -449,10 +461,10 @@ public class Searching {
 					db.insertArtistBulk(artists);
 					String s = DateFormat.format("yyyy-MM-dd", new GregorianCalendar().getTime()).toString();
 					db.updatePref("artistUpdate", s);
-					 
+					Logging.Log(LOG_TAG, "Finished Fetching Artists");
 				}
 				else {
-				 
+				Logging.Log(LOG_TAG, "Error Fetching Artists");
 					
 				}
     		}
@@ -461,7 +473,7 @@ public class Searching {
     		}
 		} catch(Exception e) {
 			e.printStackTrace();
-			 
+			Logging.Log(LOG_TAG, "Error Fetching Artists");
 		}
 		return true;
 

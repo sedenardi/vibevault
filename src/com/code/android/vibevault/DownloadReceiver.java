@@ -5,9 +5,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.util.Log;
 
 public class DownloadReceiver extends BroadcastReceiver{
+	
+	private static final String LOG_TAG = DownloadReceiver.class.getName();
 
 	private StaticDataStore db;
 	
@@ -15,7 +16,7 @@ public class DownloadReceiver extends BroadcastReceiver{
 	public void onReceive(Context context, Intent intent) {
 		if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction()))
 		{
-			 
+			Logging.Log(LOG_TAG, "Received Intent: " + intent.getAction());
 
 			db = StaticDataStore.getInstance(context);
 			
@@ -30,7 +31,7 @@ public class DownloadReceiver extends BroadcastReceiver{
 			if(cur.moveToFirst())
 			{
 				if(cur.getInt(index) == DownloadManager.STATUS_SUCCESSFUL){
-					 
+					Logging.Log(LOG_TAG, "Song downloaded successfully: " + receivedID);
 					db.setSongDownloaded(receivedID);
 				}
 			}

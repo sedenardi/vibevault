@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="com.code.android.vibevault"
 	android:installLocation="auto"
-	xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="XX" android:versionCode="XX">
+	xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="4.1" android:versionCode="35">
 
-	<uses-sdk android:minSdkVersion="15" android:targetSdkVersion="16"/>
+	<uses-sdk android:minSdkVersion="15" android:targetSdkVersion="18"/>
 	<uses-permission android:name="android.permission.WAKE_LOCK"/>
 	<application android:icon="@drawable/icon" android:label="@string/app_name"
 		android:debuggable="false" android:theme="@style/HoloBlack">
@@ -41,8 +41,6 @@
 					android:pathPrefix="/download/" />
 			</intent-filter>
 		</activity>
-		<activity android:name="com.code.android.vibevault.ShowsDownloadedScreen"  android:theme="@style/HoloBlack">></activity>
-		<activity android:name="com.code.android.vibevault.BrowseScreen" android:theme="@style/HoloBlack"></activity>
 		<service android:exported="false" android:name="PlaybackService">
 		    <intent-filter>
 		        <action android:name="com.code.android.vibevault.playbackservice.ACTION_PLAY" />
@@ -76,7 +74,32 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
 		</receiver>
-		
+		<receiver android:name="WidgetRowProvider"
+		    android:label="Vibe Vault Row">
+		    <intent-filter>
+		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+		    </intent-filter>
+		    <meta-data android:name="android.appwidget.provider"
+		               android:resource="@xml/appwidget_row" />
+		</receiver>
+		<receiver android:name="WidgetListProvider"
+		    android:label="Vibe Vault List">
+		    <intent-filter>
+		        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+		    </intent-filter>
+		    <meta-data android:name="android.appwidget.provider"
+		               android:resource="@xml/appwidget_list" />
+		</receiver>
+		<receiver android:name="WidgetIntentReceiver">
+		    <intent-filter>
+		        <action android:name="com.code.android.vibevault.playbackservice.STATE" />      
+		    </intent-filter>
+		    <meta-data android:name="android.appwidget.provider"
+		               android:resource="@xml/appwidget_row" />
+		</receiver>
+		<service android:name="WidgetListService"
+		    android:permission="android.permission.BIND_REMOTEVIEWS" />
+		    		
 	</application>
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>

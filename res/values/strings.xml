@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vibe Vault</string>
-    <string name="search_screen_help">Search by pressing the search button up top.  For each result, you can see artist, date, venue, and some information about the source of the recording. \n\ \n\ The settings button allows you to search for shows in specific date ranges.  Additionally, it lets you control the number of results a search should retrieve, and provides the option to have results sorted chronologically or by show rating. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+    <string name="search_screen_help">Search by pressing the search button up top.  For each result, you can see artist, date, venue, and some information about the source of the recording. \n\ \n\ The settings button allows you to search for shows on a specific date, in a specific month, or before/after a specific month or year.  Additionally, it lets you control the number of results a search should retrieve, and provides the option to have results sorted chronologically or by show rating. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
     <string name="home_screen_help">Developed by Andrew Pearson and Sanders DeNardi \n\ \n\ vibevault@gmail.com \n\ \n\ \u00a9 Copyright 2013.</string>
     <string name="show_details_screen_help">The setlist for the show.  Click on any song to play it, or select the triangle on the bottom-right side of any row for more options.  You can download a song, share it any way that your device allows, or add it to the play queue. \n\ \n\ The controls at the top of the screen give you more options.  You can vote for the show in Vibe Vault\'s rankings, or share the show.  You can bookmark it for future reference, or choose to download every song to your device. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string name="download_screen_help">See what songs you\'ve downloaded.  Select a show to see what songs you\'ve downloaded from it. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string name="stored_tabs_screen_help">The dropdown menu at the top lets you choose to view shows that you have recently visited, or shows that you have bookmarked. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string name="now_playing_screen_help">Displays the now playing list.  The playback controls at the bottom of the screen let you control playback.  The icon to the left of each song title allows you to drag the corresponding song to a new position in the playlist.  The controls at the top of the screen allow you to vote for the currently playing song\'s show in Vibe Vault\'s rankings, to bookmark the show for future reference, or to download every song in the playlist. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
-	<string name="recent_shows_screen_help">See your history of shows, as well as any others you may have bookmarked. Click one to open it up. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="recent_shows_screen_help">See your history of shows, as well as any others you may have bookmarked. Click one to open it up. You can also click on the arrow next to each show to share, queue for playing, delete if downloaded, or remove the show from the list. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string name="favorite_shows_screen_help">A list of bookmarked shows.  Click one to open it up. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
-	<string name="downloaded_show_screen_help">Click on a song to start playing it immediately (and queue up the rest of the show), or long-press on a song to add it to the current playlist. You can download the remining songs or delete an entire show using the menu to the right of each show. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="downloaded_show_screen_help">Click on a song to start playing it immediately (and queue up the rest of the show), or long-press on a song to add it to the current playlist. You can download the remaining songs or delete an entire show using the menu to the right of each show. \n\ \n\ \'Refresh Download Folder\' will scan the download folder and import songs and shows. If you use our naming convention (show_identifier/file_name.mp3 &#8211; ex: db2000&#8211;12&#8211;01.SBD_RM.flac16/db2000&#8211;12&#8211;01_SBDRM_d1t04.mp3), this will automatically fetch track information and add your songs to VibeVault\'s library. \n \n \'Change Download Folder\' will change the location of where VibeVault stores downloaded songs. This can be an existing directory, a new directory, or any subdirectory on your SD Card (or equivalent storage). \n \n e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string name="browse_artists_screen_help">Vibe Vault will automatically fetch a list of every artist available and the number of shows that each has which are available.  After that, simply clicking on a letter will show the artists whose name begins with that letter.  Clicking on the artist will bring up the Search Screen, populated with shows from that artist.</string>
-	<string name="splash_screen">Thank you for downloading Vibe Vault v4, and welcome to Android\'s premiere community for people who enjoy free and live music. \n\ \n\ In this update, you will find an easier to use search interface, more access to voting and social media options, and tons of other improvements, enhancements, and bug fixes.  We encourage you to use the voting and sharing features so that other users can learn about your favorite shows and artists.  It only takes one click (or tap).  You can access the voting and social media functionality by using the buttons that appear on the top of the screen when you\'re viewing a show\'s track listing, or when you are at the now playing screen.  The same options can be accessed by clicking on the small triangle in the bottom-right corner of listed tracks and shows. \n\ \n\ We hope that you enjoy the new version.  If you enjoy our app, please recommend it to a friend, give us a good rating, or like us on facebook.  Enjoy the music and feel free to drop us a line.  \n\ \n\ -Andrew and Sanders (the Vibe Vault devs) \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
+	<string name="splash_screen">Thank you for downloading Vibe Vault v4, and welcome to Android\'s premiere community for people who enjoy free and live music. \n\ \n\ In this update: \n\ &#8226; Search by month and specific date in addition to year \n\ &#8226; Change the folder for downloaded shows/songs and scan folders for existing shows/songs \n\ &#8226; Delete shows from your bookmarked and recent shows lists \n\ &#8226; Two awesome, resizable widgets \n\ &#8226; Improved notifications with a button to exit the app \n\ &#8226; Optimized layouts for larger devices like the Nexus 10 \n\ &#8226; Many more features, bug fixes, optimizaions, and under-the-hood improvements \n\ \n\ We encourage you to use the voting and sharing features so that other users can learn about your favorite shows and artists.  It only takes one click (or tap).  You can access the voting and social media functionality by using the buttons that appear on the top of the screen when you\'re viewing a show\'s track listing, or when you are at the now playing screen.  The same options can be accessed by clicking on the small triangle in the bottom-right corner of listed tracks and shows. \n\ \n\ We hope that you enjoy the new version.  If you enjoy our app, please recommend it to a friend, give us a good rating, or like us on facebook.  Enjoy the music and feel free to drop us a line.  \n\ \n\ -Andrew and Sanders (the Vibe Vault devs) \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string name="voting_screen">See voting results for shows or artists.  You can filter by all time, weekly, daily, or newly added items. Click the vote icon when viewing or listening to a show to share it with others. \n\ \n\ e-mail vibevault@gmail.com with any problems or questions.</string>
 	<string-array name="date_modifier">
 		<item>Before</item>
@@ -38,4 +38,60 @@
     	<item>Recently Viewed</item>
     	<item>Favorites</item>
     </string-array>
+    	<string name="vibe_vault_app_title">Vibe Vault 4</string>
+    	<string name="vibe_vault_app_title_vertical">Vibe\nVault\n4</string>
+    	<string name="Search">Search</string>
+    	<string name="Your_Shows">Your Shows</string>
+    	<string name="Downloads">Downloads</string>
+    	<string name="Now_Playing">Now Playing</string>
+    	<string name="User_Votes">User Votes</string>
+    	<string name="Browse_Artists">Browse Artists</string>
+    	<string name="okay_text">Okay</string>
+    	<string name="year_text">YYYY</string>
+    	<string name="month_text">MM</string>
+    	<string name="day_text">DD</string>
+    	<string name="help_text">Help</string>
+    	<string name="vote_text">Vote</string>
+    	<string name="share_text">Share</string>
+    	<string name="bookmark_text">Bookmark</string>
+    	<string name="download_show_text">Download Whole Show</string>
+    	<string name="downloaded_shows_text">Downloaded Shows</string>
+    	<string name="browse_artists_text">Browse All Artists</string>
+    	<string name="settings_text">Settings</string>
+    	<string name="scan_folder_text">Refresh Download Folder</string>
+    	<string name="change_folder_text">Change Download Folder</string>
+    	<string name="search_results_number_prompt">Max Search Results Per Search:</string>
+    	<string name="search_type_prompt">Search Based On:</string>
+    	<string name="search_date_prompt">Search When?</string>
+    	
+    	<string name="db_upgrade_message_text">Upgrading DB</string>
+    	<string name="confirm_song_deleted_message_text">Song deleted.</string>
+    	<string name="error_song_not_deleted_message_text">Error, song not deleted.</string>
+    	<string name="confirm_bookmarked_message_text">Bookmarked!</string>
+    	<string name="error_no_song_bookmark_message_text">No song playing or paused to bookmark.</string>
+    	<string name="confirm_voting_message_text">Voting...</string>
+    	<string name="error_no_song_vote_message_text">No song playing or paused to vote for.</string>
+    	<string name="error_playing_song_message_text">Error playing song, check internet connection.</string>
+    	<string name="confirm_show_deleted_message_text">Show deleted.</string>
+    	<string name="error_show_not_deleted_message_text">Error, show not deleted.</string>
+    	<string name="error_no_query_message_text">You need a query first...</string>
+    	<string name="no_search_results_message_text">Sorry, no search results.</string>
+    	<string name="error_invalid_year_bounds_message_text">Year must be after 1800 and before the future.</string>
+    	<string name="error_text_number_conversion_message_text">Text cannot be converted to a number.</string>
+    	<string name="error_invalid_month_message_text">Must select a valid month.</string>
+    	<string name="error_invalid_year_message_text">Enter a year or change to \'Anytime\'.</string>
+    	<string name="error_invalid_date_message_text">Must select a valid date.</string>
+    	<string name="error_incomplete_date_message_text">Enter a complete date.</string>
+    	<string name="error_directory_name_match_message_text">New name can\'t match existing name.</string>
+    	<string name="error_directory_name_slash_message_text">New name can\'t start or end with a slash.</string>
+    	<string name="error_directory_name_blank_message_text">Name can\'t be blank.</string>
+    	<string name="error_directory_name_length_message_text">Name can\'t be more than 32 characters.</string>
+    	<string name="error_directory_name_characters_message_text">Name can only contain letters, numbers, one consecutive space, and dashes.</string>
+    	<string name="directory_copy_message_text_success">Directory copy successful.</string>
+    	<string name="directory_copy_message_text_failure">Directory copy failed. This can happen if you\'re playing a downloaded song.</string>
+    	<string name="confirm_songs_show_deleted_message_text">Songs from show deleted.</string>
+    	<string name="error_songs_show_not_deleted_message_text">Error, songs from show not deleted.</string>
+    	<string name="nothing_playing">Nothing Playing...</string>
+    	<string name="dialog_moving">Moving files...</string>
+    	<string name="error_empty_show_vote">Can\'t vote for a show that hasn\'t loaded.</string>
 </resources>

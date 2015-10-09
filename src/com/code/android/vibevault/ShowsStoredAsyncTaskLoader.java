@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import android.content.AsyncTaskLoader;
 import android.content.Context;
-import android.util.Log;
 
 public class ShowsStoredAsyncTaskLoader extends AsyncTaskLoader<ArrayList<ArchiveShowObj>> {
 
@@ -29,7 +28,7 @@ public class ShowsStoredAsyncTaskLoader extends AsyncTaskLoader<ArrayList<Archiv
 
 	@Override
 	public ArrayList<ArchiveShowObj> loadInBackground() {
-		 
+		Logging.Log(LOG_TAG,"Started with arg: " + storedType);
 		ArrayList<ArchiveShowObj> shows;
 		switch(this.storedType){
 			case STORED_RECENT_SHOWS:

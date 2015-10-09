@@ -22,7 +22,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.text.format.DateUtils;
-import android.util.Log;
 
 public class Voting {
 		
@@ -56,7 +55,7 @@ public class Voting {
 				"&showDate=" + URLEncoder.encode(showDate, "UTF-8") +
 				"&showSource=" + "" +
 				"&showRating=" + 0.0);
-    		 
+    		Logging.Log(LOG_TAG, queryString.toString());
     		
     		HttpGet request = new HttpGet(queryString);
     		HttpParams params = new BasicHttpParams();
@@ -122,7 +121,7 @@ public class Voting {
 				"&showDate=" + URLEncoder.encode(show.getDate(), "UTF-8") +
 				"&showSource=" + URLEncoder.encode(show.getShowSource(), "UTF-8") +
 				"&showRating=" + show.getRating());
-    		 
+    		Logging.Log(LOG_TAG, queryString.toString());
     		
     		HttpGet request = new HttpGet(queryString);
     		HttpParams params = new BasicHttpParams();
@@ -184,6 +183,7 @@ public class Voting {
 				"&numResults=" + numResults +
 				"&offset=" + offset +
 				"&userId=" + userId);
+    		Logging.Log(LOG_TAG, queryString.toString());
     		
     		HttpGet request = new HttpGet(queryString);
     		HttpParams params = new BasicHttpParams();
@@ -249,6 +249,7 @@ public class Voting {
 				"&numResults=" + numResults +
 				"&offset=" + offset +
 				"&userId=" + userId);
+    		Logging.Log(LOG_TAG, queryString.toString());
     		
     		HttpGet request = new HttpGet(queryString);
     		HttpParams params = new BasicHttpParams();
@@ -313,6 +314,7 @@ public class Voting {
 				"&offset=" + offset +
 				"&userId=" + userId +
 				"&artistId=" + artistId);
+    		Logging.Log(LOG_TAG, queryString.toString());
     		
     		HttpGet request = new HttpGet(queryString);
     		HttpParams params = new BasicHttpParams();

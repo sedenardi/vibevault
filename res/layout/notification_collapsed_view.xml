@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/notification_collapsed_image"
+        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:scaleType="centerInside"
+        android:src="@drawable/icon" />
+    <TextView 
+        android:id="@+id/notification_collapsed_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.StatusBar.EventContent.Title"
+        android:layout_toRightOf="@id/notification_collapsed_image"
+        android:layout_toLeftOf="@+id/notification_expanded_buttons"
+        android:paddingLeft="8.0dip"
+        android:ellipsize="marquee"
+	    android:marqueeRepeatLimit="marquee_forever"
+	    android:maxLines="1"
+	    android:scrollHorizontally="true"
+        android:text="Text" />
+    <TextView
+        android:id="@+id/notification_collapsed_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.StatusBar.EventContent"
+        android:layout_toRightOf="@id/notification_collapsed_image"
+        android:layout_toLeftOf="@+id/notification_expanded_buttons"
+        android:paddingLeft="8.0dip"
+        android:layout_below="@id/notification_collapsed_title"
+        android:ellipsize="marquee"
+	    android:marqueeRepeatLimit="marquee_forever"
+	    android:maxLines="2"
+	    android:scrollHorizontally="true"
+        android:text="Text" />
+    <LinearLayout
+        android:id="@id/notification_expanded_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:divider="?android:listDivider"
+        android:dividerPadding="8.0dip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:showDividers="middle" >
+        <ImageButton android:id="@+id/notification_collapsed_play"
+            android:layout_width="0dp"
+	        android:layout_height="@dimen/notification_button_height"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:layout_weight="1"
+            android:padding="8.0dip"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            android:src="@drawable/mediaplaybutton" />
+        <ImageButton android:id="@+id/notification_collapsed_next"
+            android:layout_width="0dp"
+	        android:layout_height="@dimen/notification_button_height"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:layout_weight="1"
+            android:padding="8.0dip"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            android:src="@drawable/medianextbutton" />
+        <ImageButton android:id="@+id/notification_collapsed_close"
+            android:layout_width="0dp"
+	        android:layout_height="@dimen/notification_button_height"
+            android:layout_marginLeft="5dip"
+            android:layout_marginRight="5dip"
+            android:layout_weight="1"
+            android:padding="8.0dip"
+            android:scaleType="fitCenter"
+            android:background="@android:color/transparent"
+            android:src="@drawable/notification_exit"/>
+        </LinearLayout>
+</RelativeLayout>

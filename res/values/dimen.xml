@@ -11,5 +11,17 @@
     <dimen name="home_buffer_small">10dip</dimen>
     <dimen name="home_buffer_medium">13dip</dimen>
     <dimen name="home_buffer_large">26dip</dimen>
+    <dimen name="widget_margin">0dp</dimen>
+    <dimen name="widget_button_width">32dp</dimen>
+    <dimen name="widget_button_margin">10dp</dimen>
+    <dimen name="widget_text_margin">14dp</dimen>
+    <dimen name="widget_text_height_tall">18dip</dimen>
+    <dimen name="widget_text_height_small">14dip</dimen>
+    <dimen name="widget_text_height_tiny">12dip</dimen>
+        <dimen name="widget_text_list_height">22dip</dimen>
+    <dimen name="widget_round">10dp</dimen>
+    <dimen name="widget_list_margin">6dp</dimen>
+    <dimen name="notification_expanded_height">128.0dip</dimen>
+    <dimen name="notification_button_height">48.0dip</dimen>
     
 </resources>

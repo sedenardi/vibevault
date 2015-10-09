@@ -3,6 +3,7 @@ package com.code.android.vibevault;
 import java.util.ArrayList;
 
 import com.code.android.vibevault.SearchFragment.SearchActionListener;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
@@ -14,7 +15,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -122,12 +122,13 @@ public class VotesFragment extends Fragment implements LoaderManager.LoaderCallb
 					break;
 			}
 		}
-		 
+		Logging.Log(LOG_TAG, "VotesFragment: Execute Refresh from callback");
 		if(currentSelectedMode!=itemPosition){
-			executeRefresh();
 			currentSelectedMode=itemPosition;
 			moreResults = false;
 			offset = 0;
+			executeRefresh();
+
 		}
 		return true;
 	}
@@ -161,7 +162,7 @@ public class VotesFragment extends Fragment implements LoaderManager.LoaderCallb
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		 
+		Logging.Log(LOG_TAG, "onCreate");
 		votes = new ArrayList<ArchiveVoteObj>();
 		// Control whether a fragment instance is retained across Activity re-creation (such as from a configuration change).
 		this.setRetainInstance(true);
@@ -188,7 +189,7 @@ public class VotesFragment extends Fragment implements LoaderManager.LoaderCallb
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		 
+		Logging.Log(LOG_TAG, "CREATING VIEW.");
 		// Inflate the fragment and grab a reference to it.
 		View v = inflater.inflate(R.layout.votes_fragment, container, false);
 		this.votedList = (ListView) v.findViewById(R.id.VotesListView);
@@ -310,7 +311,7 @@ public class VotesFragment extends Fragment implements LoaderManager.LoaderCallb
 	@Override
 	public void onLoadFinished(Loader<ArrayList<?>> arg0, ArrayList<?> arg1) {
 		this.dialogAndNavigationListener.hideDialog();
-		 
+		Logging.Log(LOG_TAG, "MORERESULTS: " + moreResults);
 		if (moreResults) {
 			Parcelable state = this.votedList.onSaveInstanceState();
 			this.votes.addAll((ArrayList<ArchiveVoteObj>)arg1);
@@ -469,9 +470,9 @@ public class VotesFragment extends Fragment implements LoaderManager.LoaderCallb
 										break;
 									case (101):
 										if(Downloading.deleteShow(getContext(), show, db)){
-											Toast.makeText(getContext(), "Deleted.", Toast.LENGTH_SHORT).show();
+											Toast.makeText(getContext(), R.string.confirm_songs_show_deleted_message_text, Toast.LENGTH_SHORT).show();
 										} else{
-											Toast.makeText(getContext(), "Error, songs not deleted.", Toast.LENGTH_SHORT).show();
+											Toast.makeText(getContext(), R.string.error_songs_show_not_deleted_message_text, Toast.LENGTH_SHORT).show();
 										}
 									default:
 										return false;

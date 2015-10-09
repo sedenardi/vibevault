@@ -76,8 +76,7 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 		if(artistAndShowTitle.length < 2){
 			artistAndShowTitle = tit.split(" Live ");
 		}
-		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
-		
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");	
 		urlString = urlStr;
 		status = -1;
 		
@@ -112,6 +111,7 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 			artistAndShowTitle = tit.split(" Live ");
 		}
 		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+
 		this.showIdent = showIdent;
 		fileName = fileStr;
 		DBID = ID;
@@ -126,7 +126,7 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 	}
 	
 	public boolean doesExist(StaticDataStore db){
-		if(db.songIsDownloaded(fileName) && new File(getFilePath()).exists()){
+		if(db.songIsDownloaded(fileName) && new File(getFilePath(db)).exists()){
 			return true;
 		}
 		else{
@@ -135,17 +135,17 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 	}
 	
 	public String getSongPath(StaticDataStore db){
-		if(db.songIsDownloaded(fileName) && new File(getFilePath()).exists()){
-			return getFilePath();
+		if(db.songIsDownloaded(fileName) && new File(getFilePath(db)).exists()){
+			return getFilePath(db);
 		}
 		else{
 			return getLowBitRate().toString();
 		}
 	}
 	
-	public String getFilePath(){
+	public String getFilePath(StaticDataStore db){
 		return Environment.getExternalStorageDirectory() + 
-			Downloading.APP_DIRECTORY + showIdent + '/' +
+			Downloading.getAppDirectory(db) + showIdent + '/' +
 			fileName;
 	}
 	

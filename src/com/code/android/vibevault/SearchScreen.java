@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 public class SearchScreen extends Activity implements SearchActionListener, DialogAndNavigationListener, SearchSettingsDialogInterface, ShowDetailsActionListener, NowPlayingFragment.PlayerListener, BrowseActionListener, VotesActionListener {
 
@@ -30,7 +29,7 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 	protected void onResume(){
 		super.onResume();
 		if(this.getIntent()!=null&&this.getIntent().hasExtra("type")){
-			 
+			Logging.Log(LOG_TAG, this.getIntent().getExtras().getInt("type"));
 		}
 
 //		NowPlayingFragment nowPlayingFrag = (NowPlayingFragment) getFragmentManager().findFragmentByTag("nowplaying");
@@ -94,7 +93,7 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 	    		break;
 	    	default:
 		}
-		 
+		Logging.Log(LOG_TAG, "BACK STACK COUNT: " + this.getFragmentManager().getBackStackEntryCount());
 	}
 	
 	@Override
@@ -108,10 +107,10 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 		// If so, form an ArchiveShowObj from the URL.
 		if (this.getIntent().getScheme()!=null&&this.getIntent().getScheme().equals("http")) {
 	        ArchiveShowObj show = null;
-			 
+			Logging.Log(LOG_TAG, "User clicked on link.");
 			type = 1;
 			String linkString =  this.getIntent().getData().toString();
-			 
+			Logging.Log(LOG_TAG, "URL: " + linkString);
 			if (linkString.contains("/download/")) {
 				String[] paths = linkString.split("/");
 				for (int i = 0; i < paths.length; i++) {
@@ -142,7 +141,7 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 		FragmentTransaction ft = getFragmentManager().beginTransaction();
 		SearchFragment frag = (SearchFragment) fm.findFragmentByTag("searchfrag");
 		
-		 
+		Logging.Log(LOG_TAG, "BACK STACK COUNT: " + fm.getBackStackEntryCount());
 		Bundle b = this.getIntent().getExtras();
 		if(artist!=null){
 			b = new Bundle();
@@ -202,7 +201,7 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 		}
 		ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 	    ft.commit();
-	     
+	    Logging.Log(LOG_TAG, "BACK STACK COUNT : " + fm.getBackStackEntryCount());
 	}
 	
 	private void instantiateNowPlayingFragmentForActivity(int pos, ArrayList<ArchiveSongObj> showSongs){
@@ -215,17 +214,17 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 			b = new Bundle();
 			b.putSerializable("position", pos);
 			b.putSerializable("showsongs", showSongs);
-			 
+			Logging.Log(LOG_TAG, "Creating Bundle with position and songs.");
 		}
 		
 		if(frag==null){
-			 
+			Logging.Log(LOG_TAG, "Making a new NowPlayingFragment.");
 			frag = new NowPlayingFragment();
 			frag.setArguments(b);
 			ft.replace(android.R.id.content, frag,"nowplaying");
 			ft.addToBackStack(null);
 		} else{
-			 
+			Logging.Log(LOG_TAG, "Creating Bundle with position and songs.");
 			frag.getArguments().putAll(b);
 			ft.replace(android.R.id.content, frag,"nowplaying");
 			if(fm.getBackStackEntryCount()==0){
@@ -329,14 +328,19 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 	
 	@Override
 	public void onShowSelected(ArchiveShowObj show) {
-		 
-		 
+		Logging.Log(LOG_TAG, "Show selected, making new ShowDetailsFragment.");
+		Logging.Log(LOG_TAG, "BACK STACK COUNT: " + this.getFragmentManager().getBackStackEntryCount());
 		this.instantiateShowDetailsFragmentForActivity(show);
-		 
+		Logging.Log(LOG_TAG, "BACK STACK COUNT: " + this.getFragmentManager().getBackStackEntryCount());
 	}
 	
 	@Override
 	public void showLoadingDialog (String message) {
+		showLoadingDialog(message, true);
+	}
+	
+	@Override
+	public void showLoadingDialog (String message, boolean useTitle) {
 		// DialogFragment.show() will take care of adding the fragment
 		// in a transaction. We also want to remove any currently showing
 		// dialog, so make our own transaction and take care of that here.
@@ -352,13 +356,13 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 			}
 		}
 		// Create and show the dialog.
-		DialogFragment newFragment = LoadingDialog.newInstance(message);
+		DialogFragment newFragment = LoadingDialog.newInstance(message, useTitle);
 		newFragment.show(ft, "dialog");
 	}
 	
 	@Override
 	public void showSettingsDialog(Bundle b) {
-		SearchSettingsDialogFragment settingsFrag = SearchSettingsDialogFragment.newInstanceSearchSettingsDialogFragment(b.getString("type"), b.getInt("number"), b.getInt("date"), b.getInt("datepos"));
+		SearchSettingsDialogFragment settingsFrag = SearchSettingsDialogFragment.newInstanceSearchSettingsDialogFragment(b.getString("type"), b.getInt("number"), b.getInt("datepos"), b.getInt("month"), b.getInt("day"), b.getInt("year"));
 		// DialogFragment.show() will take care of adding the fragment
 		// in a transaction. We also want to remove any currently showing
 		// dialog, so make our own transaction and take care of that here.
@@ -434,10 +438,10 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 	}
 
 	@Override
-	public void onSettingsOkayButtonPressed(String searchType, int numResults, int dateResults, int dateTypePos) {
+	public void onSettingsOkayButtonPressed(String searchType, int numResults, int dateTypePos, int month, int day, int year) {
 		SearchFragment searchFrag = (SearchFragment)this.getFragmentManager().findFragmentByTag("searchfrag");
 		if(searchFrag!=null){
-			searchFrag.onSettingsOkayButtonPressed(searchType, numResults, dateResults, dateTypePos);
+			searchFrag.onSettingsOkayButtonPressed(searchType, numResults, dateTypePos, month, day, year);
 		}
 	}
 
@@ -448,15 +452,15 @@ public class SearchScreen extends Activity implements SearchActionListener, Dial
 	}
 
 	@Override
-	public void registerReceivers(BroadcastReceiver playerChangedBroadcast, BroadcastReceiver playlistChangedBroadcast) {
-		registerReceiver(playerChangedBroadcast, new IntentFilter(PlaybackService.SERVICE_UPDATE));
-		registerReceiver(playlistChangedBroadcast, new IntentFilter(PlaybackService.SERVICE_PLAYLIST));
+	public void registerReceivers(BroadcastReceiver stateChangedBroadcast, BroadcastReceiver positionChangedBroadcast) {
+		registerReceiver(stateChangedBroadcast, new IntentFilter(PlaybackService.SERVICE_STATE));
+		registerReceiver(positionChangedBroadcast, new IntentFilter(PlaybackService.SERVICE_POSITION));
 	}
 
 	@Override
-	public void unregisterReceivers(BroadcastReceiver playerChangedBroadcast, BroadcastReceiver playlistChangedBroadcast) {
-		unregisterReceiver(playerChangedBroadcast);
-		unregisterReceiver(playlistChangedBroadcast);
+	public void unregisterReceivers(BroadcastReceiver stateChangedBroadcast, BroadcastReceiver positionChangedBroadcast) {
+		unregisterReceiver(stateChangedBroadcast);
+		unregisterReceiver(positionChangedBroadcast);
 	}
 	
 	@Override

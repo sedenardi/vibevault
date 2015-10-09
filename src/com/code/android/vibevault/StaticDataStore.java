@@ -37,7 +37,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 public class StaticDataStore extends SQLiteOpenHelper {
 
@@ -45,7 +44,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	
 	private static final String DB_NAME = "archivedb";
 	private static String DB_PATH;
-	private static final int DB_VERSION = 16;
+	private static final int DB_VERSION = 18;
 
 	public static final String PREF_TBL = "prefsTbl";
 	public static final String PREF_KEY = "_id";
@@ -114,7 +113,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 		this.context = context;
 		DB_PATH = context.getDatabasePath(DB_NAME).toString();
 		initialize();
-		 
+		Logging.Log(LOG_TAG, "DB opened by (initialized): " + caller);
 	}
 
 	@Override
@@ -125,13 +124,13 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	public void openDB(String caller) {
 		if (!db.isOpen()) {
 			openDataBase();
-			 
+			Logging.Log(LOG_TAG, "DB opened by: " + caller);
 		}
 	}
 	
 	public void closeDB(String caller) {
 		super.close();
-		 
+		Logging.Log(LOG_TAG,"Database closed by:" + caller);
 	}
 
 	@Override
@@ -153,10 +152,11 @@ public class StaticDataStore extends SQLiteOpenHelper {
 					.getColumnIndex(SHOW_ARTIST)), cur.getString(cur
 					.getColumnIndex(SHOW_SOURCE)), cur.getString(cur
 					.getColumnIndex(SHOW_HASVBR)), cur.getString(cur
-					.getColumnIndex(SHOW_HASLBR))));
+					.getColumnIndex(SHOW_HASLBR)), cur.getInt(cur
+					.getColumnIndex("_id"))));
 		}
 
-		 
+		Logging.Log(LOG_TAG,"Returning " + shows.size() + " shows from the DB.");
 		return shows;
 	}
 	
@@ -181,15 +181,15 @@ public class StaticDataStore extends SQLiteOpenHelper {
 		try {
 			createDB();
 		} catch (IOException e) {
-			 
-			 
+			Logging.Log(LOG_TAG, "Unable to create database");
+			Logging.Log(LOG_TAG, e.getStackTrace().toString());
 		}
 		if(!needsUpgrade){
 			try {
 				openDataBase();
 			} catch (SQLException e) {
-				 
-				 
+				Logging.Log(LOG_TAG, "Unable to open database");
+				Logging.Log(LOG_TAG, e.getStackTrace().toString());
 			}
 		}
 	}
@@ -199,6 +199,8 @@ public class StaticDataStore extends SQLiteOpenHelper {
 		boolean dbExists = checkDB();
 		if (dbExists) {
 		} else {
+			Logging.Log(LOG_TAG,
+					"createDB() - Database does not exist");
 			this.getReadableDatabase();
 			this.close();
 			try {
@@ -215,12 +217,14 @@ public class StaticDataStore extends SQLiteOpenHelper {
 			checkDB = SQLiteDatabase.openDatabase(DB_PATH, null,
 					SQLiteDatabase.OPEN_READWRITE);
 		} catch (SQLiteException e) {
-
+			Logging.Log(LOG_TAG, "checkDB() - Database not found");
 		}
 
 		if (checkDB != null) {
 			if (checkDB.getVersion() != DB_VERSION) {
-
+				Logging.Log(LOG_TAG,
+						"checkDB() - Wrong DB version: old "
+								+ checkDB.getVersion() + " new " + DB_VERSION);
 				// checkDB.execSQL("DROP TABLE IF EXISTS " + PREF_TABLE);
 				// checkDB.execSQL("DROP TABLE IF EXISTS " + "showsTbl");
 				checkDB.close();
@@ -236,7 +240,8 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	}
 
 	public void copyDB() throws IOException {
-
+		Logging.Log(LOG_TAG, "copyDB() - Copying database to "
+				+ DB_PATH);
 		InputStream is = context.getAssets().open(DB_NAME);
 		OutputStream os = new FileOutputStream(DB_PATH);
 
@@ -250,6 +255,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 		os.close();
 		is.close();
 		dbCopied = true;
+		Logging.Log(LOG_TAG, "copyDB() - Finished copying database");
 	}
 
 	public void openDataBase() throws SQLiteException {
@@ -288,6 +294,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 //	}
 
 	public void updatePref(String pref_name, String pref_value) {
+		Logging.Log(LOG_TAG, "Update " + pref_name + " to " + pref_value);
 		db.execSQL("UPDATE prefsTbl SET prefValue = '"
 				+ sanitize(pref_value) + "' WHERE prefName = '"
 				+ sanitize(pref_name) + "'");
@@ -339,6 +346,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	}
 
 	public ArrayList<ArchiveShowObj> getRecentShows() {
+		Logging.Log(LOG_TAG, "Returning all recent shows");
 		/*
 		 * return db.query(RECENT_TBL, new String[] { SHOW_KEY, SHOW_IDENT,
 		 * SHOW_TITLE, SHOW_HASVBR, SHOW_HASLBR }, null, null, null, null,
@@ -351,6 +359,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	}
 
 	public ArrayList<ArchiveShowObj> getDownloadShows() {
+		Logging.Log(LOG_TAG, "Returning all downloaded shows");
 		/*
 		 * return db.query(SHOW_TBL, new String[] { SHOW_KEY, SHOW_IDENT,
 		 * SHOW_TITLE, SHOW_HASVBR, SHOW_HASLBR }, null, null, null, null,
@@ -363,10 +372,11 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	}
 
 	public ArchiveShowObj getShow(String identifier) {
+		Logging.Log(LOG_TAG, "Getting show: " + identifier);
 		ArchiveShowObj show = null;
 		Cursor cur = db.query(true, SHOW_TBL,
 				new String[] { SHOW_IDENT, SHOW_TITLE, SHOW_ARTIST,
-						SHOW_SOURCE, SHOW_HASVBR, SHOW_HASLBR }, SHOW_IDENT + "="
+						SHOW_SOURCE, SHOW_HASVBR, SHOW_HASLBR, "_id" }, SHOW_IDENT + "="
 						+ "'" + identifier + "'", null, null, null, null, null);
 		if (cur != null) {
 			cur.moveToFirst();
@@ -376,18 +386,20 @@ public class StaticDataStore extends SQLiteOpenHelper {
 					.getColumnIndex(SHOW_ARTIST)), cur.getString(cur
 					.getColumnIndex(SHOW_SOURCE)), cur.getString(cur
 					.getColumnIndex(SHOW_HASVBR)), cur.getString(cur
-					.getColumnIndex(SHOW_HASLBR)));
+					.getColumnIndex(SHOW_HASLBR)), cur.getInt(cur
+					.getColumnIndex("_id")));
 		}
 		cur.close();
 		return show;
 	}
 
 	public void deleteRecentShow(long show_id) {
+		Logging.Log(LOG_TAG, "Deleting recent show at id=" + show_id);
 		db.delete(RECENT_TBL, RECENT_SHOW_KEY + "=" + show_id, null);
 	}
 
 	public void clearRecentShows() {
-		 
+		Logging.Log(LOG_TAG, "Deleting all show");
 		db.delete(RECENT_TBL, null, null);
 	}
 
@@ -416,34 +428,53 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	}
 	
 	public void setSongDownloading(ArchiveSongObj song, long id){
-		 
+		Logging.Log(LOG_TAG,"Start Downloading " + song.getFileName() + ": " + id);
 		db.execSQL("UPDATE songTbl "
 				+ "SET download_id = '"
 				+ id + "' WHERE fileName = '"
 				+ song.getFileName() + "'");
 	}
+	
+	public boolean getSongIsDownloading(ArchiveSongObj song) {
+		Logging.Log(LOG_TAG,"Get downloading status for " + song.getFileName());
+		Cursor cur = db.rawQuery("Select count(1) as count from songTbl "
+				+ "where fileName = '" + song.getFileName() + "' and download_id is not null and isDownloaded = 'false'", null);
+		cur.moveToFirst();
+		int count = cur.getInt(cur.getColumnIndex("count"));
+		Logging.Log(LOG_TAG,"Result: " + count);
+		cur.close();
+		return count > 0;
+	}
 
 	public void setSongDownloaded(long id) {
-		 
+		Logging.Log(LOG_TAG,"Finished Downloading: " + id);
 		db.execSQL("UPDATE songTbl "
 				+ "SET isDownloaded = 'true' "
 				+ "WHERE download_id = '"
 				+ id + "'");
 	}
+
+	public void setSongDownloaded(String fileName) {
+		Logging.Log(LOG_TAG,"Adding Song: " + fileName);
+		db.execSQL("UPDATE songTbl "
+				+ "SET isDownloaded = 'true' "
+				+ "WHERE fileName = '"
+				+ fileName + "'");
+	}
 	
 	public void setSongDeleted(ArchiveSongObj song) {
 		db.execSQL("UPDATE songTbl "
-				+ "SET isDownloaded = 'false' "
+				+ "SET isDownloaded = 'false', download_id = null "
 				+ "WHERE fileName = '"
 				+ song.getFileName() + "'");
 	}
 	
 	public void setShowDeleted(ArchiveShowObj show){
 		db.execSQL("UPDATE songTbl "
-				+ "SET isDownloaded = 'false' "
+				+ "SET isDownloaded = 'false', download_id = null "
 				+ "WHERE EXISTS (SELECT 1 from showTbl show where "
 				+ "show.showIdent = '" + show.getIdentifier() + "' and "
-				+ "show._id = show_id");
+				+ "show._id = show_id)");
 	}
 	
 	public boolean getShowExists(ArchiveShowObj show) {
@@ -638,7 +669,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 		//db.execSQL("PRAGMA synchronous=OFF");
 		/*InsertHelper ih = new InsertHelper(db,"artistTbl");
 		ih.prepareForInsert();*/
-		 
+		Logging.Log(LOG_TAG,"Bulk inserting " + artists.size() + " artists");
 		db.execSQL("DELETE FROM artistTbl");
 		try{
 			db.beginTransaction();
@@ -650,7 +681,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 			}
 			db.setTransactionSuccessful();
 		} catch(SQLException e){
-			 
+			Logging.Log(LOG_TAG,e.toString());
 		} finally{
 			db.endTransaction();
 		}
@@ -675,7 +706,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	}
 
 	public ArrayList<ArchiveShowObj> getFavoriteShows() {
-		 
+		Logging.Log(LOG_TAG, "Returning all favorite shows");
 		/*
 		 * return db.query(RECENT_TBL, new String[] { SHOW_KEY, SHOW_IDENT,
 		 * SHOW_TITLE, SHOW_HASVBR, SHOW_HASLBR }, null, null, null, null,
@@ -688,12 +719,12 @@ public class StaticDataStore extends SQLiteOpenHelper {
 	}
 
 	public void deleteFavoriteShow(long show_id) {
-		 
+		Logging.Log(LOG_TAG, "Deleting favorite show at show_id=" + show_id);
 		db.execSQL("DELETE FROM favoriteShowsTbl WHERE show_id=" + show_id);
 	}
 
 	public void clearFavoriteShows() {
-		 
+		Logging.Log(LOG_TAG, "Deleting all show");
 		db.execSQL("DELETE FROM favoriteShowsTbl");
 	}
 	
@@ -926,6 +957,10 @@ public class StaticDataStore extends SQLiteOpenHelper {
 			oldDB.execSQL("ALTER TABLE songTbl ADD COLUMN folderName TEXT");
 			oldDB.execSQL("Update songTbl set folderName = ''");
 			oldDB.execSQL("ALTER TABLE showTbl ADD COLUMN showExists TEXT");
+		case 16:
+			oldDB.execSQL("INSERT INTO prefsTbl (prefName, prefValue) SELECT 'nowPlayingPosition','0'");
+		case 17:
+			oldDB.execSQL("Update songTbl set download_id = null where isDownloaded = 'false'");
 		}
 		return true;
 	}

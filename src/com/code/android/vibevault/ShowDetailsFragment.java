@@ -25,7 +25,6 @@
 package com.code.android.vibevault;
 
 import java.util.ArrayList;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
@@ -36,7 +35,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -152,16 +150,16 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 			// If This ShowDetailsFragment's show object is null, set it to the passed show.
 			// FIXME Maybe put in a check for a null passedShow?
 			if(show==null){
-				 
+				Logging.Log(LOG_TAG, "SHOW IS NULL.");
 				if(showSongs==null){
 					showSongs = new ArrayList<ArchiveSongObj>();
 				}
 				if(passedShow!=null){
-					 
 					show = passedShow;
+					Logging.Log(LOG_TAG, "SHOW PASSED: " + show.getIdentifier());
 				}
 				if(show!=null){
-					 
+					Logging.Log(LOG_TAG,"Show passed, executing ShowDetailsAsyncTaskLoader.");
 					executeShowDetailsTask(show);
 				} else{
 					return;
@@ -213,21 +211,21 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	// Pop up a loading dialog and pass the show to a ShowDetailsAsyncTaskLoader for parsing.
 	@Override
 	public Loader<Bundle> onCreateLoader(int id, Bundle args) {
-		 
+		Logging.Log(LOG_TAG, "NEW LOADER.");
 		dialogAndNavigationListener.showLoadingDialog("Loading show...");
-		return (Loader) new ShowDetailsAsyncTaskLoader(getActivity(), (ArchiveShowObj) args.get("show"));
+		return (Loader<Bundle>) new ShowDetailsAsyncTaskLoader(getActivity(), (ArchiveShowObj) args.get("show"));
 	}
 
 	// Set the show's songs to those returned by the loader, and refresh the track list.
 	@SuppressWarnings("unchecked")
 	@Override
 	public void onLoadFinished(Loader<Bundle> arg0, Bundle arg1) {
-		 
+		Logging.Log(LOG_TAG, "LOADER FINISHED.");
 		showSongs = (ArrayList<ArchiveSongObj>) arg1.getSerializable("songs");
 		show = (ArchiveShowObj) arg1.getSerializable("show");
-		 
+		Logging.Log(LOG_TAG, show.getArtistAndTitle());
 		if(this.show.getShowTitle().length()<2){
-			 
+			Logging.Log(LOG_TAG, "BLANK: " + ((ArchiveShowObj)arg1.getSerializable("show")).getShowTitle());
 			this.showLabel.setText(((ArchiveShowObj)arg1.getSerializable("show")).getShowTitle());
 		}
 		refreshTrackList();
@@ -261,7 +259,7 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	@Override
 	public void onResume() {
 		super.onResume();
-		 
+		Logging.Log(LOG_TAG,"ONRESUME.");
 		refreshTrackList();
 	}
 	
@@ -280,10 +278,14 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.VoteButton:
-			new VoteTask().execute(show);
+			if (!showSongs.isEmpty()) {
+				new VoteTask().execute(show);
+			} else {
+				Toast.makeText(getActivity(), R.string.error_empty_show_vote, Toast.LENGTH_SHORT).show();
+			}
 			return true;
 		case R.id.BookmarkButton:
-			Toast.makeText(getActivity(), "Bookmarked!", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), R.string.confirm_bookmarked_message_text, Toast.LENGTH_SHORT).show();
 			db.insertFavoriteShow(show);
 			return true;
 		case R.id.HelpButton:
@@ -308,7 +310,7 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	@Override
 	public void onDetach() {
 	    super.onDetach();
-	     
+	    Logging.Log(LOG_TAG, "DETACHING.");
 	    // FIXME this should now cancel the loader.
 	    // VibeVault.showDetailsTask.cancel(true);
 	}
@@ -341,7 +343,7 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	 * 
 	 */
 	private void refreshTrackList() {
-		 
+		Logging.Log(LOG_TAG, String.valueOf(showSongs.size()));
 		trackList.setAdapter(new SongAdapter(getActivity(), R.layout.show_details_screen_row, showSongs, db));
 		refreshScreenTitle();
 	}
@@ -349,7 +351,7 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	private class VoteTask extends AsyncTask<ArchiveShowObj, Void, String> {
 		@Override
 		protected void onPreExecute() {
-			Toast.makeText(getActivity(), "Voting...", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), R.string.confirm_voting_message_text, Toast.LENGTH_SHORT).show();
 		}
 
 		@Override

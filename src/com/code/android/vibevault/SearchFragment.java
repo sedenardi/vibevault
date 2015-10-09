@@ -35,11 +35,9 @@ import android.content.Loader;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Parcelable;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -84,7 +82,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 
 
 	protected AutoCompleteTextView artistSearchInput;
-	protected Button searchButton;
+	protected ImageButton searchButton;
 	protected Button searchMoreButton;
 	protected TextView searchHintTextView;
 	protected Menu actionBarMenu;
@@ -98,7 +96,9 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	private int dateSearchModifierPos;
 	private int numResultsPref;
 	private String sortPref;
-	private int datePref;
+	private int month;
+	private int day;
+	private int year;
 
 	private StaticDataStore db;
 
@@ -139,38 +139,40 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		 
+		Logging.Log(LOG_TAG, "onCreate");
 		searchResults = new ArrayList<ArchiveShowObj>();
 		artistSearchText = "";
-		datePref = 0;
+		month = 0;
+		day = 0;
+		year = 0;
 		dateSearchModifierPos = 0;
 		pageNum = 1;
 		// Control whether a fragment instance is retained across Activity re-creation (such as from a configuration change).
 		this.setRetainInstance(true);
 		// Create the directory for our app if it don't exist.
 		// FIXME should we move this elsewhere?  Maybe to the home screen?
-		appRootDir = new File(Environment.getExternalStorageDirectory(),Downloading.APP_DIRECTORY);
-		if (!appRootDir.isFile() || !appRootDir.isDirectory()) {
-			if (Environment.getExternalStorageState().equals(
-					Environment.MEDIA_MOUNTED)) {
-				appRootDir.mkdirs();
-			} else {
-				Toast.makeText(
-						getActivity(),
-						"sdcard is unwritable...  is it mounted on the computer?",
-						Toast.LENGTH_SHORT).show();
-			}
-		}
+//		appRootDir = new File(Environment.getExternalStorageDirectory(),Downloading.APP_DIRECTORY);
+//		if (!appRootDir.isFile() || !appRootDir.isDirectory()) {
+//			if (Environment.getExternalStorageState().equals(
+//					Environment.MEDIA_MOUNTED)) {
+//				appRootDir.mkdirs();
+//			} else {
+//				Toast.makeText(
+//						getActivity(),
+//						"sdcard is unwritable...  is it mounted on the computer?",
+//						Toast.LENGTH_SHORT).show();
+//			}
+//		}
 	}
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		 
+		Logging.Log(LOG_TAG, "CREATING VIEW.");
 		// Inflate the fragment and grab a reference to it.
 		View v = inflater.inflate(R.layout.search_fragment, container, false);
 		// Initialize the various elements of the SearchScreen.
 		this.searchList = (ListView) v.findViewById(R.id.ResultsListView);
-		this.searchButton = (Button) v.findViewById(R.id.SearchButton);
+		this.searchButton = (ImageButton) v.findViewById(R.id.SearchButton);
 		searchList.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View v,
@@ -193,14 +195,14 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 		this.searchMoreButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
-				 
+				Logging.Log(LOG_TAG, "MORE BUTTON.");
 
 				if (isMoreSearch(artistSearchInput.getText().toString())) {
-					 
+					Logging.Log(LOG_TAG, "MORE SEARCH.");
 					((InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(artistSearchInput.getWindowToken(), 0);
 					isSearchMore=true;
 					// pageNum is incremented then searched with to get the next page.
-					executeSearch(Searching.makeSearchURLString(++pageNum, datePref, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
+					executeSearch(Searching.makeSearchURLString(++pageNum, month, day, year, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
 					// vibrator.vibrate(50);
 				}
 			}		
@@ -215,7 +217,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position, long id) {
 				ArchiveShowObj show = (ArchiveShowObj) searchList.getItemAtPosition(position);
-				 
+				Logging.Log(LOG_TAG, show.getArtistAndTitle());
 				searchActionListener.onShowSelected(show);
 			}
 		});
@@ -255,7 +257,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	public void onStart() {
 		super.onStart();
 		db = StaticDataStore.getInstance(getActivity());
-		 
+		Logging.Log(LOG_TAG,"Setting prefs.");
 		numResultsPref = Integer.valueOf(db.getPref("numResults"));
 		sortPref = db.getPref("sortOrder");
 		
@@ -303,7 +305,9 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 				Bundle b = new Bundle();
 				b.putString("order", this.sortPref);
 				b.putInt("number", this.numResultsPref);
-				b.putInt("date", this.datePref);
+				b.putInt("month", this.month);
+				b.putInt("day", this.day);
+				b.putInt("year", this.year);
 				b.putInt("datepos", this.dateSearchModifierPos);
 				dialogAndNavigationListener.showSettingsDialog(b);
 				break;
@@ -320,7 +324,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
 		if(!menu.hasVisibleItems()){
-			 
+			Logging.Log(LOG_TAG, "Creating actionbar.");
 			this.actionBarMenu = menu;
 			inflater.inflate(R.menu.search_help_options, menu);
 			MenuItem menuItem = menu.findItem(R.id.SearchActionBarButton);
@@ -331,7 +335,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 					artistSearchInput.post(new Runnable(){
 						@Override
 						public void run() {
-							 
+							Logging.Log(LOG_TAG, "Requesting focus.");
 							artistSearchInput.requestFocus();
 							InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
 							imm.showSoftInput(artistSearchInput, InputMethodManager.SHOW_IMPLICIT);
@@ -382,12 +386,15 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 		this.artistSearchInput.setOnKeyListener(new OnKeyListener() {
 			@Override
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
-				 
+				Logging.Log(LOG_TAG, event.toString());
 				if ((event != null)) {
-						if((keyCode == KeyEvent.KEYCODE_ENTER)){
-						 
-						// Act like the search button has been pressed.
-						return b.callOnClick();
+					if(event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
+						if (event.getAction() == KeyEvent.ACTION_UP) {
+							// Act like the search button has been pressed.
+							return b.callOnClick();
+						} else {
+							return true;
+						}
 					}
 				}
 				return false;
@@ -399,30 +406,30 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 				// Blank
 				if (artistSearchInput.getText().toString().equals("")) {
 					// vibrator.vibrate(50);
-					Toast.makeText(getActivity(), "You need a query first...", Toast.LENGTH_SHORT).show();
+					Toast.makeText(getActivity(), R.string.error_no_query_message_text, Toast.LENGTH_SHORT).show();
 					return;
 				}
 				// Search more
 				else if (isMoreSearch(artistSearchInput.getText().toString())) {
-					 
+					Logging.Log(LOG_TAG, "MORE SEARCH.");
 					((InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(artistSearchInput.getWindowToken(), 0);
 
 					isSearchMore=true;
 					// pageNum is incremented then searched with to get the next page.
-					executeSearch(Searching.makeSearchURLString(++pageNum, datePref, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
+					executeSearch(Searching.makeSearchURLString(++pageNum, month, day, year, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
 					// vibrator.vibrate(50);
 				}
 				// New search
 				else {
 					artistSearchText = artistSearchInput.getText().toString();
 					isSearchMore=false;
-					 
+					Logging.Log(LOG_TAG, "NEW SEARCH.");
 					((InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(artistSearchInput.getWindowToken(), 0);
 					searchResults.clear();
 					pageNum = 1;
 					// "1" is passed to retrieve page number 1.
 					// vibrator.vibrate(50);
-					executeSearch(Searching.makeSearchURLString(pageNum, datePref, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
+					executeSearch(Searching.makeSearchURLString(pageNum, month, day, year, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
 				}
 
 			}
@@ -458,7 +465,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	public void browseArtist(String artist) {
 		searchResults.clear();
 		artistSearchText = artist;
-			executeSearch(Searching.makeSearchURLString(pageNum++, datePref, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
+		executeSearch(Searching.makeSearchURLString(pageNum++, month, day, year, artistSearchText,  numResultsPref, sortPref, dateSearchModifierPos));
 	}
 
 
@@ -470,34 +477,13 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 		LoaderManager lm = this.getLoaderManager();
 		if(lm.getLoader(0)!=null){
 			// We already have a loader.
-			 
+			Logging.Log(LOG_TAG, "RESTART.");
 			lm.restartLoader(0, b, this);
 		} else{
 			// We need a new loader.
 			lm.initLoader(0, b, this);
 		}
 	}
-
-//	/**
-//	 * Returns true if a valid date, or no date at all, was passed. Returns
-//	 * false if an improper date is passed.
-//	 */
-//	private boolean setDate() {
-//		// FIXME This will need to be coordinated with the search settings.
-//		String year = "";
-//		if (year.equals("")) {
-//			yearSearchInt = -1;
-//			return true;
-//		}
-//		int yearInt = Integer.valueOf(year);
-//		if (yearInt >= 1800 && yearInt <= Calendar.getInstance().get(Calendar.YEAR)) {
-//			yearSearchInt = yearInt;
-//			return true;
-//		} else {
-//			Toast.makeText(getActivity(), "Year must be between now and 1800...", Toast.LENGTH_SHORT).show();
-//			return false;
-//		}
-//	}
 
 	private boolean isMoreSearch(String artist) {
 		if (searchResults.size() == 0) {
@@ -511,17 +497,19 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 		// false to search initially.
 		if (!dateChanged) {
 			if(artist.equalsIgnoreCase(artistSearchText)){
-				 
-				 
+				Logging.Log(LOG_TAG, "DATECHANGED " + dateChanged);
+				Logging.Log(LOG_TAG, "moreSearch set to true.");
 				return true;	
 			} else{
-				this.datePref=0;
+				this.month = 0;
+				this.day = 0;
+				this.year=0;
 				this.dateSearchModifierPos=SearchSettingsDialogFragment.ANYTIME;
 				return false;
 			}
 		} else {
-			 
-			 
+			Logging.Log(LOG_TAG, "DATECHANGED " + dateChanged);
+			Logging.Log(LOG_TAG, "moreSearch set to false.");
 //			dateSearchModifierPos = 0;
 //			this.datePref = 0;
 			return false;
@@ -531,7 +519,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	// Pop up a loading dialog and pass the query to a SearchQueryAsyncTaskLoader for parsing.
 	@Override
 	public Loader<List<ArchiveShowObj>> onCreateLoader(int id, Bundle b) {
-		 
+		Logging.Log(LOG_TAG, "NEW LOADER.");
 		dialogAndNavigationListener.showLoadingDialog("Searching...");
 		return (Loader) new SearchQueryAsyncTaskLoader(getActivity(), b.getString("query"));
 	}
@@ -539,7 +527,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	// Set the search results to those returned by the loader, and refresh the search list.
 	@Override
 	public void onLoadFinished(Loader<List<ArchiveShowObj>> arg0, List<ArchiveShowObj> arg1) {
-		 
+		Logging.Log(LOG_TAG, "LOADER FINISHED.");
 		if(isSearchMore){
 			isSearchMore=false;
 			Parcelable state = this.searchList.onSaveInstanceState();
@@ -554,11 +542,15 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 		}
 		dialogAndNavigationListener.hideDialog();
 		if (searchResults.size() != 0) {
-			this.searchMoreButton.setVisibility(View.VISIBLE);
+			if (arg1.size() > 5) {
+				this.searchMoreButton.setVisibility(View.VISIBLE);
+			} else {
+				this.searchMoreButton.setVisibility(View.GONE);
+			}
 			this.searchMoreButton.setEnabled(true);
-
+			((InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(artistSearchInput.getWindowToken(), 0);
 		} else {
-			Toast.makeText(getActivity(), "Sorry, no search results.", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), R.string.no_search_results_message_text, Toast.LENGTH_SHORT).show();
 			this.searchMoreButton.setVisibility(View.GONE);
 			this.searchMoreButton.setEnabled(false);
 
@@ -572,12 +564,12 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 	}
 
 	private void refreshSearchList() {
-		 
+		Logging.Log(LOG_TAG, "RESULT SIZE: " + searchResults.size());
 		searchList.setAdapter(new RatingsAdapter(getActivity(), R.layout.search_list_row, searchResults));
 		if(searchResults.isEmpty()){
-			 
+			Logging.Log(LOG_TAG, "Refreshing...  Empty list.");
 			if(actionBarMenu!=null){
-				 
+				Logging.Log(LOG_TAG, "Expanding ActionBar MenuItem.");
 				actionBarMenu.findItem(R.id.SearchActionBarButton).expandActionView();
 				artistSearchInput.requestFocus();
 				InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -655,16 +647,17 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 
 
 	@Override
-	public void onSettingsOkayButtonPressed(String sortType, int numResults, int dateResults, int datePos) {
-		 
-		 
+	public void onSettingsOkayButtonPressed(String sortType, int numResults, int datePos, int month, int day, int year) {
+		Logging.Log(LOG_TAG, year + " , " + this.year + " , " + datePos + " , " + dateSearchModifierPos + " , " + dateChanged);
 
 		this.sortPref = sortType;
 		this.numResultsPref = numResults;
-		if(datePref!=dateResults || dateSearchModifierPos != datePos){
-			 
-			 
-			this.datePref = dateResults;
+		if(this.month!=month || this.day!=day || this.year!=year || dateSearchModifierPos != datePos){
+			Logging.Log(LOG_TAG,year + " , " + year + " , " + datePos + " , " + dateSearchModifierPos + " , " + dateChanged);
+			Logging.Log(LOG_TAG, "Date changed.  Settings button press received.");
+			this.month = month;
+			this.day = day;
+			this.year = year;
 			this.dateSearchModifierPos = datePos;
 			dateChanged = true;
 			this.searchMoreButton.setEnabled(false);
