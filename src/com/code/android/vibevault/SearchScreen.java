@@ -1,6 +1,6 @@
 /*
  * SearchScreen.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -142,7 +142,7 @@ public class SearchScreen extends Activity {
 	protected Dialog onCreateDialog(int id){
 		switch(id){
 			case VibeVault.SEARCHING_DIALOG_ID:
-
+				
 				ProgressDialog dialog = new ProgressDialog(this);
 				dialog.setMessage("Finding Shows");
 				return dialog;
@@ -154,7 +154,7 @@ public class SearchScreen extends Activity {
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-
+		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.search_screen);
 		
@@ -174,7 +174,7 @@ public class SearchScreen extends Activity {
 		searchList.setOnCreateContextMenuListener(new OnCreateContextMenuListener(){
 			@Override
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
-				menu.add(Menu.NONE, VibeVault.EMAIL_LINK, Menu.NONE, "Email Link to Show");
+				menu.add(Menu.NONE, VibeVault.EMAIL_LINK, Menu.NONE, "Email Link to Song");
 				menu.add(Menu.NONE, VibeVault.SHOW_INFO, Menu.NONE, "Show Info");
 			}
 		});
@@ -182,7 +182,7 @@ public class SearchScreen extends Activity {
 		Object retained = getLastNonConfigurationInstance();
 		if(retained instanceof JSONQueryTask){
 			
-
+			
 			workerTask = (JSONQueryTask)retained;
 			workerTask.setActivity(this);
 		} else{
@@ -207,11 +207,10 @@ public class SearchScreen extends Activity {
 			try{
 				dismissDialog(VibeVault.SEARCHING_DIALOG_ID);
 			} catch(IllegalArgumentException e){
-
+				
 				e.printStackTrace();
 			}
-			dialogShown=false;
-
+			
 		}
 	}
 	
@@ -554,7 +553,7 @@ public class SearchScreen extends Activity {
 			yearSearchInput.setText("");
 		}
 		dateModifierSpinner.setSelection(VibeVault.dateSearchModifierPos);
-
+		
 	}
 	
 
@@ -634,7 +633,7 @@ public class SearchScreen extends Activity {
 		public View getView(int position, View convertView, ViewGroup parent) {
 			ArchiveShowObj show = (ArchiveShowObj) searchList
 					.getItemAtPosition(position);
-
+			
 			if (convertView == null) {
 				LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				convertView = vi.inflate(R.layout.search_list_row, null);
@@ -645,13 +644,11 @@ public class SearchScreen extends Activity {
 					.findViewById(R.id.ShowText);
 			ImageView ratingsIcon = (ImageView) convertView
 					.findViewById(R.id.rating);
-			TextView showInfoText = (TextView) convertView.findViewById(R.id.ShowInfoText);
 			if (show != null) {
 				artistText.setText(show.getShowArtist());
 				artistText.setSelected(true);
 				showText.setText(show.getShowTitle());
 				showText.setSelected(true);
-				showInfoText.setVisibility(View.GONE);
 				switch ((int) show.getRating()) {
 				case 1:
 					ratingsIcon.setImageDrawable(getBaseContext().getResources().getDrawable(R.drawable.star1));
@@ -690,12 +687,12 @@ public class SearchScreen extends Activity {
 			case R.id.nowPlaying: 	//Open playlist activity
 				Intent np = new Intent(SearchScreen.this, NowPlayingScreen.class);
 				//Intent np = new Intent(SearchScreen.this, HomeScreen.class);
-
+				
 				startActivity(np);
 				break;
 			case R.id.recentShows:
 				Intent rs = new Intent(SearchScreen.this, RecentShowsScreen.class);
-
+				
 				startActivity(rs);
 				break;
 			case R.id.scrollableDialog:
@@ -763,14 +760,14 @@ public class SearchScreen extends Activity {
 			 */
 			InputStream in = null;
 			try {
-
+				
 				URL url = new URL(archiveQuery);
 				HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
 				HttpURLConnection httpConn = (HttpURLConnection) urlConn;
 				httpConn.setAllowUserInteraction(false);
-
+				
 				httpConn.connect();
-
+				
 				in = httpConn.getInputStream();
 				BufferedInputStream bis = new BufferedInputStream(in);
 				ByteArrayBuffer baf = new ByteArrayBuffer(50);
@@ -785,7 +782,7 @@ public class SearchScreen extends Activity {
 					baf.append(buffer, 0, read);
 				}
 				bis.close();
-
+				
 				queryResult = new String(baf.toByteArray());
 
 			} catch (MalformedURLException e) {
@@ -818,9 +815,6 @@ public class SearchScreen extends Activity {
 						.getJSONObject("response");
 				JSONArray docsArray = jObject.getJSONArray("docs");
 				int numItems = docsArray.length();
-				if(numItems == 0){
-					Toast.makeText(getBaseContext(), "Artist may not have content on archive.org...", Toast.LENGTH_SHORT).show();
-				}
 				for (int i = 0; i < numItems; i++) {
 					if (docsArray.getJSONObject(i).optString("mediatype")
 							.equals("etree")) {
@@ -832,7 +826,7 @@ public class SearchScreen extends Activity {
 				if(pageNum>1){
 					Toast.makeText(getBaseContext(), "There might not be any more results...  Try again once or twice.", Toast.LENGTH_SHORT).show();
 				} else{
-					Toast.makeText(getBaseContext(), "Error from archive.org...  Try again later.", Toast.LENGTH_SHORT).show();
+					Toast.makeText(getBaseContext(), "No results for your query.", Toast.LENGTH_SHORT).show();
 				}
 				// DEBUG
 				Log.e(VibeVault.SEARCH_SCREEN_TAG, "JSON error: " + JSONString);

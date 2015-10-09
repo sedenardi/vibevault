@@ -1,6 +1,6 @@
 /*
  * ActiveDownloadScreen.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -37,6 +37,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -62,7 +63,7 @@ public class ActiveDownloadScreen extends Activity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
-
+		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.active_download_screen);
 		
@@ -70,7 +71,7 @@ public class ActiveDownloadScreen extends Activity {
 		downloadList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position, long id){
-
+				
 			}
 		});
 		downloadList.setOnCreateContextMenuListener(new OnCreateContextMenuListener(){
@@ -141,7 +142,7 @@ public class ActiveDownloadScreen extends Activity {
 	public boolean onContextItemSelected(MenuItem item){
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo)item.getMenuInfo();
 		if(dService == null){
-
+			
 		}
 		else if(menuInfo!=null){
 			switch(item.getItemId()){
@@ -234,13 +235,13 @@ public class ActiveDownloadScreen extends Activity {
 	
 	private ServiceConnection onDService=new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder rawBinder) {
-
+			
 			dService=((DownloadService.DServiceBinder)rawBinder).getService();
 			refreshDownloadList();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
-
+			
 			dService=null;
 		}
 	};

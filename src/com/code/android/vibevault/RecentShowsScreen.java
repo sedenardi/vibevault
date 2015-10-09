@@ -1,6 +1,6 @@
 /*
  * RecentShowsScreen.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -29,6 +29,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,7 +50,7 @@ public class RecentShowsScreen extends Activity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
-
+		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recent_shows_screen);
 		
@@ -120,7 +121,7 @@ public class RecentShowsScreen extends Activity {
 		switch (item.getItemId()){
 			case R.id.nowPlaying: 	//Open playlist activity
 				Intent np = new Intent(RecentShowsScreen.this, NowPlayingScreen.class);
-
+				
 				startActivity(np);
 				break;
 			case R.id.clearRecentShows:

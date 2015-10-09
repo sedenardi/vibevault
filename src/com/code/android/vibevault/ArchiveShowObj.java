@@ -1,6 +1,6 @@
 /*
  * ArchiveShowObj.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -27,6 +27,8 @@ package com.code.android.vibevault;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import android.util.Log;
 
 public class ArchiveShowObj implements Serializable {
 
@@ -134,7 +136,7 @@ public class ArchiveShowObj implements Serializable {
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
-
+		
 	}
 	
 	private void parseFormatList(String formatList){
@@ -150,7 +152,6 @@ public class ArchiveShowObj implements Serializable {
 		if(formatList.contains("VBR M3U")){
 			vbrShow = true;
 		}
-		//System.out.println(formatList);
 	}
 	
 	public boolean hasVBR(){

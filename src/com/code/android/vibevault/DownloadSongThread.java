@@ -1,6 +1,6 @@
 /*
  * DownloadSongThread.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.Observable;
 
 import android.os.Environment;
+import android.util.Log;
 
 public class DownloadSongThread extends Observable implements Runnable {
 
@@ -59,7 +60,8 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Constructor for Download.
 	public DownloadSongThread(ArchiveSongObj song) {
-
+		Log.d(VibeVault.DOWNLOAD_THREAD_TAG,
+				"Creating thread " + song.toString());
 		this.song = song;
 		url = song.getLowBitRate();
 		size = -1;
@@ -97,14 +99,14 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Pause this download.
 	public void pause() {
-
+		
 		status = PAUSED;
 		stateChanged();
 	}
 
 	// Resume this download.
 	public void resume() {
-
+		
 		status = DOWNLOADING;
 		stateChanged();
 		download();
@@ -112,14 +114,14 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Cancel this download.
 	public void cancel() {
-
+		
 		status = CANCELLED;
 		stateChanged();
 	}
 
 	// Mark this download as having an error.
 	private void error() {
-
+		
 		status = ERROR;
 		stateChanged();
 	}
@@ -132,13 +134,11 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Download file.
 	public void run() {
-
+		Log.d(VibeVault.DOWNLOAD_THREAD_TAG,
+				"Running thread " + song.toString());
 		RandomAccessFile file = null;
 		boolean showRootExists = createShowDirIfNonExistent();
 		InputStream stream = null;
-		if(showRootExists){
-			
-		}
 
 		if (showRootExists) {
 			try {
@@ -160,7 +160,8 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 				// Check for valid content length.
 				int contentLength = connection.getContentLength();
-
+				Log.d(VibeVault.DOWNLOAD_THREAD_TAG,
+						"Song total size = " + (contentLength + downloaded));
 				if (contentLength < 1) {
 					error();
 				}
@@ -175,7 +176,8 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 				if(new File(song.getFilePath()).exists()){
 					downloaded = (int) new File(song.getFilePath()).length();
-
+					Log.d(VibeVault.DOWNLOAD_THREAD_TAG,
+							"File exists, setting download start to " + downloaded);
 					if(downloaded >= size){
 						status = COMPLETE;
 					}
@@ -196,7 +198,8 @@ public class DownloadSongThread extends Observable implements Runnable {
 				}
 
 				percent = (int) Math.ceil(getProgress());
-
+				Log.d(VibeVault.DOWNLOAD_THREAD_TAG,
+						"Setting percent to = " + percent);
 
 				// Open file and seek to the end of it.
 				file = new RandomAccessFile(new File(song.getFilePath()), "rw");
@@ -245,6 +248,8 @@ public class DownloadSongThread extends Observable implements Runnable {
 					VibeVault.db.setSongDownloaded(song);
 				}
 			} catch (Exception e) {
+				Log.d(VibeVault.DOWNLOAD_THREAD_TAG, "Error downloading "
+						+ song.toString());
 				e.printStackTrace();
 				error();
 			} finally {
@@ -257,7 +262,7 @@ public class DownloadSongThread extends Observable implements Runnable {
 							delFile.delete();
 						}
 					} catch (Exception e) {
-
+						
 					}
 				}
 
@@ -268,6 +273,8 @@ public class DownloadSongThread extends Observable implements Runnable {
 					} catch (Exception e) {
 					}
 				}
+				Log.d(VibeVault.DOWNLOAD_THREAD_TAG, "Download finished "
+						+ song.toString());
 				stateChanged();
 			}
 		}
@@ -299,7 +306,7 @@ public class DownloadSongThread extends Observable implements Runnable {
 			if(getProgress() > percent){
 				setChanged();
 				notifyObservers();
-
+				Log.d(VibeVault.DOWNLOAD_THREAD_TAG, "Notifying song: "
 						+ song.toString() + " Status: "
 						+ status + " Percent: " 
 						+ getProgress());
@@ -309,9 +316,9 @@ public class DownloadSongThread extends Observable implements Runnable {
 		else{
 			setChanged();
 			notifyObservers();
-
+			
 		}*/
-
+		
 		setChanged();
 		notifyObservers();
 	}

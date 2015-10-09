@@ -1,6 +1,6 @@
 /*
  * DataStore.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -125,9 +125,10 @@ public class DataStore extends SQLiteOpenHelper {
 
 		boolean dbExists = checkDB();
 		if (dbExists) {
-
+			
 		} else {
-
+			Log.d(VibeVault.DATA_STORE_TAG,
+					"createDB() - Database does not exist");
 			this.getReadableDatabase();
 			try {
 				copyDB();
@@ -143,12 +144,14 @@ public class DataStore extends SQLiteOpenHelper {
 			checkDB = SQLiteDatabase.openDatabase(DB_PATH, null,
 					SQLiteDatabase.OPEN_READWRITE);
 		} catch (SQLiteException e) {
-
+			
 		}
 
 		if (checkDB != null) {
 			if (checkDB.getVersion() != DB_VERSION) {
-
+				Log.d(VibeVault.DATA_STORE_TAG,
+						"checkDB() - Wrong DB version: old "
+								+ checkDB.getVersion() + " new " + DB_VERSION);
 				// checkDB.execSQL("DROP TABLE IF EXISTS " + PREF_TABLE);
 				// checkDB.execSQL("DROP TABLE IF EXISTS " + "showsTbl");
 				checkDB.close();
@@ -164,7 +167,8 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public void copyDB() throws IOException {
-
+		Log.d(VibeVault.DATA_STORE_TAG, "copyDB() - Copying database to "
+				+ DB_PATH);
 		InputStream is = context.getAssets().open(DB_NAME);
 		OutputStream os = new FileOutputStream(DB_PATH);
 
@@ -177,7 +181,7 @@ public class DataStore extends SQLiteOpenHelper {
 		os.flush();
 		os.close();
 		is.close();
-
+		
 	}
 
 	public void openDataBase() throws SQLiteException {
@@ -215,7 +219,8 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public void insertShow(ArchiveShowObj show) {
-
+		Log.d(VibeVault.DATA_STORE_TAG, "insertShow(" + show.getIdentifier()
+				+ "," + show.getArtistAndTitle() + ")");
 		db.execSQL("INSERT INTO showTbl(showIdent,showTitle,showArtist,showSource,hasVBR,hasLBR) "
 				+ "SELECT '"
 				+ show.getIdentifier()
@@ -239,10 +244,10 @@ public class DataStore extends SQLiteOpenHelper {
 		 * value.put(SHOW_ARTIST, show.getShowArtist()); value.put(SHOW_SOURCE,
 		 * show.getShowSource()); value.put(SHOW_HASVBR, show.hasVBR());
 		 * value.put(SHOW_HASLBR, show.hasLBR()); long row = db.insert(SHOW_TBL,
-
+		 * null, value); Log.d(VibeVault.DATA_STORE_TAG,
 		 * "insertShow() - Inserting show [" + row + "," + show.getIdentifier()
 		 * + "," + show.getArtistAndTitle() + "," + show.hasVBR() + "," +
-
+		 * show.hasLBR() + "]"); } else{ Log.d(VibeVault.DATA_STORE_TAG,
 		 * "insertShow() - Show exists"); }
 		 */
 	}
@@ -267,7 +272,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public Cursor getRecentShows() {
-
+		
 		/*
 		 * return db.query(RECENT_TBL, new String[] { SHOW_KEY, SHOW_IDENT,
 		 * SHOW_TITLE, SHOW_HASVBR, SHOW_HASLBR }, null, null, null, null,
@@ -277,7 +282,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public Cursor getDownloadShows() {
-
+		
 		/*
 		 * return db.query(SHOW_TBL, new String[] { SHOW_KEY, SHOW_IDENT,
 		 * SHOW_TITLE, SHOW_HASVBR, SHOW_HASLBR }, null, null, null, null,
@@ -287,7 +292,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public ArchiveShowObj getShow(long show_id) {
-
+		
 		ArchiveShowObj show = null;
 		Cursor cur = db.query(true, SHOW_TBL,
 				new String[] { SHOW_IDENT, SHOW_TITLE, SHOW_ARTIST,
@@ -308,17 +313,18 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public void deleteRecentShow(long show_id) {
-
+		
 		db.delete(RECENT_TBL, RECENT_SHOW_KEY + "=" + show_id, null);
 	}
 
 	public void clearRecentShows() {
-
+		
 		db.delete(RECENT_TBL, null, null);
 	}
 
 	public void insertSong(ArchiveSongObj song) {
-
+		Log.d(VibeVault.DATA_STORE_TAG, "insertSong(" + song.getFileName()
+				+ "," + song.toString() + ")");
 		db.execSQL("INSERT INTO songTbl(fileName,songTitle,show_id,isDownloaded) "
 				+ "SELECT '"
 				+ song.getFileName()
@@ -337,10 +343,10 @@ public class DataStore extends SQLiteOpenHelper {
 		 * song.getFileName()); value.put(SONG_TITLE, song.toString());
 		 * value.put(SONG_SHOW_KEY, song.getShowIdentifier());
 		 * value.put(SONG_DOWNLOADED, song.getShowTitle()); long row =
-
+		 * db.insert(SONG_TBL, null, value); Log.d(VibeVault.DATA_STORE_TAG,
 		 * "insertSong() - Inserting song [" + row + "," + song.getFileName() +
 		 * "," + song.toString() + "," + song.getShowIdentifier() + "," +
-
+		 * song.getShowTitle() + "]"); } else{ Log.d(VibeVault.DATA_STORE_TAG,
 		 * "insertSong() - Song exists"); }
 		 */
 	}
@@ -353,7 +359,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public boolean songIsDownloaded(String song_filename) {
-
+		
 		/*Cursor cur = db.query(SONG_TBL, new String[] { SONG_FILENAME },
 				SONG_FILENAME + "='" + song_filename + "'", null, null, null,
 				null);*/
@@ -365,7 +371,8 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public Cursor getSongsFromShow(String showIdent) {
-
+		Log.d(VibeVault.DATA_STORE_TAG, "Returning all songs with identifier "
+				+ showIdent);
 		return db
 				.rawQuery(
 						"SELECT song.*,show.showIdent,show.showArtist + ' Live at ' + show.showTitle AS 'showTitle' FROM songTbl song "
@@ -381,7 +388,8 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public Cursor getSongsFromShowKey(long id) {
-
+		Log.d(VibeVault.DATA_STORE_TAG, "Returning all songs with key "
+				+ id);
 		return db
 				.rawQuery(
 						"SELECT song.*,show.showIdent,show.showArtist + ' Live at ' + show.showTitle AS 'showTitle' FROM songTbl song "
@@ -397,7 +405,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 
 	public ArchiveSongObj getSong(long song_id) {
-
+		
 		ArchiveSongObj song = null;
 		Cursor cur = db
 				.rawQuery(
@@ -421,14 +429,16 @@ public class DataStore extends SQLiteOpenHelper {
 					cur.getString(cur.getColumnIndex(SHOW_IDENT)),
 					Boolean.valueOf(cur.getString(cur
 							.getColumnIndex(SONG_DOWNLOADED))));
-
+			Log.d(VibeVault.DATA_STORE_TAG,
+					"Returning Song: " + song.toString() + "-"
+							+ song.getFileName() + "-" + song.getShowTitle());
 		}
 		cur.close();
 		return song;
 	}
 	
 	public boolean createPlaylist(String name){
-
+		
 		Cursor cur = db.rawQuery("Select 1 FROM playlistTbl pl WHERE pl.playlistName like '" + name + "'", null);
 		int results = cur.getCount();
 		cur.close();
@@ -441,7 +451,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 	
 	public boolean createPlaylist(ArchivePlaylistObj playlist){
-
+		
 		Cursor cur = db.rawQuery("Select 1 FROM playlistTbl pl WHERE pl.playlistName like '" + playlist.getTitle() + "'", null);
 		int results = cur.getCount();
 		cur.close();
@@ -486,7 +496,7 @@ public class DataStore extends SQLiteOpenHelper {
 	}
 	
 	public boolean updatePlaylistName(long key, String name){
-
+		
 		Cursor cur = db.rawQuery("Select 1 FROM playlistTbl pl WHERE pl.playlistName like '" + name + "'", null);
 		int results = cur.getCount();
 		cur.close();
@@ -505,7 +515,7 @@ public class DataStore extends SQLiteOpenHelper {
 
 	/*
 	 * public void deleteSong(String fileName, String show_ident){
-
+	 * 
 	 * db.delete(SONG_TBL, SONG_SHOW_KEY + "='" + show_ident + "' AND " +
 	 * SONG_FILENAME + "='" + fileName + "'", null); }
 	 */

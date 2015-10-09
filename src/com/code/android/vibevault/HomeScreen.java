@@ -1,6 +1,6 @@
 /*
  * HomeScreen.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -41,18 +41,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.TextView;
 import com.code.android.vibevault.R;
 
 public class HomeScreen extends Activity {
 
-	private ImageButton searchButton;
-	private ImageButton recentButton;
-	private ImageButton downloadButton;
-	private ImageButton playingButton;
+	private Button searchButton;
+	private Button recentButton;
+	private Button downloadButton;
+	private Button playingButton;
 //	private Button settingsButton;
-	private ImageButton recentShowsButton;
 	
 	private InitTask workerTask;
 	private boolean dialogShown;
@@ -65,15 +64,14 @@ public class HomeScreen extends Activity {
 		Object retained = getLastNonConfigurationInstance();
 		if(retained instanceof InitTask){
 			
-
+			
 			workerTask = (InitTask)retained;
 			workerTask.setActivity(this);
 		} else{
 			workerTask = new InitTask(this);
 		}
 		
-		
-		searchButton = (ImageButton) findViewById(R.id.HomeSearch);
+		searchButton = (Button) findViewById(R.id.HomeSearch);
 		searchButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -81,7 +79,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		recentButton = (ImageButton) findViewById(R.id.HomeRecent);
+		recentButton = (Button) findViewById(R.id.HomeRecent);
 		recentButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -89,7 +87,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		downloadButton = (ImageButton) findViewById(R.id.HomeDownload);
+		downloadButton = (Button) findViewById(R.id.HomeDownload);
 		downloadButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -97,7 +95,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		playingButton = (ImageButton) findViewById(R.id.HomePlaying);
+		playingButton = (Button) findViewById(R.id.HomePlaying);
 		playingButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -113,14 +111,6 @@ public class HomeScreen extends Activity {
 //				//startActivity(i);
 //			}
 //		});
-		recentShowsButton = (ImageButton) findViewById(R.id.HomeFeatured);
-		recentShowsButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v){
-				Intent i = new Intent(HomeScreen.this, FeaturedShowsScreen.class);
-				startActivity(i);
-			}
-		});
 		
 		if(VibeVault.db.needsUpgrade){
 			workerTask = new InitTask(this);
@@ -252,7 +242,7 @@ public class HomeScreen extends Activity {
 	protected Dialog onCreateDialog(int id){
 		switch(id){
 			case VibeVault.UPGRADING_DB:
-
+				
 				ProgressDialog dialog = new ProgressDialog(this);
 				dialog.setMessage("Upgrading Database");
 				return dialog;
@@ -266,10 +256,10 @@ public class HomeScreen extends Activity {
 			try{
 				dismissDialog(VibeVault.UPGRADING_DB);
 			} catch(IllegalArgumentException e){
-
+				
 				e.printStackTrace();
 			}
-
+			
 		}
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * ShowDetailsScreen.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -56,6 +56,7 @@ import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -104,8 +105,8 @@ public class ShowDetailsScreen extends Activity {
 		setContentView(R.layout.show_details_screen);
 		Bundle b = getIntent().getExtras();
 		show = (ArchiveShowObj)b.get("Show");
-
-
+		
+		
 		
 		showTitle = show.getArtistAndTitle();
 		showLabel = (TextView) findViewById(R.id.ShowLabel);
@@ -115,7 +116,7 @@ public class ShowDetailsScreen extends Activity {
 		trackList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position, long id){
-
+				
 				playShow(position);
 			}
 		});
@@ -136,7 +137,7 @@ public class ShowDetailsScreen extends Activity {
 			workerTask.setActivity(this);
 			downloadLinks = workerTask.songs;
 		} else if (show.getShowURL()!=null){
-
+			
 			workerTask = new ParseShowDetailsPageTask(this);
 			workerTask.execute(show);
 		}
@@ -173,12 +174,12 @@ public class ShowDetailsScreen extends Activity {
 		switch (item.getItemId()){
 			case R.id.nowPlaying: 	//Open playlist activity
 				Intent i = new Intent(ShowDetailsScreen.this, NowPlayingScreen.class);
-
+				
 				startActivity(i);
 				break;
 			case R.id.recentShows:
 				Intent rs = new Intent(ShowDetailsScreen.this, RecentShowsScreen.class);
-
+				
 				startActivity(rs);
 				break;
 			case R.id.scrollableDialog:
@@ -214,7 +215,7 @@ public class ShowDetailsScreen extends Activity {
 	
 	private void playShow(int pos){
 		if(!downloadLinks.isEmpty()){
-
+			
 			VibeVault.playList.setPlayList(downloadLinks);
 			pService.playSongFromPlaylist(pos);
 		}
@@ -286,7 +287,7 @@ public class ShowDetailsScreen extends Activity {
 	protected Dialog onCreateDialog(int id){
 		switch(id){
 			case VibeVault.LOADING_DIALOG_ID:
-
+				
 				ProgressDialog dialog = new ProgressDialog(this);
 				dialog.setMessage("Loading");
 				return dialog;
@@ -310,11 +311,11 @@ public class ShowDetailsScreen extends Activity {
 			try{
 				dismissDialog(VibeVault.LOADING_DIALOG_ID);
 			} catch(IllegalArgumentException e){
-
+				
 				e.printStackTrace();
 			}
 			dialogShown=false;
-
+			
 			refreshTrackList();
 		}
 	}
@@ -388,7 +389,7 @@ public class ShowDetailsScreen extends Activity {
 				TagNode node = pageParser.clean(is);
 				is.close();
 				
-
+				
 				URL m3uURL = null;
 				if(VibeVault.db.getPref("downloadFormat").equalsIgnoreCase("LBR")){
 					if(show[0].hasLBR()){
@@ -405,40 +406,43 @@ public class ShowDetailsScreen extends Activity {
 						this.publishProgress("Show has no VBR stream...  Reverting to low bitrate stream.");
 					}
 				}
-
-
+				
+				
 				if(m3uURL!=null){
-
+					
 				} else{
-
-
+					
+					
 					m3uURL = new URL(show[0].getLinkPrefix()+"_vbr.m3u");
 				}
 				
-
-
+				
+				
 				
 				if(m3uURL!=null){
+					System.out.println("IN M3U.");
 					// Grab the M3U stream...
-					URLConnection m3uConn = m3uURL.openConnection();
-					if(m3uConn==null){
-
+					URLConnection test = m3uURL.openConnection();
+					if(test==null){
+						
 					}
-					InputStream inStream = m3uConn.getInputStream();
+					InputStream inStream = test.getInputStream();
 					BufferedInputStream bis = new BufferedInputStream(inStream);
+					System.out.println("Connection opened.");
 					ByteArrayBuffer baf = new ByteArrayBuffer(50);
 					int read = 0;
 					int bufSize = 512;
 					byte[] buffer = new byte[bufSize];
-
+					
 					while(bis.available()==0){
-
+						
 						bis.close();
 						inStream.close();
-						m3uConn = m3uURL.openConnection();
-						inStream = m3uConn.getInputStream();
+						test = m3uURL.openConnection();
+						inStream = test.getInputStream();
 						bis = new BufferedInputStream(inStream);
 					}
+					System.out.println("Got stream.");
 					while (true) {
 						read = bis.read(buffer);
 						if (read == -1) {
@@ -455,8 +459,8 @@ public class ShowDetailsScreen extends Activity {
 					String m3uLinks[] = m3uString.split("\n");
 					for(String link : m3uLinks){
 						songLinks.add(link);
-
-
+						
+						
 					}
 					
 					// Now use an XPATH evaluation to find all of the javascript scripts on the page.
@@ -470,20 +474,20 @@ public class ShowDetailsScreen extends Activity {
 							String jsonString = ((TagNode)titleNode).getChildren().toString();
 							String jsonArray[] = jsonString.split("IAD.playlists = ");
 						if ((jsonArray.length) > 1) {
-
+							
 							try {
 								JSONObject jObject = new JSONObject(jsonArray[1]);
 								JSONArray jArray = jObject.getJSONArray("names");
 								if(jArray.length() == songLinks.size()){
 									for (int i = 0; i < jArray.length(); i++) {
 										ArchiveSongObj song = new ArchiveSongObj(jArray.get(i).toString(), songLinks.get(i), showTitle, showIdent);
-
+										
 										songs.add(song);
 									}
 								}
 								else{
-
-
+									
+									
 								}
 								return null;
 							} catch (JSONException e) {
@@ -493,6 +497,43 @@ public class ShowDetailsScreen extends Activity {
 						}
 					}
 				}
+
+//				// Here is where the non-M3U based song aggregation starts.
+//				Object[] downloadNodes = node.evaluateXPath(songXPath);
+//				boolean reachedSongs = false;
+//				for (Object linkNode : downloadNodes) {
+//					System.out.println("NONM3U");
+//					// The song titles and locations are listed between two
+//					// particular rows on the page.
+//					// Ignore all other rows to save a little time and
+//					// battery...
+//					if (!reachedSongs) {
+//						if (!pageParser.getInnerHtml(
+//								((TagNode) linkNode).getChildTags()[0]).equals(
+//								"Audio Files")) {
+//							continue;
+//						} else {
+//							reachedSongs = true;
+//							continue;
+//						}
+//					} else {
+//						if (pageParser.getInnerHtml(
+//								((TagNode) linkNode).getChildTags()[0]).equals(
+//								"Information")) {
+//							break;
+//						}
+//					}
+//					TagNode[] links = ((TagNode) linkNode)
+//							.getElementsHavingAttribute("href", true);
+//					ArrayList<String> stringLinks = new ArrayList<String>();
+//					for (TagNode t : links) {
+//						stringLinks.add(t.getAttributeByName("href"));
+//					}
+//					songs.add(new ArchiveSongObj(pageParser.getInnerHtml(
+//							((TagNode) ((TagNode) linkNode).getChildren()
+//									.get(0))).trim(), stringLinks, showTitle));
+//				}
+//				return null;
 
 			} catch (XPatherException e) {
 				e.printStackTrace();
@@ -507,7 +548,7 @@ public class ShowDetailsScreen extends Activity {
 			completed=true;
 			parentScreen.setSongs(songs);
 			notifyActivityTaskCompleted();
-
+			
 			VibeVault.db.insertRecentShow(taskShow);
 		}
 		

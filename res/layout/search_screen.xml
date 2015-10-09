@@ -59,7 +59,7 @@
 				
 
 			<Button android:id="@+id/SearchButton" android:layout_width="wrap_content"
-				android:layout_height="wrap_content" android:drawableLeft="@drawable/searchbutton_plain"
+				android:layout_height="wrap_content" android:drawableLeft="@drawable/searchbutton"
 				android:layout_below="@id/DateSearchSpinner"
 				android:gravity="center" android:drawablePadding="1dip" />
 			<Button android:id="@+id/SettingsButton" android:layout_width="wrap_content"

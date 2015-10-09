@@ -1,6 +1,6 @@
 /*
  * DownloadTabs.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 

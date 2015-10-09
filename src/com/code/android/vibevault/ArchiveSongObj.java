@@ -1,6 +1,6 @@
 /*
  * ArchiveSongObj.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import android.os.Environment;
+import android.util.Log;
 
 public class ArchiveSongObj {
 	
@@ -40,7 +41,6 @@ public class ArchiveSongObj {
 	private String title;
 	private String showTitle;
 	private String showIdent;
-	private String showArtist;
 	private String fileName;
 	private int status;
 	private boolean exists = false;
@@ -61,20 +61,10 @@ public class ArchiveSongObj {
 	 * @param showTit The title of the show which the song is a part of.
 	 */
 	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent){
-		String artistAndShowTitle[] = showTit.split(" Live at ");
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live @ ");
-		}
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live ");
-		}
-		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
-		
 		urlString = urlStr;
 		status = -1;
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
-		
 		this.showIdent = showIdent;
 		String splitArray[] = urlStr.split("/");
 		fileName = splitArray[splitArray.length-1];
@@ -99,14 +89,6 @@ public class ArchiveSongObj {
 		status = -1;
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
-		String artistAndShowTitle[] = showTit.split(" Live at ");
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live @ ");
-		}
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live ");
-		}
-		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
 		this.showIdent = showIdent;
 		String splitArray[] = urlStr.split("/");
 		fileName = splitArray[splitArray.length-1];
@@ -167,7 +149,7 @@ public class ArchiveSongObj {
 		else{
 			exists = false;
 		}
-
+		
 	}
 	
 	public String getSongPath(){
@@ -211,10 +193,6 @@ public class ArchiveSongObj {
 	
 	public String getShowTitle(){
 		return showTitle;
-	}
-	
-	public String getShowArtist(){
-		return showArtist;
 	}
 
 	/** Returns a URL object of the lowest bitrate for a song.

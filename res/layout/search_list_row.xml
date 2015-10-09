@@ -41,14 +41,4 @@
         	android:src="@drawable/star5"
         	android:gravity="center_vertical"
         	android:layout_alignParentRight="true" />
-        	<TextView
-            android:id="@+id/ShowInfoText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16dip"
-            android:textColor="#127DD4"
-            android:textStyle="italic"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:layout_below="@id/ShowText"/>
 </RelativeLayout>

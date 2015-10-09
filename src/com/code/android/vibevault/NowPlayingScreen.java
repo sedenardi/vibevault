@@ -1,6 +1,6 @@
 /*
  * NowPlayingScreen.java
- * VERSION 1.4
+ * VERSION 1.3
  * 
  * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
@@ -36,11 +36,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -55,26 +58,26 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import com.code.android.vibevault.R;
 
-public class NowPlayingScreen extends Activity {
+public class NowPlayingScreen extends Activity
+{
 	private PlayerService pService = null;
-
+	
 	protected TextView songLabel;
 	protected TextView showLabel;
 	protected Button previous;
 	protected Button stop;
 	protected Button pause;
 	protected Button next;
-
-	protected DraggableListView songsListView;
-	protected PlaylistAdapter adapter = null;
+	
+	protected ListView songsListView;
 	protected TextView playListLabel;
-
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.now_playing);
-
-		songLabel = (TextView) findViewById(R.id.SongLabel);
-		showLabel = (TextView) findViewById(R.id.ShowLabel);
+		
+		songLabel = (TextView)findViewById(R.id.SongLabel);
+		showLabel = (TextView)findViewById(R.id.ShowLabel);
 		previous = (Button) this.findViewById(R.id.PrevButton);
 		stop = (Button) this.findViewById(R.id.StopButton);
 		pause = (Button) this.findViewById(R.id.PauseButton);
@@ -86,24 +89,25 @@ public class NowPlayingScreen extends Activity {
 				pService.playPrev();
 			}
 		});
-
+		
 		this.stop.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-
+				
 				pService.stop();
 			}
 		});
-
+		
 		this.pause.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (pService.isPaused() || pService.isStopped()) {
-
+				if(pService.isPaused() || pService.isStopped()){
+					
 					pService.play();
-				} else {
+				}
+				else{
 					pService.pause();
-
+					
 				}
 			}
 		});
@@ -114,46 +118,27 @@ public class NowPlayingScreen extends Activity {
 				pService.playNext();
 			}
 		});
-
-		songsListView = (DraggableListView) findViewById(R.id.PlayListListView);
+		
+		songsListView = (ListView)findViewById(R.id.PlayListListView);
 		songsListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
-			public void onItemClick(AdapterView<?> a, View v, int position,
-					long id) {
+			public void onItemClick(AdapterView<?> a, View v, int position, long id){
 				pService.playSongFromPlaylist(position);
 			}
 		});
-		songsListView
-				.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
-					@Override
-					public void onCreateContextMenu(ContextMenu menu, View v,
-							ContextMenu.ContextMenuInfo menuInfo) {
-						menu.add(Menu.NONE, VibeVault.REMOVE_FROM_QUEUE,
-								Menu.NONE, "Remove from playlist");
-					}
-				});
-		songsListView.setDropListener(new DraggableListView.DropListener() {
+		songsListView.setOnCreateContextMenuListener(new OnCreateContextMenuListener(){
 			@Override
-			public void drop(int from, int to) {
-				ArchiveSongObj item = adapter.getItem(from);
-				adapter.remove(item);
-				adapter.insert(item, to);
-				refreshCurrentSong();
+			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
+				menu.add(Menu.NONE, VibeVault.REMOVE_FROM_QUEUE, Menu.NONE, "Remove from playlist");
 			}
 		});
-		songsListView.setRemoveListener(new DraggableListView.RemoveListener() {
-			@Override
-			public void remove(int which) {
-				adapter.remove(adapter.getItem(which));
-			}
-		});
-
+		
 	}
-
+	
 	private void refreshTrackList(){
-
-		adapter = new PlaylistAdapter(this, R.layout.playlist_row, pService.getPlayAList());
-		songsListView.setAdapter(adapter);
+		
+		songsListView.setAdapter(new PlaylistAdapter(this,
+				R.layout.playlist_row, pService.getPlayAList()));
 		songsListView.setSelection(VibeVault.nowPlayingPosition);
 	}
 	
@@ -189,14 +174,13 @@ public class NowPlayingScreen extends Activity {
 	
 	private void refreshCurrentSong()
 	{
-		pService.updatePlaying();
 		songLabel.setText(pService.getPlayingSongTitle());
 		showLabel.setText(pService.getPlayingShowTitle());
 	}
 	
 	private ServiceConnection onPService=new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder rawBinder) {
-
+			
 			pService=((PlayerService.MPlayerBinder)rawBinder).getService();
 			refreshTrackList();
 			refreshCurrentSong();
@@ -204,7 +188,7 @@ public class NowPlayingScreen extends Activity {
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
-
+			
 			pService=null;
 		}
 	};
@@ -266,20 +250,16 @@ public class NowPlayingScreen extends Activity {
 				LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				convertView = vi.inflate(R.layout.playlist_row, null);
 			}
-			TextView songText = (TextView) convertView.findViewById(R.id.SongTitle);
-			TextView artistText = (TextView) convertView.findViewById(R.id.ArtistTitle);
+			TextView text = (TextView) convertView.findViewById(R.id.text);
 			if(song != null){
-				songText.setText(song.toString());
-				artistText.setText(song.getShowArtist());
+				text.setText(song.toString());
 				if(position == pService.getPlayingIndex()){
-//					convertView.setBackgroundColor(Color.argb(128, 18, 125, 212));
-					songText.setTextColor(Color.YELLOW);
-					artistText.setTextColor(Color.YELLOW);
+					text.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+					text.setTextColor(Color.parseColor("#127DD4"));
 				}
 				else{
-					convertView.setBackgroundColor(Color.argb(0, 0, 0, 0));
-					songText.setTextColor(Color.rgb(18, 125, 212));
-					artistText.setTextColor(Color.WHITE);
+					text.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
+					text.setTextColor(Color.LTGRAY);
 				}
 			}
 			return convertView;
