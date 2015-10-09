@@ -5,4 +5,5 @@
 <item android:id="@+id/recentShows" android:title="Recent Shows"></item>
 <item android:id="@+id/emailLink" android:title="Email Show Link"></item>
 <item android:id="@+id/scrollableDialog" android:title="Help"></item>
+<item android:id="@+id/downloadShow" android:title="Download Whole Show"></item>
 </menu>

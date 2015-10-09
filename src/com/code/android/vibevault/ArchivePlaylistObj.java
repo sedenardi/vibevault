@@ -1,8 +1,8 @@
 /*
  * ArchivePlaylistObj.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -29,10 +29,21 @@ import java.util.ArrayList;
 public class ArchivePlaylistObj {
 	
 	private ArrayList<ArchiveSongObj> playList;
-	private String title;
+	private String title = "";
+	private long key = -1;
 	
 	public ArchivePlaylistObj(){
 		playList = new ArrayList<ArchiveSongObj>();
+	}
+	
+	public ArchivePlaylistObj(ArrayList<ArchiveSongObj> list){
+		playList = list;
+	}
+	
+	public ArchivePlaylistObj(String plTitle, long id, ArrayList<ArchiveSongObj> list){
+		title = plTitle;
+		key = id;
+		playList = list;
 	}
 	
 	public void setPlayList(ArrayList<ArchiveSongObj> list){

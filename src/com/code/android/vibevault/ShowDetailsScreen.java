@@ -1,8 +1,8 @@
 /*
  * ShowDetailsScreen.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -56,7 +56,6 @@ import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -105,8 +104,10 @@ public class ShowDetailsScreen extends Activity {
 		setContentView(R.layout.show_details_screen);
 		Bundle b = getIntent().getExtras();
 		show = (ArchiveShowObj)b.get("Show");
+
+
 		
-		showTitle = show.getTitle();
+		showTitle = show.getArtistAndTitle();
 		showLabel = (TextView) findViewById(R.id.ShowLabel);
 		showLabel.setText(showTitle);
 
@@ -114,6 +115,7 @@ public class ShowDetailsScreen extends Activity {
 		trackList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position, long id){
+
 				playShow(position);
 			}
 		});
@@ -122,7 +124,6 @@ public class ShowDetailsScreen extends Activity {
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
 				menu.add(Menu.NONE, VibeVault.ADD_SONG_TO_QUEUE, Menu.NONE, "Add to playlist");
 				menu.add(Menu.NONE, VibeVault.DOWNLOAD_SONG, Menu.NONE, "Download Song");
-				menu.add(Menu.NONE, VibeVault.DOWNLOAD_SHOW, Menu.NONE, "Download Entire Show");
 				menu.add(Menu.NONE, VibeVault.EMAIL_LINK, Menu.NONE, "Email Link to Song");
 			}
 		});
@@ -135,6 +136,7 @@ public class ShowDetailsScreen extends Activity {
 			workerTask.setActivity(this);
 			downloadLinks = workerTask.songs;
 		} else if (show.getShowURL()!=null){
+
 			workerTask = new ParseShowDetailsPageTask(this);
 			workerTask.execute(show);
 		}
@@ -171,10 +173,12 @@ public class ShowDetailsScreen extends Activity {
 		switch (item.getItemId()){
 			case R.id.nowPlaying: 	//Open playlist activity
 				Intent i = new Intent(ShowDetailsScreen.this, NowPlayingScreen.class);
+
 				startActivity(i);
 				break;
 			case R.id.recentShows:
 				Intent rs = new Intent(ShowDetailsScreen.this, RecentShowsScreen.class);
+
 				startActivity(rs);
 				break;
 			case R.id.scrollableDialog:
@@ -182,7 +186,7 @@ public class ShowDetailsScreen extends Activity {
 				ad.setTitle("Help!");
 				View v =LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
 				((TextView)v.findViewById(R.id.DialogText)).setText(R.string.show_details_screen_help);
-				ad.setPositiveButton("Cool.", new android.content.DialogInterface.OnClickListener() {
+				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int arg1) {
 					}
 				});
@@ -192,9 +196,15 @@ public class ShowDetailsScreen extends Activity {
 			case R.id.emailLink:
 				final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
 				emailIntent.setType("plain/text");
-				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Great show on archive.org: " + show.getTitle());
-				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nYou should listen to " + show.getTitle() + ".  You can find it here: " + show.getShowURL());
+				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Great show on archive.org: " + show.getArtistAndTitle());
+				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nYou should listen to " + show.getArtistAndTitle() + ".  You can find it here: " + show.getShowURL() + "\n\nSent using VibeVault for Android.");
 				startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+				break;
+			case R.id.downloadShow:
+				for(int j = 0; j < downloadLinks.size(); j++){
+					downloadLinks.get(j).setDownloadShow(show);
+					dService.addSong(downloadLinks.get(j));
+				}
 				break;
 			default:
 				break;
@@ -204,11 +214,11 @@ public class ShowDetailsScreen extends Activity {
 	
 	private void playShow(int pos){
 		if(!downloadLinks.isEmpty()){
+
 			VibeVault.playList.setPlayList(downloadLinks);
 			pService.playSongFromPlaylist(pos);
 		}
 	}
-
 	
 	/** Handle user's long-click selection.
 	*
@@ -228,12 +238,6 @@ public class ShowDetailsScreen extends Activity {
 				selSong.setDownloadShow(show);
 				dService.addSong(selSong);
 				break;
-			case (VibeVault.DOWNLOAD_SHOW):
-				for(int j = 0; j < downloadLinks.size(); j++){
-					downloadLinks.get(j).setDownloadShow(show);
-					dService.addSong(downloadLinks.get(j));
-				}
-				break;
 			case (VibeVault.ADD_SONG_TO_QUEUE):
 				pService.enqueue(selSong);
 				break;
@@ -241,7 +245,7 @@ public class ShowDetailsScreen extends Activity {
 				final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
 				emailIntent.setType("plain/text");
 				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Great song on archive.org: " + selSong.toString());
-				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nI found a song you should listen to.  It's called " + selSong.toString() + " and it's off of " + selSong.getShowTitle() + ".  You can get it here: " + selSong.getLowBitRate());
+				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nI found a song you should listen to.  It's called " + selSong.toString() + " and it's off of " + selSong.getShowTitle() + ".  You can get it here: " + selSong.getLowBitRate() + "\n\nSent using VibeVault for Android.");
 				startActivity(Intent.createChooser(emailIntent, "Send mail..."));
 				break;
 			default:
@@ -282,6 +286,7 @@ public class ShowDetailsScreen extends Activity {
 	protected Dialog onCreateDialog(int id){
 		switch(id){
 			case VibeVault.LOADING_DIALOG_ID:
+
 				ProgressDialog dialog = new ProgressDialog(this);
 				dialog.setMessage("Loading");
 				return dialog;
@@ -305,9 +310,11 @@ public class ShowDetailsScreen extends Activity {
 			try{
 				dismissDialog(VibeVault.LOADING_DIALOG_ID);
 			} catch(IllegalArgumentException e){
+
 				e.printStackTrace();
 			}
 			dialogShown=false;
+
 			refreshTrackList();
 		}
 	}
@@ -334,7 +341,7 @@ public class ShowDetailsScreen extends Activity {
 	 * I don't know if this is really necessary, but I think that it is good
 	 * idea in case we want to use this Activity in different ways in the future.
 	 */
-	private static class ParseShowDetailsPageTask extends AsyncTask<ArchiveShowObj, Void, Void> {
+	private class ParseShowDetailsPageTask extends AsyncTask<ArchiveShowObj, String, Void> {
 		
 		private ShowDetailsScreen parentScreen;
 		private boolean completed;
@@ -348,6 +355,11 @@ public class ShowDetailsScreen extends Activity {
 		@Override
 		protected void onPreExecute(){
 			parentScreen.showDialog(VibeVault.LOADING_DIALOG_ID);
+		}
+		
+		@Override
+		protected void onProgressUpdate(String... values) {
+			Toast.makeText(getBaseContext(), values[0], Toast.LENGTH_SHORT).show();
 		}
 
 		@Override
@@ -365,47 +377,66 @@ public class ShowDetailsScreen extends Activity {
 			// XPATH says "Select out of all 'table' elements with attribute 'class' 
 			// equal to 'fileFormats' which contain element 'tr'..."
 			// String songXPath = "//table[@class='fileFormats']//tr";
-			String m3uXPath = "//script[@type='text/javascript']";
-			
-			
+			String m3uXPath = "//script[@type='text/javascript']";			
 			
 			try {
 				// Get the show's title, and create a TagNode of The page.
 				URLConnection conn = show[0].getShowURL().openConnection();
-				String showTitle = show[0].getTitle();
+				String showTitle = show[0].getArtistAndTitle();
 				String showIdent = show[0].getIdentifier();
 				InputStreamReader is = new InputStreamReader(conn.getInputStream());
 				TagNode node = pageParser.clean(is);
 				is.close();
 				
-				
+
 				URL m3uURL = null;
-				if(show[0].hasVBR()){
-					m3uURL = new URL(show[0].getLinkPrefix()+"_vbr.m3u");
-				} else if(show[0].hasLBR()){
-					m3uURL = new URL(show[0].getLinkPrefix()+"_64kb.m3u");
-				}
-				if(m3uURL!=null){
+				if(VibeVault.db.getPref("downloadFormat").equalsIgnoreCase("LBR")){
+					if(show[0].hasLBR()){
+						m3uURL = new URL(show[0].getLinkPrefix()+"_64kb.m3u");
+					} else if(show[0].hasVBR()){
+						m3uURL = new URL(show[0].getLinkPrefix()+"_vbr.m3u");
+						this.publishProgress("Show has no low bitrate stream...  Reverting to VBR.");
+					}
 				} else{
+					if(show[0].hasVBR()){
+						m3uURL = new URL(show[0].getLinkPrefix()+"_vbr.m3u");
+					} else if(show[0].hasLBR()){
+						m3uURL = new URL(show[0].getLinkPrefix()+"_64kb.m3u");
+						this.publishProgress("Show has no VBR stream...  Reverting to low bitrate stream.");
+					}
+				}
+
+
+				if(m3uURL!=null){
+
+				} else{
+
+
 					m3uURL = new URL(show[0].getLinkPrefix()+"_vbr.m3u");
 				}
+				
+
+
 				
 				if(m3uURL!=null){
 					// Grab the M3U stream...
-					URLConnection test = m3uURL.openConnection();
-					if(test==null){
+					URLConnection m3uConn = m3uURL.openConnection();
+					if(m3uConn==null){
+
 					}
-					InputStream inStream = test.getInputStream();
+					InputStream inStream = m3uConn.getInputStream();
 					BufferedInputStream bis = new BufferedInputStream(inStream);
 					ByteArrayBuffer baf = new ByteArrayBuffer(50);
 					int read = 0;
 					int bufSize = 512;
 					byte[] buffer = new byte[bufSize];
+
 					while(bis.available()==0){
+
 						bis.close();
 						inStream.close();
-						test = m3uURL.openConnection();
-						inStream = test.getInputStream();
+						m3uConn = m3uURL.openConnection();
+						inStream = m3uConn.getInputStream();
 						bis = new BufferedInputStream(inStream);
 					}
 					while (true) {
@@ -424,6 +455,8 @@ public class ShowDetailsScreen extends Activity {
 					String m3uLinks[] = m3uString.split("\n");
 					for(String link : m3uLinks){
 						songLinks.add(link);
+
+
 					}
 					
 					// Now use an XPATH evaluation to find all of the javascript scripts on the page.
@@ -437,16 +470,20 @@ public class ShowDetailsScreen extends Activity {
 							String jsonString = ((TagNode)titleNode).getChildren().toString();
 							String jsonArray[] = jsonString.split("IAD.playlists = ");
 						if ((jsonArray.length) > 1) {
+
 							try {
 								JSONObject jObject = new JSONObject(jsonArray[1]);
 								JSONArray jArray = jObject.getJSONArray("names");
 								if(jArray.length() == songLinks.size()){
 									for (int i = 0; i < jArray.length(); i++) {
 										ArchiveSongObj song = new ArchiveSongObj(jArray.get(i).toString(), songLinks.get(i), showTitle, showIdent);
+
 										songs.add(song);
 									}
 								}
 								else{
+
+
 								}
 								return null;
 							} catch (JSONException e) {
@@ -456,10 +493,11 @@ public class ShowDetailsScreen extends Activity {
 						}
 					}
 				}
+
 			} catch (XPatherException e) {
-				Log.e(VibeVault.SHOW_DETAILS_TAG, e.getMessage());
+				e.printStackTrace();
 			} catch (IOException e) {
-				Log.e(VibeVault.SHOW_DETAILS_TAG, e.getMessage());
+				e.printStackTrace();
 			}
 			return null;
 		}
@@ -469,7 +507,8 @@ public class ShowDetailsScreen extends Activity {
 			completed=true;
 			parentScreen.setSongs(songs);
 			notifyActivityTaskCompleted();
-			VibeVault.db.insertShow(taskShow,DataStore.RECENT_SHOW_TABLE);
+
+			VibeVault.db.insertRecentShow(taskShow);
 		}
 		
 		// The parent could be null if you changed orientations
@@ -510,12 +549,9 @@ public class ShowDetailsScreen extends Activity {
 			text.setText(song.toString());
 			ImageView icon = (ImageView) convertView.findViewById(R.id.icon);
 			if (song != null) {
-				if (VibeVault.db.songExists(song.getFileName())) {
+				if (VibeVault.db.songIsDownloaded(song.getFileName())) {
 					icon.setImageDrawable(getBaseContext().getResources().getDrawable(android.R.drawable.star_big_on));
-					VibeVault.db.insertShow(show, DataStore.DOWNLOADED_SHOW_TABLE);
-					VibeVault.db.insertSong(song);
 				} else{
-					VibeVault.db.deleteSong(song.getFileName(), show.getIdentifier());
 					icon.setImageDrawable(null);
 				}
 			}

@@ -1,8 +1,8 @@
 /*
  * DownloadTabs.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -78,7 +78,7 @@ public class DownloadTabs extends TabActivity {
 				ad.setTitle("Help!");
 				View v =LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
 				((TextView)v.findViewById(R.id.DialogText)).setText(R.string.download_screen_help);
-				ad.setPositiveButton("Cool.", new android.content.DialogInterface.OnClickListener() {
+				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int arg1) {
 					}
 				});

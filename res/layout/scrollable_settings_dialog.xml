@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:id="@+id/ScrollView01"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	android:orientation="vertical"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<RelativeLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:scrollbars="vertical"
+		android:scrollbarAlwaysDrawVerticalTrack="true" android:id="@+id/instructions_view">
+		<TextView android:id="@+id/NumResultsLabel"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:paddingLeft="15dip"
+			android:paddingRight="15dip"
+			android:textSize="16dip"
+			android:textStyle="bold"
+			android:textColor="#127DD4"
+			android:text="Max Search Results Per Search:">
+			</TextView>
+			<TextView android:id="@+id/SeekBarValue"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@id/NumResultsLabel"
+			android:layout_alignParentLeft="true"
+			android:paddingLeft="15dip"
+			android:textSize="16dip"
+			android:textStyle="bold"
+			android:textColor="#FFFFFF"
+			android:text="10">
+			</TextView>
+			
+		<SeekBar android:id="@+id/NumResultsSeekBar"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_below="@id/NumResultsLabel"
+			android:layout_toRightOf="@+id/SeekBarValue"
+			android:paddingLeft="15dip"
+			android:paddingRight="15dip"
+			android:max="40">
+			</SeekBar>
+			
+			<TextView android:id="@+id/SortLabel"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_below="@id/NumResultsSeekBar"
+			android:layout_alignParentLeft="true"
+			android:paddingTop="15dip"
+			android:paddingLeft="15dip"
+			android:textSize="16dip"
+			android:textStyle="bold"
+			android:textColor="#127DD4"
+			android:text="Search Based On:">
+			</TextView>
+			
+			<Spinner 
+        android:id="@+id/SortSpinner"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/SortLabel"
+        android:paddingLeft="15dip"
+        android:paddingRight="15dip"
+        android:textSize="20dip"
+    />
+		
+	</RelativeLayout>
+</ScrollView>

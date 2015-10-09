@@ -14,7 +14,9 @@
 		<TextView android:id="@+id/Download_Text" 
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content" 
-    		android:textColor="#000000" 
+    		android:textColor="#000000"
+    		android:textStyle="bold"
+    		android:textSize="18dip"
 			android:layout_alignParentTop="true" 
 			android:padding="4dip"/>
 		<ProgressBar android:id="@+id/Download_Progress"

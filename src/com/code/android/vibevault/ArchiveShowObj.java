@@ -1,8 +1,8 @@
 /*
  * ArchiveShowObj.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -34,12 +34,14 @@ public class ArchiveShowObj implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private String title = "";
+	private String wholeTitle = "";
 	private URL showURL = null;
 	private String identifier = "";
 	private String date = "";
 	private double rating = 0.0;
 	private String source = "";
+	private String showArtist = "";
+	private String showTitle = "";
 	private boolean vbrShow = false;
 	private boolean lbrShow = false;
 	
@@ -54,7 +56,18 @@ public class ArchiveShowObj implements Serializable {
 	 * @parm src Show's source.
 	 */
 	public ArchiveShowObj(String tit, String id, String dat, double rat, String format, String src) {
-		title = tit;
+		wholeTitle = tit;
+		String artistAndShowTitle[] = tit.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live ");
+		}
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		if(artistAndShowTitle.length >= 2){
+			showTitle = artistAndShowTitle[1];
+		}
 		identifier = id;
 		date = dat;
 		rating = rat;
@@ -67,9 +80,48 @@ public class ArchiveShowObj implements Serializable {
 		}
 	}
 	
-	// Constructor called from the DB
+	public String getShowSource(){
+		return source;
+	}
+	
+	public String getShowArtist(){
+		return showArtist;
+	}
+	
+	public String getShowTitle(){
+		return showTitle;
+	}
+	
+	// Constructor called from DB version > 5
+	public ArchiveShowObj(String ident, String title, String artist, String src, String hasVBR, String hasLBR){
+		wholeTitle = artist + " Live at " + title;
+		identifier = ident;
+		showTitle = title;
+		showArtist = artist;
+		source = src;
+		vbrShow = Boolean.valueOf(hasVBR);
+		lbrShow = Boolean.valueOf(hasLBR);
+		try{
+			showURL = new URL("http://www.archive.org/details/" + identifier);
+		} catch(MalformedURLException e){
+			// url is null in this case!
+		}
+	}
+	
+	// Constructor called from DB version <= 5
 	public ArchiveShowObj(String id, String tit, String hasVBR, String hasLBR){
-		title = tit;
+		wholeTitle = tit;
+		String artistAndShowTitle[] = tit.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live ");
+		}
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		if(artistAndShowTitle.length >= 2){
+			showTitle = artistAndShowTitle[1];
+		}
 		identifier = id;
 		if(hasVBR.equals("1")){
 			vbrShow = true;
@@ -82,6 +134,7 @@ public class ArchiveShowObj implements Serializable {
 		} catch(MalformedURLException e){
 			// url is null in this case!
 		}
+
 	}
 	
 	private void parseFormatList(String formatList){
@@ -122,11 +175,11 @@ public class ArchiveShowObj implements Serializable {
 
 	@Override
 	public String toString() {
-		return String.format(title);
+		return String.format(wholeTitle);
 	}
 
-	public String getTitle(){
-		return title;
+	public String getArtistAndTitle(){
+		return wholeTitle;
 	}
 	
 	public String getIdentifier(){

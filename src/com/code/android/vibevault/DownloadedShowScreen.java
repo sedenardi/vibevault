@@ -1,8 +1,8 @@
 /*
  * ADownloadedShowScreen.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -30,11 +30,12 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.view.Menu;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -62,7 +63,7 @@ public class DownloadedShowScreen extends Activity {
 		Bundle b = getIntent().getExtras();
 		show = (ArchiveShowObj)b.get("Show");
 		
-		showTitle = show.getTitle();
+		showTitle = show.getArtistAndTitle();
 		showLabel = (TextView) findViewById(R.id.ShowLabel);
 		showLabel.setText(showTitle);
 
@@ -70,6 +71,21 @@ public class DownloadedShowScreen extends Activity {
 		trackList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position, long id){
+
+				
+				Cursor cur = VibeVault.db.getSongsFromShow(show.getIdentifier());
+				cur.moveToFirst();
+				while (!cur.isAfterLast()) {
+					ArchiveSongObj song = new ArchiveSongObj(cur.getString(cur.getColumnIndex(DataStore.SONG_TITLE)), 
+							cur.getString(cur.getColumnIndex(DataStore.SONG_FILENAME)), 
+							show.getArtistAndTitle(), 
+							show.getIdentifier(), 
+							Boolean.valueOf(cur.getString(cur.getColumnIndex(DataStore.SONG_DOWNLOADED))));
+					pService.enqueue(song);
+					cur.moveToNext();
+				}
+				cur.close();
+				
 				int index = pService.enqueue(VibeVault.db.getSong(id));
 				pService.playSongFromPlaylist(index);
 			}
@@ -114,10 +130,12 @@ public class DownloadedShowScreen extends Activity {
 		switch (item.getItemId()){
 			case R.id.nowPlaying: 	//Open playlist activity
 				Intent i = new Intent(DownloadedShowScreen.this, NowPlayingScreen.class);
+
 				startActivity(i);
 				break;
 			case R.id.recentShows:
 				Intent rs = new Intent(DownloadedShowScreen.this, RecentShowsScreen.class);
+
 				startActivity(rs);
 				break;
 			case R.id.scrollableDialog:
@@ -125,7 +143,7 @@ public class DownloadedShowScreen extends Activity {
 				ad.setTitle("Help!");
 				View v =LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
 				((TextView)v.findViewById(R.id.DialogText)).setText(R.string.downloaded_show_screen_help);
-				ad.setPositiveButton("Cool.", new android.content.DialogInterface.OnClickListener() {
+				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int arg1) {
 					}
 				});

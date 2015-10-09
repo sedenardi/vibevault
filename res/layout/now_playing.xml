@@ -49,9 +49,9 @@
 			android:layout_width="50dip"
 			android:layout_height="50dip"></Button>
 			</TableRow>
-		<ListView android:id="@+id/PlayListListView" 
+		<com.code.android.vibevault.DraggableListView android:id="@+id/PlayListListView" 
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
 			android:layout_below="@+id/NextButton"
-			android:layout_alignParentBottom="true"></ListView>
+			android:layout_alignParentBottom="true"></com.code.android.vibevault.DraggableListView>
 </TableLayout>

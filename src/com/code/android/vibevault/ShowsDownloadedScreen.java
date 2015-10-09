@@ -1,8 +1,8 @@
 /*
  * ShowsDownloadedScreen.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -30,7 +30,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.AdapterView.OnItemClickListener;
 import com.code.android.vibevault.R;
 
@@ -40,6 +39,7 @@ public class ShowsDownloadedScreen extends Activity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState){
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.download_shows_screen);
 		
@@ -53,14 +53,12 @@ public class ShowsDownloadedScreen extends Activity {
 		refreshShowList();
 	}
 	
-	private void refreshShowList(){
-		showList.setAdapter(new SimpleCursorAdapter(this,R.layout.show_list_row, VibeVault.db.getDownloadShows(), 
-				new String[]{DataStore.SHOW_TITLE},
-				new int[]{R.id.show_title}));
+	private void refreshShowList(){		
+		showList.setAdapter(new ScrollingCursorAdapter(this, VibeVault.db.getDownloadShows()));
 	}
 	
 	private void openShow(long pos){
-		ArchiveShowObj show = VibeVault.db.getShow(pos,DataStore.DOWNLOADED_SHOW_TABLE);
+		ArchiveShowObj show = VibeVault.db.getShow(pos);
 		if(show != null){
 			Intent i = new Intent(ShowsDownloadedScreen.this, DownloadedShowScreen.class);
 			i.putExtra("Show", show);

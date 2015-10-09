@@ -1,8 +1,8 @@
 /*
  * DownloadSongThread.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -32,7 +32,6 @@ import java.net.URL;
 import java.util.Observable;
 
 import android.os.Environment;
-import android.util.Log;
 
 public class DownloadSongThread extends Observable implements Runnable {
 
@@ -60,8 +59,7 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Constructor for Download.
 	public DownloadSongThread(ArchiveSongObj song) {
-		Log.d(VibeVault.DOWNLOAD_THREAD_TAG,
-				"Creating thread " + song.toString());
+
 		this.song = song;
 		url = song.getLowBitRate();
 		size = -1;
@@ -99,12 +97,14 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Pause this download.
 	public void pause() {
+
 		status = PAUSED;
 		stateChanged();
 	}
 
 	// Resume this download.
 	public void resume() {
+
 		status = DOWNLOADING;
 		stateChanged();
 		download();
@@ -112,12 +112,14 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Cancel this download.
 	public void cancel() {
+
 		status = CANCELLED;
 		stateChanged();
 	}
 
 	// Mark this download as having an error.
 	private void error() {
+
 		status = ERROR;
 		stateChanged();
 	}
@@ -130,9 +132,13 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Download file.
 	public void run() {
+
 		RandomAccessFile file = null;
 		boolean showRootExists = createShowDirIfNonExistent();
 		InputStream stream = null;
+		if(showRootExists){
+			
+		}
 
 		if (showRootExists) {
 			try {
@@ -154,10 +160,11 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 				// Check for valid content length.
 				int contentLength = connection.getContentLength();
+
 				if (contentLength < 1) {
 					error();
 				}
-
+				
 				/*
 				 * Set the size for this download if it hasn't been already set.
 				 */
@@ -165,6 +172,31 @@ public class DownloadSongThread extends Observable implements Runnable {
 					size = contentLength;
 					stateChanged();
 				}
+
+				if(new File(song.getFilePath()).exists()){
+					downloaded = (int) new File(song.getFilePath()).length();
+
+					if(downloaded >= size){
+						status = COMPLETE;
+					}
+					else{
+						connection.disconnect();
+						connection = (HttpURLConnection) url.openConnection();
+						connection.setRequestProperty("Range", "bytes=" + downloaded
+								+ "-");
+						connection.connect();
+						if (connection.getResponseCode() / 100 != 2) {
+							error();
+						}
+						contentLength = connection.getContentLength();
+						if (contentLength < 1) {
+							error();
+						}
+					}
+				}
+
+				percent = (int) Math.ceil(getProgress());
+
 
 				// Open file and seek to the end of it.
 				file = new RandomAccessFile(new File(song.getFilePath()), "rw");
@@ -194,7 +226,10 @@ public class DownloadSongThread extends Observable implements Runnable {
 					// Write buffer to file.
 					file.write(buffer, 0, read);
 					downloaded += read;
-					stateChanged();
+					if(percent != (int) Math.ceil(getProgress())){
+						percent = (int) Math.ceil(getProgress());
+						stateChanged();
+					}
 				}
 
 				/*
@@ -203,10 +238,11 @@ public class DownloadSongThread extends Observable implements Runnable {
 				 */
 				if (status == DOWNLOADING) {
 					status = COMPLETE;
-					if(song.getDownloadShow() != null){
-						VibeVault.db.insertShow(song.getDownloadShow(), DataStore.DOWNLOADED_SHOW_TABLE);
-						VibeVault.db.insertSong(song);
-					}
+				}
+				if(status == COMPLETE && song.getDownloadShow() != null){
+					VibeVault.db.insertShow(song.getDownloadShow());
+					VibeVault.db.insertSong(song);
+					VibeVault.db.setSongDownloaded(song);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -221,6 +257,7 @@ public class DownloadSongThread extends Observable implements Runnable {
 							delFile.delete();
 						}
 					} catch (Exception e) {
+
 					}
 				}
 
@@ -258,10 +295,24 @@ public class DownloadSongThread extends Observable implements Runnable {
 
 	// Notify observers that this download's progress/status has changed.
 	private void stateChanged() {
-		if (getProgress() > percent || getProgress() > 99) {
+		/*if (status == DOWNLOADING) {
+			if(getProgress() > percent){
+				setChanged();
+				notifyObservers();
+
+						+ song.toString() + " Status: "
+						+ status + " Percent: " 
+						+ getProgress());
+				percent++;
+			}
+		}
+		else{
 			setChanged();
 			notifyObservers();
-			percent++;
-		}
+
+		}*/
+
+		setChanged();
+		notifyObservers();
 	}
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
@@ -8,42 +8,56 @@
 		android:id="@+id/HomeHeader"
 		android:textSize="30dip"
 		android:gravity="center"
-		android:text="Vibe Vault V1.1"
+		android:text="Vibe Vault V1.4"
 		android:textColor="#127DD4"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:layout_weight="1" />
-			<Button
-		android:id="@+id/HomeSearch"
-		android:layout_width="fill_parent"
-		android:layout_height="45dip"
-		android:drawableLeft="@drawable/searchbutton"
-		android:text="Search"
-		android:layout_weight="1"/>
-	<Button
-		android:id="@+id/HomeRecent"
-		android:layout_width="fill_parent"
-		android:layout_height="45dip"
-		android:drawableLeft="@drawable/recentbutton"
-		android:text="Recent Shows"
 		android:layout_weight="1"
-		/>		
-	<Button
-		android:id="@+id/HomeDownload"
-		android:layout_width="fill_parent"
-		android:layout_height="45dip"
-		android:drawableLeft="@drawable/downloadbutton"
-		android:text="Downloads"
-		android:layout_weight="1"
+		android:layout_alignParentTop="true"
 		/>
-	<Button
+			<ImageButton
+		android:id="@+id/HomeSearch"
+		android:layout_width="110dip"
+		android:layout_height="110dip"
+		android:background="@drawable/searchbutton"
+		android:layout_marginLeft="10dip"
+		android:layout_alignParentLeft="true"
+		android:layout_below="@id/HomeHeader"
+		/>
+	<ImageButton
+		android:id="@+id/HomeRecent"
+		android:layout_width="110dip"
+		android:layout_height="110dip"
+		android:background="@drawable/recentshowsbutton"
+		android:layout_marginRight="10dip"
+		android:layout_alignParentRight="true"
+		android:layout_below="@id/HomeHeader"
+		/>		
+	<ImageButton
+		android:id="@+id/HomeDownload"
+		android:layout_width="110dip"
+		android:layout_height="110dip"
+		android:background="@drawable/downloadsbutton"
+		android:layout_marginLeft="10dip"
+		android:layout_alignParentLeft="true"
+		android:layout_below="@id/HomeSearch"
+		/>
+	<ImageButton
 		android:id="@+id/HomePlaying"
+		android:layout_width="110dip"
+		android:layout_height="110dip"
+		android:background="@drawable/nowplayingbutton"
+		android:layout_marginRight="10dip"
+		android:layout_alignParentRight="true"
+		android:layout_below="@id/HomeRecent"
+		/>
+			<ImageButton
+		android:id="@+id/HomeFeatured"
+		android:layout_width="110dip"
+		android:layout_height="110dip"
+		android:background="@drawable/featuredbutton"
 		android:layout_below="@id/HomeDownload"
-		android:layout_width="fill_parent"
-		android:layout_height="45dip"
-		android:drawableLeft="@drawable/playingbutton"
-		android:text="Now Playing"
-		android:layout_weight="1"
+		android:layout_centerHorizontal="true"
 		/>
 <!--	<Button-->
 <!--		android:id="@+id/HomeSettings"-->
@@ -52,6 +66,7 @@
 <!--		android:layout_height="45dip"-->
 <!--		android:drawableLeft="@drawable/settingsbutton"-->
 <!--		android:text="Settings"-->
+<!--		android:textStyle="bold"-->
 <!--		/>-->
 	
-</LinearLayout>
+</RelativeLayout>

@@ -1,8 +1,8 @@
 /*
  * PlayerService.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -30,8 +30,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
@@ -52,6 +54,7 @@ public class PlayerService extends Service {
 	private static MediaPlayer mPlayer = null;
 	private static boolean playReady = false;
 	private static boolean paused = false;
+	private static boolean pauseFromPhone = false;
 	//private static ArchivePlaylistObj playList;
 	private static ArchiveSongObj currentSong;
 	private static int currentPos = -1;
@@ -73,6 +76,7 @@ public class PlayerService extends Service {
 	public void onCreate()
 	{
 		super.onCreate();
+
 		if(mPlayer == null)
 		{
 			mPlayer = new MediaPlayer();
@@ -91,16 +95,19 @@ public class PlayerService extends Service {
 		tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
 		int events = PhoneStateListener.LISTEN_CALL_STATE;
 		tm.listen(phoneStateListener, events);
+		registerReceiver(headphoneIntentReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId){
+
 		return START_STICKY;
 	}
 	
 	@Override
 	public IBinder onBind(Intent arg0) 
 	{
+
 		return(binder);
 	}
 	
@@ -115,15 +122,18 @@ public class PlayerService extends Service {
 	@Override
 	public void onDestroy()
 	{
+
 		super.onDestroy();
 	}
 	
 	public void playSong(ArchiveSongObj song)
 	{
+
 		if(currentSong == null || !currentSong.equals(song) || isStopped()){
 			try 
 			{
 				currentSong = song;
+
 				mPlayer.reset();
 				mPlayer.setDataSource(currentSong.getSongPath());
 				mPlayer.prepareAsync();
@@ -144,6 +154,7 @@ public class PlayerService extends Service {
 		{
 			currentPos = position;
 			VibeVault.nowPlayingPosition = currentPos;
+
 			playSong(VibeVault.playList.getSong(currentPos));
 		}
 	}
@@ -153,6 +164,7 @@ public class PlayerService extends Service {
 	}
 	
 	public int enqueue(ArchiveSongObj song){
+
 		return VibeVault.playList.enqueue(song);
 	}
 	
@@ -213,9 +225,11 @@ public class PlayerService extends Service {
 	{
 		if(currentSong != null){
 			if(isStopped()){
+
 				playSong(currentSong);
 			}
 			else if(isPaused()){
+
 				mPlayer.start();
 				paused = false;
 				sendBroadcast(broadcastPlayStatus);
@@ -230,6 +244,7 @@ public class PlayerService extends Service {
 			playReady = false;
 			sendBroadcast(broadcastPlayStatus);
 			pNotificationManager.cancel(VibeVault.PLAYER_NOTIFICATION);
+
 		}
 	}
 
@@ -240,6 +255,7 @@ public class PlayerService extends Service {
 			mPlayer.pause();
 			paused = true;
 			sendBroadcast(broadcastPlayStatus);
+
 		}
 	}
 	
@@ -247,9 +263,16 @@ public class PlayerService extends Service {
 	{
 		if(currentPos > 0)
 		{
+
 			currentPos--;
 			VibeVault.nowPlayingPosition = currentPos;
 			playSong(VibeVault.playList.getSong(currentPos));
+		}
+	}
+	
+	public void updatePlaying(){
+		if(currentSong!=null){
+			currentPos = VibeVault.playList.getList().indexOf(currentSong);
 		}
 	}
 	
@@ -257,6 +280,7 @@ public class PlayerService extends Service {
 	{
 		if(currentPos + 1 < VibeVault.playList.size())
 		{
+
 			currentPos++;
 			VibeVault.nowPlayingPosition = currentPos;
 			playSong(VibeVault.playList.getSong(currentPos));
@@ -299,6 +323,7 @@ public class PlayerService extends Service {
 	}
 	
 	private void setNotification(){
+
 		notification.setLatestEventInfo(getApplicationContext(), currentSongTitle, currentSongShow, contentIntent);
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
 		pNotificationManager.notify(VibeVault.PLAYER_NOTIFICATION,notification);
@@ -308,12 +333,15 @@ public class PlayerService extends Service {
 	{
 		public void onPrepared(MediaPlayer arg0) 
 		{
-			mPlayer.start();
 			playReady = true;
-			paused = false;
 			sendBroadcast(broadcastPlayStatus);
 			sendBroadcast(broadcastSong);
-			setNotification();
+			if(!pauseFromPhone){
+				mPlayer.start();
+				paused = false;
+				setNotification();
+
+			}
 		}
 	};
 	
@@ -321,6 +349,7 @@ public class PlayerService extends Service {
 	{
 		public void onCompletion(MediaPlayer mp) 
 		{
+
 			if(currentPos + 1 < VibeVault.playList.size()){
 				playNext();
 			}
@@ -335,9 +364,28 @@ public class PlayerService extends Service {
 	private final PhoneStateListener phoneStateListener = new PhoneStateListener(){
 		
 		@Override public void onCallStateChanged(int state, String incomingNumber){
+
 			switch(state){
-			case TelephonyManager.CALL_STATE_OFFHOOK: pause(); break;
-			case TelephonyManager.CALL_STATE_IDLE: if(isPaused()) play(); break;
+			case TelephonyManager.CALL_STATE_OFFHOOK: 
+				pause(); 
+				pauseFromPhone = false;
+				break;
+			case TelephonyManager.CALL_STATE_IDLE:
+				if(pauseFromPhone){ 
+					play(); }
+				break;
+			}
+		}
+	};
+	
+	private BroadcastReceiver headphoneIntentReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if(intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)){
+				int state = intent.getIntExtra("state",1);
+				if(state == 0){
+					pause();
+				}
 			}
 		}
 	};

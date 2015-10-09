@@ -1,8 +1,8 @@
 /*
  * RecentShowsScreen.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -38,7 +38,6 @@ import android.view.View;
 import android.view.View.OnCreateContextMenuListener;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
@@ -50,6 +49,7 @@ public class RecentShowsScreen extends Activity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recent_shows_screen);
 		
@@ -72,13 +72,11 @@ public class RecentShowsScreen extends Activity {
 	}
 	
 	private void refreshShowList(){
-		showList.setAdapter(new SimpleCursorAdapter(this,R.layout.show_list_row, VibeVault.db.getRecentShows(), 
-				new String[]{DataStore.SHOW_TITLE},
-				new int[]{R.id.show_title}));
+		showList.setAdapter(new ScrollingCursorAdapter(this, VibeVault.db.getRecentShows()));
 	}
 	
 	private void openShow(long pos){
-		ArchiveShowObj show = VibeVault.db.getShow(pos,DataStore.RECENT_SHOW_TABLE);
+		ArchiveShowObj show = VibeVault.db.getShow(pos);
 		if(show != null){
 			Intent i = new Intent(RecentShowsScreen.this, ShowDetailsScreen.class);
 			i.putExtra("Show", show);
@@ -92,15 +90,15 @@ public class RecentShowsScreen extends Activity {
 		if(menuInfo!=null){
 			switch(item.getItemId()){
 			case(VibeVault.REMOVE_FROM_RECENT_LIST):
-				VibeVault.db.deleteShow(menuInfo.id,DataStore.RECENT_SHOW_TABLE);
+				VibeVault.db.deleteRecentShow(menuInfo.id);
 				refreshShowList();
 				break;
 			case (VibeVault.EMAIL_LINK):
 				final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
 				emailIntent.setType("plain/text");
-				ArchiveShowObj show = VibeVault.db.getShow(menuInfo.id,DataStore.RECENT_SHOW_TABLE);
-				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Great show on archive.org: " + show.getTitle());
-				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nYou should listen to " + show.getTitle() + ".  You can find it here: " + show.getShowURL());
+				ArchiveShowObj show = VibeVault.db.getShow(menuInfo.id);
+				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Great show on archive.org: " + show.getArtistAndTitle());
+				emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Hey,\n\nYou should listen to " + show.getArtistAndTitle() + ".  You can find it here: " + show.getShowURL() + "\n\nSent using VibeVault for Android.");
 				startActivity(Intent.createChooser(emailIntent, "Send mail..."));
 				break;
 			default:
@@ -122,10 +120,11 @@ public class RecentShowsScreen extends Activity {
 		switch (item.getItemId()){
 			case R.id.nowPlaying: 	//Open playlist activity
 				Intent np = new Intent(RecentShowsScreen.this, NowPlayingScreen.class);
+
 				startActivity(np);
 				break;
 			case R.id.clearRecentShows:
-				VibeVault.db.clearShows(DataStore.RECENT_SHOW_TABLE);
+				VibeVault.db.clearRecentShows();
 				refreshShowList();
 				break;
 			case R.id.scrollableDialog:
@@ -133,7 +132,7 @@ public class RecentShowsScreen extends Activity {
 				ad.setTitle("Help!");
 				View v =LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
 				((TextView)v.findViewById(R.id.DialogText)).setText(R.string.recent_shows_screen_help);
-				ad.setPositiveButton("Cool.", new android.content.DialogInterface.OnClickListener() {
+				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int arg1) {
 					}
 				});

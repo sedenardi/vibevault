@@ -1,8 +1,8 @@
 /*
  * DownloadService.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -38,7 +38,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.widget.RemoteViews;
 import com.code.android.vibevault.R;
 
@@ -62,6 +61,7 @@ public class DownloadService extends Service implements Observer {
 	
 	@Override
 	public void onCreate(){
+
 		super.onCreate();
 		dNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		notification = new Notification(icon, tickerText, System.currentTimeMillis());
@@ -73,11 +73,13 @@ public class DownloadService extends Service implements Observer {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId){
+
 		return START_STICKY;
 	}
 	
 	@Override
 	public IBinder onBind(Intent arg0){
+
 		return(binder);
 	}
 	
@@ -90,6 +92,7 @@ public class DownloadService extends Service implements Observer {
 
 	@Override
 	public void onDestroy(){
+
 		super.onDestroy();
 	}
 	
@@ -97,13 +100,17 @@ public class DownloadService extends Service implements Observer {
 		if(!VibeVault.downloadSongs.contains(song) && !song.doesExist()){
 			VibeVault.downloadSongs.add(song);
 			if(!isDownloading){
+
 				downloadSong(song);
 				}
 			else{
+
 			}
 		}
 		else{
+
 		}
+
 	}
 	
 	public void pause(int pos){
@@ -147,18 +154,21 @@ public class DownloadService extends Service implements Observer {
 		downloadThread.addObserver(this);
 		isDownloading = true;
 		VibeVault.nowDownloadingPosition = VibeVault.downloadSongs.indexOf(song);
+
 	}
 	
 	public void advanceQueue(){
+
 		if(VibeVault.nowDownloadingPosition < VibeVault.downloadSongs.size() - 1){
 			VibeVault.nowDownloadingPosition ++;
+
 			downloadSong(VibeVault.downloadSongs.get(VibeVault.nowDownloadingPosition));
 		}
 		else{
 			isDownloading = false;
 			downloadThread.deleteObservers();
 			downloadThread = null;
-			Log.d(VibeVault.DOWNLOAD_SERVICE_TAG, "advanceQueue() - end of queue");
+
 		}
 	}
 	
@@ -247,6 +257,7 @@ public class DownloadService extends Service implements Observer {
 		
 		@Override 
 		public void onDataConnectionStateChanged(int state){
+
 			if(isDownloading){
 				switch(state){
 				case TelephonyManager.DATA_CONNECTED: resume(VibeVault.nowDownloadingPosition); break;

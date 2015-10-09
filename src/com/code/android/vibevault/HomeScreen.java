@@ -1,8 +1,8 @@
 /*
  * HomeScreen.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -24,34 +24,56 @@
 
 package com.code.android.vibevault;
 
+import java.io.IOException;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.SQLException;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import com.code.android.vibevault.R;
 
 public class HomeScreen extends Activity {
 
-	private Button searchButton;
-	private Button recentButton;
-	private Button downloadButton;
-	private Button playingButton;
+	private ImageButton searchButton;
+	private ImageButton recentButton;
+	private ImageButton downloadButton;
+	private ImageButton playingButton;
 //	private Button settingsButton;
+	private ImageButton recentShowsButton;
+	
+	private InitTask workerTask;
+	private boolean dialogShown;
+	
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home_screen);
 		
-		searchButton = (Button) findViewById(R.id.HomeSearch);
+		Object retained = getLastNonConfigurationInstance();
+		if(retained instanceof InitTask){
+			
+
+			workerTask = (InitTask)retained;
+			workerTask.setActivity(this);
+		} else{
+			workerTask = new InitTask(this);
+		}
+		
+		
+		searchButton = (ImageButton) findViewById(R.id.HomeSearch);
 		searchButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -59,7 +81,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		recentButton = (Button) findViewById(R.id.HomeRecent);
+		recentButton = (ImageButton) findViewById(R.id.HomeRecent);
 		recentButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -67,7 +89,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		downloadButton = (Button) findViewById(R.id.HomeDownload);
+		downloadButton = (ImageButton) findViewById(R.id.HomeDownload);
 		downloadButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -75,7 +97,7 @@ public class HomeScreen extends Activity {
 				startActivity(i);
 			}
 		});
-		playingButton = (Button) findViewById(R.id.HomePlaying);
+		playingButton = (ImageButton) findViewById(R.id.HomePlaying);
 		playingButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v){
@@ -91,6 +113,19 @@ public class HomeScreen extends Activity {
 //				//startActivity(i);
 //			}
 //		});
+		recentShowsButton = (ImageButton) findViewById(R.id.HomeFeatured);
+		recentShowsButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v){
+				Intent i = new Intent(HomeScreen.this, FeaturedShowsScreen.class);
+				startActivity(i);
+			}
+		});
+		
+		if(VibeVault.db.needsUpgrade){
+			workerTask = new InitTask(this);
+			workerTask.execute();
+		}
 	}
 	
 	@Override
@@ -108,7 +143,7 @@ public class HomeScreen extends Activity {
 				ad.setTitle("Help!");
 				View v =LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
 				((TextView)v.findViewById(R.id.DialogText)).setText(R.string.home_screen_help);
-				ad.setPositiveButton("Cool.", new android.content.DialogInterface.OnClickListener() {
+				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int arg1) {
 					}
 				});
@@ -125,4 +160,116 @@ public class HomeScreen extends Activity {
 		startService(new Intent(this, DownloadService.class));
 	}
 	
+	private class InitTask extends AsyncTask<String, Integer, String> {
+
+		private HomeScreen parentScreen;
+		private boolean success = false;
+		private boolean completed = false;
+		
+		private InitTask(HomeScreen activity){
+			this.parentScreen = activity;
+		}
+		
+		protected void onPreExecute(){
+			parentScreen.showDialog(VibeVault.UPGRADING_DB);
+		}
+		
+		@Override
+		protected String doInBackground(String... upgradeString) {
+
+			success = VibeVault.db.upgradeDB();
+			return "Completed";
+
+		}
+
+		protected void onPostExecute(String upgradeString) {
+			if(!success){
+				try {
+					VibeVault.db.copyDB();
+				} catch (IOException e) {
+					throw new Error("Error copying database");
+				}
+			}
+			try {
+				VibeVault.db.openDataBase();
+			} catch (SQLException e) {
+				Log.e(VibeVault.HOME_SCREEN_TAG, "Unable to open database");
+				Log.e(VibeVault.HOME_SCREEN_TAG, e.getStackTrace().toString());
+			}
+			completed=true;
+			notifyActivityTaskCompleted();
+		}
+		
+		// The parent could be null if you changed orientations
+		// and this method was called before the new SearchScreen
+		// could set itself as this Thread's parent.
+		private void notifyActivityTaskCompleted(){
+			if(parentScreen!=null){
+				parentScreen.onTaskCompleted();
+			}
+		}
+		
+		// When a SearchScreen is reconstructed (like after an orientation change),
+		// we call this method on the retained SearchScreen (if one exists) to set
+		// its parent Activity as the new SearchScreen because the old one has been destroyed.
+		// This prevents leaking any of the data associated with the old SearchScreen.
+		private void setActivity(HomeScreen activity){
+			this.parentScreen = activity;
+			if(completed){
+				notifyActivityTaskCompleted();
+			}
+		}
+		
+	}
+	
+	/** Persist worker Thread across orientation changes.
+	*
+	* Includes Thread bookkeeping to prevent not leaking Views on orientation changes.
+	*/
+	@Override
+	public Object onRetainNonConfigurationInstance(){
+		workerTask.setActivity(null);
+		return workerTask;
+	}
+	
+	/** Dialog preparation method.
+	*
+	* Includes Thread bookkeeping to prevent not leaking Views on orientation changes.
+	*/
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog){
+		super.onPrepareDialog(id, dialog);
+		if(id==VibeVault.UPGRADING_DB){
+			dialogShown = true;
+		}
+	}
+	
+	/** Dialog creation method.
+	*
+	* Includes Thread bookkeeping to prevent not leaking Views on orientation changes.
+	*/
+	@Override
+	protected Dialog onCreateDialog(int id){
+		switch(id){
+			case VibeVault.UPGRADING_DB:
+
+				ProgressDialog dialog = new ProgressDialog(this);
+				dialog.setMessage("Upgrading Database");
+				return dialog;
+			default:
+				return super.onCreateDialog(id);	
+		}
+	}
+	
+	private void onTaskCompleted(){
+		if(dialogShown){
+			try{
+				dismissDialog(VibeVault.UPGRADING_DB);
+			} catch(IllegalArgumentException e){
+
+				e.printStackTrace();
+			}
+
+		}
+	}
 }

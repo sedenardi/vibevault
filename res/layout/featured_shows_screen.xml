@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="wrap_content">
+
+	<TextView android:id="@+id/SelectedShowsLabel"
+		android:text="Selected Shows"
+		android:textColor="#127DD4"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:textSize="24dip"
+		android:textStyle="bold"
+		android:gravity="center_horizontal"
+		android:padding="6dip">
+		</TextView>
+	<ListView android:id="@+id/SelectedShowsListView"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:layout_below="@id/SelectedShowsLabel"
+		android:scrollbarDefaultDelayBeforeFade="2000"
+		android:scrollbarAlwaysDrawVerticalTrack="true" />
+		
+</RelativeLayout>

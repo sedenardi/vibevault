@@ -1,8 +1,8 @@
 /*
  * ActiveDownloadScreen.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -62,6 +62,7 @@ public class ActiveDownloadScreen extends Activity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.active_download_screen);
 		
@@ -69,6 +70,7 @@ public class ActiveDownloadScreen extends Activity {
 		downloadList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position, long id){
+
 			}
 		});
 		downloadList.setOnCreateContextMenuListener(new OnCreateContextMenuListener(){
@@ -125,7 +127,7 @@ public class ActiveDownloadScreen extends Activity {
 				ad.setTitle("Help!");
 				View v =LayoutInflater.from(this).inflate(R.layout.scrollable_dialog, null);
 				((TextView)v.findViewById(R.id.DialogText)).setText(R.string.download_screen_help);
-				ad.setPositiveButton("Cool.", new android.content.DialogInterface.OnClickListener() {
+				ad.setPositiveButton("Okay.", new android.content.DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int arg1) {
 					}
 				});
@@ -139,6 +141,7 @@ public class ActiveDownloadScreen extends Activity {
 	public boolean onContextItemSelected(MenuItem item){
 		AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo)item.getMenuInfo();
 		if(dService == null){
+
 		}
 		else if(menuInfo!=null){
 			switch(item.getItemId()){
@@ -231,11 +234,13 @@ public class ActiveDownloadScreen extends Activity {
 	
 	private ServiceConnection onDService=new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder rawBinder) {
+
 			dService=((DownloadService.DServiceBinder)rawBinder).getService();
 			refreshDownloadList();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
+
 			dService=null;
 		}
 	};

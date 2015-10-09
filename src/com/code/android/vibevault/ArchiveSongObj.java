@@ -1,8 +1,8 @@
 /*
  * ArchiveSongObj.java
- * VERSION 1.1
+ * VERSION 1.4
  * 
- * Copyright 2010 Andrew Pearson and Sanders DeNardi.
+ * Copyright 2011 Andrew Pearson and Sanders DeNardi.
  * 
  * This file is part of Vibe Vault.
  * 
@@ -27,6 +27,7 @@ package com.code.android.vibevault;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import android.os.Environment;
 
 public class ArchiveSongObj {
@@ -39,6 +40,7 @@ public class ArchiveSongObj {
 	private String title;
 	private String showTitle;
 	private String showIdent;
+	private String showArtist;
 	private String fileName;
 	private int status;
 	private boolean exists = false;
@@ -59,14 +61,57 @@ public class ArchiveSongObj {
 	 * @param showTit The title of the show which the song is a part of.
 	 */
 	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent){
+		String artistAndShowTitle[] = showTit.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live ");
+		}
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		
 		urlString = urlStr;
 		status = -1;
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
+		
 		this.showIdent = showIdent;
 		String splitArray[] = urlStr.split("/");
 		fileName = splitArray[splitArray.length-1];
 		checkExists();
+		/*File showRootDir = new File(Environment.getExternalStorageDirectory() + ArchiveApp.APP_DIRECTORY + showTitle);
+		File postCmplt = new File(showRootDir, title.replace(">", "_") + ".mp3");
+		if(postCmplt.exists()){
+			downloaded=true;
+			return;
+		} else{
+			File posIncmplt = new File(showRootDir, ArchiveApp.INCOMPLETE_DL_STRING + sanitizeForFilename(title) + ".mp3");
+			if(posIncmplt.exists()){
+				started=true;
+				return;
+			}
+		}*/
+	}
+	
+	// Constructor from DB, doesn't call db
+	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent, boolean isDownloaded){
+		urlString = urlStr;
+		status = -1;
+		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
+		showTitle = showTit;
+		String artistAndShowTitle[] = showTit.split(" Live at ");
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live @ ");
+		}
+		if(artistAndShowTitle.length < 2){
+			artistAndShowTitle = tit.split(" Live ");
+		}
+		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		this.showIdent = showIdent;
+		String splitArray[] = urlStr.split("/");
+		fileName = splitArray[splitArray.length-1];
+		exists = isDownloaded;
+		//checkExists();
 		/*File showRootDir = new File(Environment.getExternalStorageDirectory() + ArchiveApp.APP_DIRECTORY + showTitle);
 		File postCmplt = new File(showRootDir, title.replace(">", "_") + ".mp3");
 		if(postCmplt.exists()){
@@ -109,13 +154,20 @@ public class ArchiveSongObj {
 	}
 	
 	private void checkExists(){
-		File checkCmplt = new File(getFilePath());
+		/*File checkCmplt = new File(getFilePath());
 		if(checkCmplt.exists()){
 			exists = true;
 		}
 		else{
 			exists = false;
+		}*/
+		if(VibeVault.db.songIsDownloaded(fileName) && new File(getFilePath()).exists()){
+			exists = true;
 		}
+		else{
+			exists = false;
+		}
+
 	}
 	
 	public String getSongPath(){
@@ -159,6 +211,10 @@ public class ArchiveSongObj {
 	
 	public String getShowTitle(){
 		return showTitle;
+	}
+	
+	public String getShowArtist(){
+		return showArtist;
 	}
 
 	/** Returns a URL object of the lowest bitrate for a song.
