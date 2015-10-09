@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<TextView
+		android:id="@+id/HomeHeader"
+		android:textSize="30dip"
+		android:gravity="center"
+		android:text="Vibe Vault V1.1"
+		android:textColor="#127DD4"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_weight="1" />
+			<Button
+		android:id="@+id/HomeSearch"
+		android:layout_width="fill_parent"
+		android:layout_height="45dip"
+		android:drawableLeft="@drawable/searchbutton"
+		android:text="Search"
+		android:layout_weight="1"/>
+	<Button
+		android:id="@+id/HomeRecent"
+		android:layout_width="fill_parent"
+		android:layout_height="45dip"
+		android:drawableLeft="@drawable/recentbutton"
+		android:text="Recent Shows"
+		android:layout_weight="1"
+		/>		
+	<Button
+		android:id="@+id/HomeDownload"
+		android:layout_width="fill_parent"
+		android:layout_height="45dip"
+		android:drawableLeft="@drawable/downloadbutton"
+		android:text="Downloads"
+		android:layout_weight="1"
+		/>
+	<Button
+		android:id="@+id/HomePlaying"
+		android:layout_below="@id/HomeDownload"
+		android:layout_width="fill_parent"
+		android:layout_height="45dip"
+		android:drawableLeft="@drawable/playingbutton"
+		android:text="Now Playing"
+		android:layout_weight="1"
+		/>
+<!--	<Button-->
+<!--		android:id="@+id/HomeSettings"-->
+<!--		android:layout_below="@id/HomePlaying"-->
+<!--		android:layout_width="fill_parent"-->
+<!--		android:layout_height="45dip"-->
+<!--		android:drawableLeft="@drawable/settingsbutton"-->
+<!--		android:text="Settings"-->
+<!--		/>-->
+	
+</LinearLayout>

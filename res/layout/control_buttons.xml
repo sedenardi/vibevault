@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="50dip"
+	android:orientation="horizontal">
+		<ImageButton
+			android:id="@+id/PrevButton"
+			android:src="@android:drawable/ic_media_previous"
+			android:layout_weight="1"></ImageButton>
+		<ImageButton
+			android:id="@+id/StopButton"
+			android:src="@android:drawable/checkbox_off_background"
+			android:layout_weight="1" />
+		<ImageButton
+			android:id="@+id/PauseButton"
+			android:src="@android:drawable/ic_media_play"
+			android:layout_weight="1" />
+		<ImageButton
+			android:id="@+id/NextButton"
+			android:src="@android:drawable/ic_media_next"
+			android:layout_weight="1" />
+</LinearLayout>

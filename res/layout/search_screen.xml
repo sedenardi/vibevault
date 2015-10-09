@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout android:id="@+id/TableLayout01"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	android:orientation="vertical"
+	android:stretchColumns="1" xmlns:android="http://schemas.android.com/apk/res/android">
+	<TableRow>
+		<EditText android:id="@+id/SearchBox"
+		android:layout_width="wrap_content"
+		android:layout_height="50dip"
+		android:layout_column="0"
+		android:layout_span="2"
+			android:hint="Artist..." android:maxLines="1"/>
+		<Button android:id="@+id/SearchButton" android:layout_width="wrap_content"
+			android:layout_height="50dip"
+			android:layout_column="2"
+			android:drawableLeft="@drawable/searchbutton"
+			/>
+	
+</TableRow>
+	<Button android:id="@+id/SearchMoreButton" android:layout_width="fill_parent"
+		android:text="Find more shows..."
+			android:layout_height="wrap_content"
+			android:layout_column="0"
+			android:drawableLeft="@drawable/morebutton"
+			/>
+	<ListView 	android:id="@+id/ResultsListView" 
+				android:layout_width="fill_parent" 
+				android:layout_height="fill_parent"
+				android:scrollbarDefaultDelayBeforeFade="2000"
+				android:scrollbarAlwaysDrawVerticalTrack="true" />
+	
+</TableLayout>

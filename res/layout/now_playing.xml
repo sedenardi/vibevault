@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TableLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+		<TextView android:id="@+id/SongLabel"
+			android:text="Nothing..."
+			android:textColor="#127DD4"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:textSize="20dip"
+			android:textStyle="bold"
+			android:gravity="center_horizontal"
+			android:padding="1dip"></TextView>
+		<TextView android:id="@+id/ShowLabel"
+			android:text="Nothing..."
+			android:textColor="#127DD4"
+			android:textStyle="bold"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:textSize="16dip"
+			android:gravity="center_horizontal"
+			android:padding="1dip"
+			android:layout_below="@+id/SongLabel"></TextView>
+			<TableRow android:id="@+id/TableRow01"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			>
+		<Button
+			android:id="@+id/PrevButton"
+			android:background="@drawable/mediabackbutton"
+			android:layout_width="50dip"
+			android:layout_height="50dip"></Button>
+		<Button
+			android:id="@+id/StopButton"
+			android:background="@drawable/mediastopbutton"
+			android:layout_width="50dip"
+			android:layout_height="50dip"></Button>
+		<Button
+			android:id="@+id/PauseButton"
+			android:background="@drawable/mediapausebutton"
+			android:layout_width="50dip"
+			android:layout_height="50dip"></Button>
+		<Button
+			android:id="@+id/NextButton"
+			android:background="@drawable/mediaforwardbutton"
+			android:layout_width="50dip"
+			android:layout_height="50dip"></Button>
+			</TableRow>
+		<ListView android:id="@+id/PlayListListView" 
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:layout_below="@+id/NextButton"
+			android:layout_alignParentBottom="true"></ListView>
+</TableLayout>

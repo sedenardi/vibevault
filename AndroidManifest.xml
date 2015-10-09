@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.code.android.vibevault" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.1.0" android:versionCode="2">
+	<application android:icon="@drawable/icon" android:debuggable="false" android:label="@string/app_name" android:name="com.code.android.vibevault.VibeVault">
+		<activity android:name="com.code.android.vibevault.HomeScreen">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+
+			</intent-filter>
+		</activity>
+		<activity android:name="com.code.android.vibevault.SearchScreen" android:label="@string/app_name">
+		</activity>
+		<activity android:name="com.code.android.vibevault.ShowDetailsScreen" android:label="@string/app_name">
+		</activity>
+
+		<activity android:name="com.code.android.vibevault.NowPlayingScreen"></activity>
+
+		<activity android:name="com.code.android.vibevault.RecentShowsScreen"></activity>
+		
+<service android:name="com.code.android.vibevault.PlayerService"></service>
+<service android:name="com.code.android.vibevault.DownloadService"></service>
+<activity android:name="com.code.android.vibevault.ActiveDownloadScreen"></activity>
+<activity android:name="com.code.android.vibevault.ShowsDownloadedScreen"></activity>
+<activity android:name="com.code.android.vibevault.DownloadTabs"></activity>
+<activity android:name="com.code.android.vibevault.DownloadedShowScreen"></activity>
+</application>
+	<uses-sdk android:minSdkVersion="7" />
+	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+
+
+
+<uses-permission android:name="android.permission.READ_PHONE_DATA"></uses-permission>
+<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+</manifest> 
