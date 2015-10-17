@@ -23,5 +23,5 @@
     <dimen name="widget_list_margin">6dp</dimen>
     <dimen name="notification_expanded_height">128.0dip</dimen>
     <dimen name="notification_button_height">48.0dip</dimen>
-    
+
 </resources>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <GridLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:alignmentMode="alignBounds"
+        android:columnCount="2">
+
+    <RelativeLayout
+        android:id="@+id/HomeSearch"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_columnWeight="1"
+        android:layout_rowWeight="1"
+        android:layout_gravity="fill"
+        android:background="@color/colorPrimary700"
+        >
+        <ImageView
+            android:id="@+id/search_image"
+            android:layout_width="96dip"
+            android:layout_height="96dip"
+            android:src="@drawable/ic_search_white_48dp"
+            android:layout_centerInParent="true"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/text_height_label"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/search_image"
+            android:text="Search"
+            />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/HomeRecent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_columnWeight="1"
+        android:layout_rowWeight="1"
+        android:layout_gravity="fill"
+        android:background="@color/colorPrimary400">
+        <ImageView
+            android:id="@+id/shows_image"
+            android:layout_width="96dip"
+            android:layout_height="96dip"
+            android:src="@drawable/ic_list_white_48dp"
+            android:layout_centerInParent="true"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/text_height_label"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/shows_image"
+            android:text="Your Shows"
+            />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/HomeDownload"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_columnWeight="1"
+        android:layout_rowWeight="1"
+        android:layout_gravity="fill"
+        android:background="@color/colorPrimary600">
+        <ImageView
+            android:id="@+id/download_image"
+            android:layout_width="96dip"
+            android:layout_height="96dip"
+            android:src="@drawable/ic_file_download_white_48dp"
+            android:layout_centerInParent="true"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/text_height_label"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/download_image"
+            android:text="Downloads"
+            />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/HomePlaying"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_columnWeight="1"
+        android:layout_rowWeight="1"
+        android:layout_gravity="fill"
+        android:background="@color/colorPrimary300">
+        <ImageView
+            android:id="@+id/playing_image"
+            android:layout_width="96dip"
+            android:layout_height="96dip"
+            android:src="@drawable/ic_play_circle_outline_white_48dp"
+            android:layout_centerInParent="true"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/text_height_label"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/playing_image"
+            android:text="Now Playing"
+            />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/HomeFeatured"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_columnWeight="1"
+        android:layout_rowWeight="1"
+        android:layout_gravity="fill"
+        android:background="@color/colorPrimary800">
+        <ImageView
+            android:id="@+id/voting_image"
+            android:layout_width="96dip"
+            android:layout_height="96dip"
+            android:src="@drawable/ic_thumb_up_white_48dp"
+            android:layout_centerInParent="true"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/text_height_label"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/voting_image"
+            android:text="User Votes"
+            />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/HomeBrowse"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_columnWeight="1"
+        android:layout_rowWeight="1"
+        android:layout_gravity="fill"
+        android:background="@color/colorPrimary900"
+        >
+        <ImageView
+            android:id="@+id/browse_image"
+            android:layout_width="96dip"
+            android:layout_height="96dip"
+            android:src="@drawable/ic_book_white_48dp"
+            android:layout_centerInParent="true"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/text_height_label"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/browse_image"
+            android:text="Browse Artists"
+            />
+    </RelativeLayout>
+
+</GridLayout>

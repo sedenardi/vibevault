@@ -3,15 +3,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical"
 	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:background="#000000">
+	android:layout_height="fill_parent">
 	<TextView
 		android:id="@+id/HomeHeader"
 		android:textSize="@dimen/heading_size"
 		android:gravity="center_horizontal"
 		android:layout_alignParentTop="true"
 		android:text="@string/vibe_vault_app_title"
-		android:textColor="#127DD4"
+		android:textColor="@color/colorPrimaryAccent"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginBottom="@dimen/home_buffer_small"/>

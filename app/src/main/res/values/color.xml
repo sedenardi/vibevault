@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="vv_blue">#127DD4</color>
+    <!--DF=83%-->
+    <!--8A=54%-->
+    <!--61=38%-->
+    <color name="primary_text_color_light">#DFFFFFFF</color>
+    <color name="secondary_text_color_light">#8AFFFFFF</color>
+    <color name="hint_text_color_light">#61FFFFFF</color>
+    <color name="primary_text_color_dark">#DF000000</color>
+    <color name="secondary_text_color_dark">#8A000000</color>
+    <color name="hint_text_color_dark">#61000000</color>
+
+
+    <color name="colorPrimary100">#BBDEFB</color>
+
+    <color name="colorPrimary200">#90CAF9</color>
+
+    <color name="colorPrimary300">#64B5F6</color>
+
+    <color name="colorPrimary400">#42A5F5</color>
+
+    <color name="colorPrimary500">#2196F3</color>
+
+    <color name="colorPrimary600">#1E88E5</color>
+
+    <color name="colorPrimary700">#1976D2</color>
+
+    <color name="colorPrimary800">#1565C0</color>
+
+    <color name="colorPrimary900">#0D47A1</color>
+
+
+    <color name="textColorPrimary">#FFFFFF</color>
+
+    <color name="colorPrimaryAccent">#2979FF</color>
+    <color name="colorPrimaryDarkAccent">#2962FF</color>
+
+</resources>

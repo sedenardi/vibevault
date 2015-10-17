@@ -6,7 +6,7 @@
 	<uses-sdk android:minSdkVersion="15" android:targetSdkVersion="18"/>
 	<uses-permission android:name="android.permission.WAKE_LOCK"/>
 	<application android:icon="@drawable/icon" android:label="@string/app_name"
-		android:debuggable="false" android:theme="@style/HoloBlack">
+		android:theme="@style/MaterialBlack">
 		<activity android:name="com.code.android.vibevault.HomeScreen"
 		    android:theme="@android:style/Theme.NoTitleBar"
 		    android:launchMode="singleInstance">
@@ -17,7 +17,7 @@
 		</activity>
 		<activity android:name=".SearchScreen"
 			android:label="@string/app_name"
-			android:theme="@style/HoloBlack"
+			android:theme="@style/MaterialBlack"
 			android:launchMode="singleTop">
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
@@ -59,21 +59,6 @@
 		        <action android:name="com.code.android.vibevault.playbackservice.ACTION_POLL"/>
 		    </intent-filter>
 		</service>
-		<activity android:name="VotesScreen" android:theme="@style/HoloBlack"></activity>
-		<activity android:name="ShowsStoredScreen"></activity>
-		<receiver android:name="DownloadReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
-            </intent-filter>
-		</receiver>
-		<receiver android:name="RemoteControlReceiver">
-            <intent-filter>
-                <action android:name="android.media.AUDIO_BECOMING_NOISY" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-		</receiver>
 		<receiver android:name="WidgetRowProvider"
 		    android:label="Vibe Vault Row">
 		    <intent-filter>
