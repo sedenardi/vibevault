@@ -32,7 +32,7 @@ public class SongAdapter extends ArrayAdapter<ArchiveSongObj> {
 	}
 	
 	public void setSongSelected(int pos){
-		
+
 	}
 
 	@Override
@@ -54,11 +54,7 @@ public class SongAdapter extends ArrayAdapter<ArchiveSongObj> {
 			songText.setSingleLine();
 			songText.setHorizontallyScrolling(true);
 			artistText.setText(song.getShowArtist());
-			artistText.setSelected(true);
-			artistText.setSelected(true);
-			artistText.setMarqueeRepeatLimit(-1);
 			artistText.setSingleLine();
-			artistText.setHorizontallyScrolling(true);
 			menuIcon.setVisibility(View.VISIBLE);
 
 
@@ -78,7 +74,7 @@ public class SongAdapter extends ArrayAdapter<ArchiveSongObj> {
 					}
 					if (db.songIsDownloaded(song.getFileName())) {
 						menu.show();
-	
+
 					} else {
 						menu.show();
 				}

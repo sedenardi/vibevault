@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -64,11 +65,8 @@ public class ScrollingShowAdapter extends ArrayAdapter<ArchiveShowObj> {
 		String showTitle = show.getShowTitle();
 		artistText.setText(artist);
 		showText.setText(showTitle);
-		artistText.setSelected(true);
 		showText.setSelected(true);
-		artistText.setMarqueeRepeatLimit(-1);
 		artistText.setSingleLine();
-		artistText.setHorizontallyScrolling(true);
 		showText.setMarqueeRepeatLimit(-1);
 		showText.setSingleLine();
 		showText.setHorizontallyScrolling(true);

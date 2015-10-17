@@ -87,10 +87,6 @@ public class ShowsStoredFragment extends Fragment implements
 		View v = inflater.inflate(R.layout.shows_stored_fragment, container,
 				false);
 		storedList = (ListView) v.findViewById(R.id.StoredListView);
-		int[] gradientColors = { 0, 0xFF127DD4, 0 };
-		storedList.setDivider(new GradientDrawable(Orientation.RIGHT_LEFT,
-				gradientColors));
-		storedList.setDividerHeight(1);
 		storedList.setOnItemClickListener(this);
 		return v;
 	}

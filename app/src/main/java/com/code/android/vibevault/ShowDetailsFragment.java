@@ -115,9 +115,6 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 		// Initialize the show's label and its list of tracks.  Set the appropriate listeners.
 		showLabel = (TextView) v.findViewById(R.id.ShowLabel);
 		trackList = (ListView) v.findViewById(R.id.SongsListView);
-		int[] gradientColors = {0, 0xFF127DD4, 0};
-		trackList.setDivider(new GradientDrawable(Orientation.RIGHT_LEFT, gradientColors));
-		trackList.setDividerHeight(1);
 		trackList.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position,	long id) {
@@ -344,7 +341,7 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	 */
 	private void refreshTrackList() {
 		Logging.Log(LOG_TAG, String.valueOf(showSongs.size()));
-		trackList.setAdapter(new SongAdapter(getActivity(), R.layout.show_details_screen_row, showSongs, db));
+		trackList.setAdapter(new SongAdapter(getActivity(), R.layout.playlist_row, showSongs, db));
 		refreshScreenTitle();
 	}
 

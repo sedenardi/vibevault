@@ -3,7 +3,7 @@ import android.util.Log;
 
 public class Logging {
 
-	public static final boolean enabled = false;
+	public static final boolean enabled = true;
 	
 	public static void Log(String LOG_TAG, String message) {
 		if (enabled)

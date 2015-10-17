@@ -7,7 +7,5 @@
         <item name="android:colorPrimary">@color/colorPrimary500</item>
         <item name="android:colorPrimaryDark">@color/colorPrimary700</item>
         <item name="android:textColorPrimary">@color/textColorPrimary</item>
-        >
-
     </style>
 </resources>

@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent">
+	  xmlns:android="http://schemas.android.com/apk/res/android"
+	  android:layout_width="fill_parent"
+	  android:layout_height="fill_parent">
 
-		<TextView
-		    android:id="@+id/ShowLabel"
-		    android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_marginBottom="15dip"
-		    android:gravity="center_horizontal"
-		    android:textColor="#127DD4"
-		    android:textSize="20sp"
-		    android:textStyle="bold" >
-</TextView>	
-		<ListView android:id="@+id/SongsListView" 
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent"
-			android:layout_below="@+id/ShowLabel"
-			android:layout_alignParentBottom="true"
-			android:background="#000000"
-		android:overScrollFooter="@null"></ListView>
+			<TextView
+				android:id="@+id/ShowLabel"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="15dip"
+				android:gravity="left"
+				android:textColor="@color/colorPrimary200"
+				android:textSize="@dimen/text_height_label"
+				android:paddingLeft="18dip"
+				android:paddingRight="18dip"
+				android:text="test">
+	</TextView>
+			<ListView android:id="@+id/SongsListView"
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:layout_below="@+id/ShowLabel"
+				android:layout_alignParentBottom="true"
+			android:overScrollFooter="@null"></ListView>
 </RelativeLayout>
