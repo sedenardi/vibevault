@@ -186,9 +186,8 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 			}
 		});
 		searchList.setFooterDividersEnabled(false);
-		int[] gradientColors = {0, 0xFF127DD4, 0};
-		searchList.setDivider(new GradientDrawable(Orientation.RIGHT_LEFT, gradientColors));
-		searchList.setDividerHeight(1);
+		searchList.setDivider(null);
+		searchList.setDividerHeight(0);
 		this.searchMoreButton = new Button(getActivity());
 		this.searchMoreButton.setText("Get More Results");
 		this.searchMoreButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
@@ -595,7 +594,7 @@ public class SearchFragment extends Fragment implements LoaderManager.LoaderCall
 			if (convertView == null) {
 				LayoutInflater vi = (LayoutInflater) getActivity()
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = vi.inflate(R.layout.search_list_row, null);
+				convertView = vi.inflate(R.layout.show_card, null);
 			}
 			TextView artistText = (TextView) convertView
 					.findViewById(R.id.ArtistText);

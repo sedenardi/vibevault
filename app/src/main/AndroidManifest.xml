@@ -8,7 +8,7 @@
 	<application android:icon="@drawable/icon" android:label="@string/app_name"
 		android:theme="@style/MaterialBlack">
 		<activity android:name="com.code.android.vibevault.HomeScreen"
-		    android:theme="@android:style/Theme.NoTitleBar"
+		    android:theme="@style/MaterialBlack"
 		    android:launchMode="singleInstance">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
