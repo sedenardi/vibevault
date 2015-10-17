@@ -51,6 +51,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.code.android.vibevault.R;
@@ -61,20 +62,15 @@ public class HomeScreen extends Activity {
 	
 	private static final int UPGRADE_DB = 20;
 
-	private ImageButton searchButton;
-	private ImageButton recentButton;
-	private ImageButton downloadButton;
-	private ImageButton playingButton;
-//	private Button settingsButton;
-	private ImageButton featuredShowsButton;
-	private ImageButton browseArtistsButton;
-	private ImageView separator1;
-	private ImageView separator2;
-	private ImageView separator3;
+	private RelativeLayout searchButton;
+	private RelativeLayout recentButton;
+	private RelativeLayout downloadButton;
+	private RelativeLayout playingButton;
+	private RelativeLayout featuredShowsButton;
+	private RelativeLayout browseArtistsButton;
+
 	
 	private UpgradeTask upgradeTask;
-	//private ArtistUpdateTask artistUpdateTask;
-	//private ShowUpdateTask showUpdateTask;
 	private boolean dialogShown;
 	
 	private StaticDataStore db;
@@ -113,7 +109,7 @@ public class HomeScreen extends Activity {
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.home_screen);
+		setContentView(R.layout.home_screen_new);
 		
 		Object retained = getLastNonConfigurationInstance();
 		
@@ -124,26 +120,14 @@ public class HomeScreen extends Activity {
 		} else{
 			//upgradeTask = new UpgradeTask(this);
 		}
-		
-		int[] gradientColors = {0, 0xFF127DD4, 0};
-		int curOrientation = this.getResources().getConfiguration().orientation;
-		// FIXME
-		separator1 = (ImageView)findViewById(R.id.separator1);
-		separator1.setBackgroundDrawable(new GradientDrawable(curOrientation==Configuration.ORIENTATION_PORTRAIT?Orientation.RIGHT_LEFT:Orientation.RIGHT_LEFT, gradientColors));
-		//separator1.setBackground(new GradientDrawable(Orientation.RIGHT_LEFT, gradientColors));
-		separator2 = (ImageView)findViewById(R.id.separator2);
-		separator2.setBackgroundDrawable(new GradientDrawable(curOrientation==Configuration.ORIENTATION_PORTRAIT?Orientation.RIGHT_LEFT:Orientation.TOP_BOTTOM, gradientColors));
-		//separator2.setBackground(new GradientDrawable(Orientation.RIGHT_LEFT, gradientColors));
-		separator3 = (ImageView)findViewById(R.id.separator3);
-		separator3.setBackgroundDrawable(new GradientDrawable(curOrientation==Configuration.ORIENTATION_PORTRAIT?Orientation.TOP_BOTTOM:Orientation.TOP_BOTTOM, gradientColors));
-		//separator3.setBackground(new GradientDrawable(Orientation.TOP_BOTTOM, gradientColors));
-		
-		searchButton = (ImageButton) findViewById(R.id.HomeSearch);
-		recentButton = (ImageButton) findViewById(R.id.HomeRecent);
-		downloadButton = (ImageButton) findViewById(R.id.HomeDownload);
-		playingButton = (ImageButton) findViewById(R.id.HomePlaying);
-		featuredShowsButton = (ImageButton) findViewById(R.id.HomeFeatured);
-		browseArtistsButton = (ImageButton) findViewById(R.id.HomeBrowse);
+
+
+		searchButton = (RelativeLayout) findViewById(R.id.HomeSearch);
+		recentButton = (RelativeLayout) findViewById(R.id.HomeRecent);
+		downloadButton = (RelativeLayout) findViewById(R.id.HomeDownload);
+		playingButton = (RelativeLayout) findViewById(R.id.HomePlaying);
+		featuredShowsButton = (RelativeLayout) findViewById(R.id.HomeFeatured);
+		browseArtistsButton = (RelativeLayout) findViewById(R.id.HomeBrowse);
 		
 		
 		db = StaticDataStore.getInstance(this);
