@@ -22,27 +22,33 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.ContentNode;
+import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.NodeList;
 
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+
 public class Searching {
-		
+
 	private static final String LOG_TAG = Searching.class.getName();
-	
+
 	private static final String SEARCHING_PREFIX = "com.code.android.vibevault.searching.";
 	public static final String SEARCHING_UPDATE = SEARCHING_PREFIX + "SEARCHING_UPDATE";
-	
+
 	public static final String EXTRA_STATUS = SEARCHING_PREFIX + "EXTRA_STATUS";
 	public static final String EXTRA_TOTAL = SEARCHING_PREFIX + "EXTRA_TOTAL";
 	public static final String EXTRA_COMPLETED = SEARCHING_PREFIX + "EXTRA_COMPLETED";
-	
+
 	public static final int STATUS_DOWNLOADING = 0;
 	public static final int STATUS_INSERTING = 1;
 	public static final int STATUS_COMPLETED = 2;
@@ -57,58 +63,58 @@ public class Searching {
 			sortPref= "avg_rating+desc";
 		}
 		String queryString = null;
-		
+
 		try {
 			String dateModifier = "";
 			// FIXME
-				switch(dateType){
-					case SearchSettingsDialogFragment.ANYTIME:
-						Logging.Log(LOG_TAG, "ANYTIME.");
-						break;
-					case SearchSettingsDialogFragment.BEFORE:	//Before
-						Logging.Log(LOG_TAG, "BEFORE.");
-						dateModifier = "date:[1800-01-01%20TO%20" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"01") + "-01]%20AND%20";
-						break;
-					case SearchSettingsDialogFragment.AFTER:	//After
-						int curDate = Calendar.getInstance().get(Calendar.DATE);
-						int curMonth = Calendar.getInstance().get(Calendar.MONTH);
-						int curYear = Calendar.getInstance().get(Calendar.YEAR);
-						dateModifier = "date:[" + (monthSearchInt>0?yearSearchInt:yearSearchInt+1) + "-" + 
-								(monthSearchInt>0?String.format("%02d",monthSearchInt):"01")  + "-01%20TO%20" + curYear + "-" + String.format("%02d",curMonth) + "-" + String.format("%02d",curDate) + "]%20AND%20";
-						break;
-					case SearchSettingsDialogFragment.DURING:	// In Year.
-						dateModifier = "date:[" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"01") + 
-						"-01%20TO%20" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"12") + "-31]%20AND%20";
-						break;
-					case SearchSettingsDialogFragment.SPECIFIC:
-						String specific = yearSearchInt + "-" + String.format("%02d",monthSearchInt) + "-" + String.format("%02d",daySearchInt);
-						dateModifier = "date:[" + specific + "%20TO%20" + specific + "]%20AND%20";
-						break;						
-					}
+			switch(dateType){
+				case SearchSettingsDialogFragment.ANYTIME:
+					Logging.Log(LOG_TAG, "ANYTIME.");
+					break;
+				case SearchSettingsDialogFragment.BEFORE:	//Before
+					Logging.Log(LOG_TAG, "BEFORE.");
+					dateModifier = "date:[1800-01-01%20TO%20" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"01") + "-01]%20AND%20";
+					break;
+				case SearchSettingsDialogFragment.AFTER:	//After
+					int curDate = Calendar.getInstance().get(Calendar.DATE);
+					int curMonth = Calendar.getInstance().get(Calendar.MONTH);
+					int curYear = Calendar.getInstance().get(Calendar.YEAR);
+					dateModifier = "date:[" + (monthSearchInt>0?yearSearchInt:yearSearchInt+1) + "-" +
+							(monthSearchInt>0?String.format("%02d",monthSearchInt):"01")  + "-01%20TO%20" + curYear + "-" + String.format("%02d",curMonth) + "-" + String.format("%02d",curDate) + "]%20AND%20";
+					break;
+				case SearchSettingsDialogFragment.DURING:	// In Year.
+					dateModifier = "date:[" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"01") +
+							"-01%20TO%20" + yearSearchInt + "-" + (monthSearchInt>0?String.format("%02d",monthSearchInt):"12") + "-31]%20AND%20";
+					break;
+				case SearchSettingsDialogFragment.SPECIFIC:
+					String specific = yearSearchInt + "-" + String.format("%02d",monthSearchInt) + "-" + String.format("%02d",daySearchInt);
+					dateModifier = "date:[" + specific + "%20TO%20" + specific + "]%20AND%20";
+					break;
+			}
 			// We search creator:(random's artist)%20OR%20creator(randoms artist) because
 			// archive.org does not like apostrophes in the creator query.
 			String specificSearch = "";
 //			if(searchType.equals("Artist")){
-				specificSearch = "(creator:(" + URLEncoder.encode(artistSearchText,"UTF-8") + ")" + "%20OR%20creator:(" + URLEncoder.encode(artistSearchText.replace("'", "").replace("\"", ""),"UTF-8") + "))";
+			specificSearch = "(creator:(" + URLEncoder.encode(artistSearchText,"UTF-8") + ")" + "%20OR%20creator:(" + URLEncoder.encode(artistSearchText.replace("'", "").replace("\"", ""),"UTF-8") + "))";
 //			} else if(searchType.equals("Show/Artist Description")){
 //				specificSearch = "(creator:(" + URLEncoder.encode(artistSearchText,"UTF-8") + ")" + "%20OR%20description:(" + URLEncoder.encode(artistSearchText.replace("'", "").replace("\"", ""),"UTF-8") + "))";
 //			}
-			String mediaType = "mediatype:(etree)";	
-			
+			String mediaType = "mediatype:(etree)";
+
 			queryString = "http://www.archive.org/advancedsearch.php?q="
-			+ "(" + dateModifier + mediaType + "%20AND%20format:(mp3)" +  "%20AND%20(" + specificSearch + "))"
-			+ "&fl[]=date&fl[]=avg_rating&fl[]=source&fl[]=format&fl[]=identifier&fl[]=mediatype&fl[]=title&sort[]="
-			+ sortPref + "&sort[]=&sort[]=&rows="
-			+ String.valueOf(numResults) + "&page=" + String.valueOf(pageNum) + "&output=json&save=yes";
+					+ "(" + dateModifier + mediaType + "%20AND%20format:(mp3)" +  "%20AND%20(" + specificSearch + "))"
+					+ "&fl[]=date&fl[]=avg_rating&fl[]=source&fl[]=format&fl[]=identifier&fl[]=mediatype&fl[]=title&sort[]="
+					+ sortPref + "&sort[]=&sort[]=&rows="
+					+ String.valueOf(numResults) + "&page=" + String.valueOf(pageNum) + "&output=json&save=yes";
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 		Logging.Log(LOG_TAG,queryString);
 		return queryString;
 	}
-	
+
 	public static void getShows(String query, ArrayList<ArchiveShowObj> searchResults){
-		
+
 		String queryResult = "";
 
 		/* Open up an HTTP connection with the archive.org query. Grab an
@@ -120,26 +126,26 @@ public class Searching {
 		 * the OS more and is way slower.
 		 */
 		try {
-			
+
 			HttpGet request = new HttpGet(query);
-    		HttpParams params = new BasicHttpParams();
-    		int timeout = (int) (15 * DateUtils.SECOND_IN_MILLIS);
-    		HttpConnectionParams.setConnectionTimeout(params, timeout);
-    		HttpConnectionParams.setSoTimeout(params, timeout);
-    		HttpClient client = new DefaultHttpClient(params);
-    		
-    		HttpResponse response = client.execute(request);
-    		StatusLine status = response.getStatusLine();
-    		if (status.getStatusCode() == HttpStatus.SC_OK) {
-    			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-    			queryResult = responseHandler.handleResponse(response);
-    		} 		
-    		
-    		client.getConnectionManager().shutdown();
+			HttpParams params = new BasicHttpParams();
+			int timeout = (int) (15 * DateUtils.SECOND_IN_MILLIS);
+			HttpConnectionParams.setConnectionTimeout(params, timeout);
+			HttpConnectionParams.setSoTimeout(params, timeout);
+			HttpClient client = new DefaultHttpClient(params);
+
+			HttpResponse response = client.execute(request);
+			StatusLine status = response.getStatusLine();
+			if (status.getStatusCode() == HttpStatus.SC_OK) {
+				ResponseHandler<String> responseHandler = new BasicResponseHandler();
+				queryResult = responseHandler.handleResponse(response);
+			}
+
+			client.getConnectionManager().shutdown();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		Logging.Log(LOG_TAG, "JSON grabbed.");
 		
 		/*
@@ -168,28 +174,17 @@ public class Searching {
 			Logging.Log(LOG_TAG, "JSON error: " + queryResult);
 			Logging.Log(LOG_TAG, e.toString());
 		}
-		
+
 		Logging.Log(LOG_TAG, "Returning results.");
 	}
 
-	
-	/**
-	 * Parse the show details page.
-	 * 
-	 * I didn't want to use an external .JAR to parse the HTML, but it is better
-	 * practice than "rolling my own" parser using regex's or something. We use
-	 * HtmlCleaner instead of TagSoup because it is smaller, even though
-	 * HtmlCleaner doesn't support 100% of XPath features. We use another
-	 * AsyncTask to not block the UI thread. I don't know if this is really
-	 * necessary, but I think that it is good idea in case we want to use this
-	 * Activity in different ways in the future.
-	 */
+
 	public static void getSongs(ArchiveShowObj show, ArrayList<ArchiveSongObj> songs, StaticDataStore db) {
 		Searching.getSongs(show, songs, db, true);
 	}
-	
+
 	public static void getSongs(ArchiveShowObj show, ArrayList<ArchiveSongObj> songs, StaticDataStore db, boolean processSongs) {
-		
+
 		HtmlCleaner pageParser = new HtmlCleaner();
 		CleanerProperties props = pageParser.getProperties();
 		props.setAllowHtmlInsideAttributes(true);
@@ -205,14 +200,14 @@ public class Searching {
 		// XPATH says "Select out of all 'table' elements with attribute 'class'
 		// equal to 'fileFormats' which contain element 'tr'..."
 		// String songXPath = "//table[@class='fileFormats']//tr";
-		
+
 		// XPATH says "Select out of all 'script' elements with attribute 'type'
 		// equal to 'text/javascript'..."
 		String m3uXPath = "//script";
 		String titlePath ="//head//title";
-		
+
 		if (db.getShowExists(show) && processSongs) {
-			
+
 			Logging.Log(LOG_TAG, "Show exists.  Setting title to: " + db.getShow(show.getIdentifier()).getArtistAndTitle());
 			songs.addAll(db.getSongsFromShow(show.getIdentifier()));
 			show.setFullTitle(db.getShow(show.getIdentifier()).getArtistAndTitle());
@@ -221,20 +216,20 @@ public class Searching {
 
 		try {
 			HttpParams params = new BasicHttpParams();
-    		int timeout = (int) (15 * DateUtils.SECOND_IN_MILLIS);
-    		HttpConnectionParams.setConnectionTimeout(params, timeout);
-    		HttpConnectionParams.setSoTimeout(params, timeout);
-    		HttpClient client = new DefaultHttpClient(params);
-    		
-    		HttpGet page = new HttpGet(show.getShowURL().toString());
-    		HttpResponse pageResponse = client.execute(page);
-    		StatusLine pageStatus = pageResponse.getStatusLine();
-    		if (pageStatus.getStatusCode() == HttpStatus.SC_OK) {
-    			ResponseHandler<String> pageResponseHandler = new BasicResponseHandler();
-    			TagNode node = pageParser.clean(pageResponseHandler.handleResponse(pageResponse));
-			
-    			String queryString = show.getLinkPrefix();
-    			
+			int timeout = (int) (15 * DateUtils.SECOND_IN_MILLIS);
+			HttpConnectionParams.setConnectionTimeout(params, timeout);
+			HttpConnectionParams.setSoTimeout(params, timeout);
+			HttpClient client = new DefaultHttpClient(params);
+
+			HttpGet page = new HttpGet(show.getShowURL().toString());
+			HttpResponse pageResponse = client.execute(page);
+			StatusLine pageStatus = pageResponse.getStatusLine();
+			if (pageStatus.getStatusCode() == HttpStatus.SC_OK) {
+				ResponseHandler<String> pageResponseHandler = new BasicResponseHandler();
+				TagNode node = pageParser.clean(pageResponseHandler.handleResponse(pageResponse));
+
+				String queryString = show.getLinkPrefix();
+
 				if (db.getPref("downloadFormat").equalsIgnoreCase("LBR")) {
 					if (show.hasLBR()) {
 						queryString += "_64kb.m3u";
@@ -250,27 +245,27 @@ public class Searching {
 						Logging.Log(LOG_TAG, "Show has no VBR stream...  Reverting to low bitrate stream.");
 					}
 				}
-								
+
 				HttpGet M3Urequest = new HttpGet(queryString);
-					    		
-	    		HttpResponse M3Uresponse = client.execute(M3Urequest);
-	    		StatusLine M3Ustatus = M3Uresponse.getStatusLine();
-	    		if (M3Ustatus.getStatusCode() == HttpStatus.SC_OK) {
-	    			ResponseHandler<String> M3UresponseHandler = new BasicResponseHandler();
-	    			String m3uString = M3UresponseHandler.handleResponse(M3Uresponse);
-	    		
-	    			client.getConnectionManager().shutdown();
-	    			
+
+				HttpResponse M3Uresponse = client.execute(M3Urequest);
+				StatusLine M3Ustatus = M3Uresponse.getStatusLine();
+				if (M3Ustatus.getStatusCode() == HttpStatus.SC_OK) {
+					ResponseHandler<String> M3UresponseHandler = new BasicResponseHandler();
+					String m3uString = M3UresponseHandler.handleResponse(M3Uresponse);
+
+					client.getConnectionManager().shutdown();
+
 					// Now split the .M3U file based on newlines. This will give
 					// us the download links, which we store..
-					
-					
+
+
 					String m3uLinks[] = m3uString.split("\n");
 					for (String link : m3uLinks) {
 						songLinks.add(link);
 						Logging.Log(LOG_TAG, link);
 					}
-	
+
 					// Now use an XPATH evaluation to find all of the javascript scripts on the page.
 					// If one of them can be split by "IAD.mrss = ", it should have the track names
 					// in it. The second half of the split is valid javascript and can be interpreted,
@@ -278,7 +273,7 @@ public class Searching {
 					// download links make ArchiveSongObjs and add them to the list of songs.
 					Object[] titleNodes = node.evaluateXPath(m3uXPath);
 					for (Object titleNode : titleNodes) {
-	//					Logging.Log(LOG_TAG, jsonString);
+						//					Logging.Log(LOG_TAG, jsonString);
 						Logging.Log(LOG_TAG, "SONG TITLE:");
 						List x = ((TagNode) titleNode).getChildren();
 						String songTitle = "";
@@ -300,7 +295,7 @@ public class Searching {
 									} catch(JSONException e){
 										Logging.Log(LOG_TAG, "Show does not return a JSONArray, or there is no JSONObject in the array named \"title\".");
 										Logging.Log(LOG_TAG, songTitle.substring(songTitle.indexOf(',')));
-									}											
+									}
 								}
 							}
 						}
@@ -312,7 +307,7 @@ public class Searching {
 						showTitle = show.getArtistAndTitle();
 						db.updateShow(show);
 					}
-					
+
 					if (processSongs) {
 						if(songLinks.size()==0){
 							Logging.Log(LOG_TAG, "Sorry, no mp3's for this show.  This might be because the show was recently released commercially.");
@@ -341,13 +336,13 @@ public class Searching {
 								// inefficient, though it probably doesn't make a difference,
 								// but we might consider making this a bit more efficient/elegant in the future.
 								// FIXME.
-		//						if (show.hasSelectedSong()) {
-		//							if (songLink.equals(show.getSelectedSong())) {
-		//								selectedPos = i;
-		//							}
-		//						} else {
-		//							selectedPos = -1;
-		//						}
+								//						if (show.hasSelectedSong()) {
+								//							if (songLink.equals(show.getSelectedSong())) {
+								//								selectedPos = i;
+								//							}
+								//						} else {
+								//							selectedPos = -1;
+								//						}
 								ArchiveSongObj song = new ArchiveSongObj(
 										songTitle,
 										songLink, showTitle, showIdent);
@@ -360,50 +355,49 @@ public class Searching {
 							Logging.Log(LOG_TAG, "Show not parsable...");
 						}
 					}
-					
+
 				}
-	    		else {
-	    			client.getConnectionManager().shutdown();
-	    		}
-    		}
-    		else {
-    			client.getConnectionManager().shutdown();
-    		}
+				else {
+					client.getConnectionManager().shutdown();
+				}
+			}
+			else {
+				client.getConnectionManager().shutdown();
+			}
 
 		} catch (XPatherException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
-		
-		
+
+
+
+
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	public static int nthIndexOf(String text, char needle, int n)
 	{
-	    for (int i = 0; i < text.length(); i++)
-	    {
-	        if (text.charAt(i) == needle)
-	        {
-	            n--;
-	            if (n == 0)
-	            {
-	                return i;
-	            }
-	        }
-	    }
-	    return -1;
+		for (int i = 0; i < text.length(); i++)
+		{
+			if (text.charAt(i) == needle)
+			{
+				n--;
+				if (n == 0)
+				{
+					return i;
+				}
+			}
+		}
+		return -1;
 	}
-	
+
 	public static Boolean updateArtists(StaticDataStore db){
 		Logging.Log(LOG_TAG, "Fetching Artists");
 		ArrayList<ArrayList<String>> artists = new ArrayList<ArrayList<String>>();
-		int numArtists;
-		
+
 		HtmlCleaner pageParser = new HtmlCleaner();
 		CleanerProperties props = pageParser.getProperties();
 		props.setAllowHtmlInsideAttributes(true);
@@ -411,51 +405,37 @@ public class Searching {
 		props.setRecognizeUnicodeChars(true);
 		props.setOmitComments(true);
 
-		try {			
+		try {
 			String url = "http://www.archive.org/browse.php?field=/metadata/bandWithMP3s&collection=etree";
-			
+
 			HttpParams params = new BasicHttpParams();
-    		int timeout = (int) (15 * DateUtils.SECOND_IN_MILLIS);
-    		HttpConnectionParams.setConnectionTimeout(params, timeout);
-    		HttpConnectionParams.setSoTimeout(params, timeout);
-    		HttpClient client = new DefaultHttpClient(params);
-    		
-    		HttpGet request = new HttpGet(url);
-    		HttpResponse response = client.execute(request);
-    		StatusLine status = response.getStatusLine();
-    		if (status.getStatusCode() == HttpStatus.SC_OK) {
-    			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-    			TagNode node = pageParser.clean(responseHandler.handleResponse(response));
-    			client.getConnectionManager().shutdown();
-				// XPATH to get the nodes that we Want.
-				Object[] artistsNodes = node.evaluateXPath("//tr[@valign='top']//li");
-	
-				numArtists = artistsNodes.length;
-				
-	
-				for (int i = 0; i < numArtists; i++) {
-					
-					// Cast the artistNode as a TagNode.
-					TagNode artist = ((TagNode) artistsNodes[i]);
-					// Grab the first child node, which is the link to the artist's page.
-					// The inner HTML of this node will be the title.
-					TagNode artistTitleSubNode = artist.getChildTags()[0];
-					// Remove the child node, so that the inner HTML of the artistNode
-					// only contains the number of shows that the artist has.
-					artist.removeChild(artistTitleSubNode);
-					String artistTitle = pageParser.getInnerHtml(artistTitleSubNode);
-	
-					if (artistTitle != null) {
+			int timeout = (int) (15 * DateUtils.SECOND_IN_MILLIS);
+			HttpConnectionParams.setConnectionTimeout(params, timeout);
+			HttpConnectionParams.setSoTimeout(params, timeout);
+			HttpClient client = new DefaultHttpClient(params);
+
+			HttpGet request = new HttpGet(url);
+			HttpResponse response = client.execute(request);
+			StatusLine status = response.getStatusLine();
+			if (status.getStatusCode() == HttpStatus.SC_OK) {
+				ResponseHandler<String> responseHandler = new BasicResponseHandler();
+				TagNode node = pageParser.clean(responseHandler.handleResponse(response));
+				client.getConnectionManager().shutdown();
+
+				org.w3c.dom.Document doc = new DomSerializer(new CleanerProperties()).createDOM(node);
+				XPath xpath = XPathFactory.newInstance().newXPath();
+				NodeList artistNodes = (NodeList) xpath.evaluate("//div[@class='row']//div[@class='col-sm-4']/a", doc, XPathConstants.NODESET);
+				NodeList numberNodes = (NodeList) xpath.evaluate("//div[@class='row']//div[@class='col-sm-4']/text()[preceding-sibling::a]", doc, XPathConstants.NODESET);
+				Logging.Log(LOG_TAG, "artistNodes: " + artistNodes.getLength());
+				Logging.Log(LOG_TAG, "numberNodes: " + numberNodes.getLength());
+
+				if(artistNodes.getLength() == numberNodes.getLength()){
+					for (int i = 0; i < artistNodes.getLength(); i++) {
 						ArrayList<String> artistPair = new ArrayList<String>();
-						artistPair.add(artistTitle.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&"));
-						artistPair.add(pageParser.getInnerHtml(artist).trim());
-						/*
-						 * VibeVault.db.addArtist(artistTitle, pageParser
-						 * .getInnerHtml(artist).trim());
-						 */
+						artistPair.add(artistNodes.item(i).getTextContent().replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;", "&"));
+						artistPair.add(numberNodes.item(i).getTextContent());
 						artists.add(artistPair);
 					}
-	
 				}
 				if (artists.size() > 0) {
 					db.insertArtistBulk(artists);
@@ -464,13 +444,12 @@ public class Searching {
 					Logging.Log(LOG_TAG, "Finished Fetching Artists");
 				}
 				else {
-				Logging.Log(LOG_TAG, "Error Fetching Artists");
-					
+					Logging.Log(LOG_TAG, "Error Fetching Artists");
 				}
-    		}
-    		else {
-    			client.getConnectionManager().shutdown();
-    		}
+			}
+			else {
+				client.getConnectionManager().shutdown();
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 			Logging.Log(LOG_TAG, "Error Fetching Artists");
@@ -478,5 +457,5 @@ public class Searching {
 		return true;
 
 	}
-	
+
 }
