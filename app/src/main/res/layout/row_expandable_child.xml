@@ -4,19 +4,22 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
 
-    <TextView android:id="@+id/childname"
-    android:layout_width="wrap_content"
-    android:paddingLeft="10dip"
-    android:paddingTop="4dip"
-    android:paddingBottom="4dip"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textSize="18sp"
-            android:textColor="#FFFFFF"
-            android:ellipsize="marquee"
-            android:marqueeRepeatLimit="marquee_forever"
-            android:lines="1"
-            android:focusableInTouchMode="true"
-            android:scrollHorizontally="true"
+    <TextView
+        android:id="@+id/childname"
+        android:layout_width="wrap_content"
+        android:paddingLeft="10dip"
+        android:paddingTop="4dip"
+        android:paddingBottom="4dip"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textSize="18sp"
+        android:textColor="@color/secondary_text_color_light"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:lines="1"
+        android:focusableInTouchMode="true"
+        android:scrollHorizontally="true"
+        android:text="test"
     />
+
 </LinearLayout>
