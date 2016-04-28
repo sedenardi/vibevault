@@ -272,17 +272,16 @@ public class Searching {
 					// therefore, as JSON. Pull the song titles out of that, and together with the
 					// download links make ArchiveSongObjs and add them to the list of songs.
 					Object[] titleNodes = node.evaluateXPath(m3uXPath);
+					xpathqueryiteration:
 					for (Object titleNode : titleNodes) {
-						//					Logging.Log(LOG_TAG, jsonString);
-						Logging.Log(LOG_TAG, "SONG TITLE:");
 						List x = ((TagNode) titleNode).getChildren();
 						String songTitle = "";
 						for(Object y : x){
 							if(y instanceof ContentNode){
 								songTitle = ((ContentNode)y).toString();
 								songTitle = songTitle.trim();
-								if(songTitle.startsWith("Play(")){
-									Logging.Log(LOG_TAG, songTitle);
+								Logging.Log(LOG_TAG, "SONG TITLE: " + songTitle);
+								if(songTitle.startsWith("function play_setup")){
 									JSONArray jArray;
 									String song = "";
 									try {
@@ -296,6 +295,7 @@ public class Searching {
 										Logging.Log(LOG_TAG, "Show does not return a JSONArray, or there is no JSONObject in the array named \"title\".");
 										Logging.Log(LOG_TAG, songTitle.substring(songTitle.indexOf(',')));
 									}
+									break xpathqueryiteration;
 								}
 							}
 						}
