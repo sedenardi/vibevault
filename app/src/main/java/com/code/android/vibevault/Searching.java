@@ -281,7 +281,7 @@ public class Searching {
 								songTitle = ((ContentNode)y).toString();
 								songTitle = songTitle.trim();
 								Logging.Log(LOG_TAG, "SONG TITLE: " + songTitle);
-								if(songTitle.startsWith("function play_setup")){
+								if(songTitle.contains("Play('jw6',")){
 									JSONArray jArray;
 									String song = "";
 									try {
