@@ -25,12 +25,13 @@
 package com.code.android.vibevault;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.LoaderManager;
-import android.content.Intent;
-import android.content.Loader;
+import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.os.AsyncTask;
@@ -48,9 +49,18 @@ import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.code.android.vibevault.R;
 
-public class ShowDetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Bundle>  {
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class ShowDetailsFragment extends Fragment  {
 
 	protected static final String LOG_TAG = ShowDetailsFragment.class.getName();
 	
@@ -66,12 +76,6 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	private ShareActionProvider mShareActionProvider;
 
 	private StaticDataStore db;
-	
-	// FIXME
-	// This is set to -1 UNLESS ShowDetailsScreen is being opened by an intent
-	// from clicking on a song (not a show link). it is set in the AsyncTask which
-	// parses the show as the index of the song that the user clicked on.
-	protected int selectedPos = -1;
 	
 	private DialogAndNavigationListener dialogAndNavigationListener;
 	private ShowDetailsActionListener showDetailsActionListener;
@@ -106,6 +110,8 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 		
         getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
         getActivity().getActionBar().setTitle("Show Details");
+		db = StaticDataStore.getInstance(getActivity());
+
 	}
 	
 	@Override
@@ -159,8 +165,9 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 					Logging.Log(LOG_TAG, "SHOW PASSED: " + show.getIdentifier());
 				}
 				if(show!=null){
-					Logging.Log(LOG_TAG,"Show passed, executing ShowDetailsAsyncTaskLoader.");
-					executeShowDetailsTask(show);
+					Logging.Log(LOG_TAG,"Show passed, checking tracks.");
+					Logging.Log(LOG_TAG, show.getIdentifier());
+					getShowTracks(show);
 				} else{
 					return;
 				}
@@ -171,79 +178,168 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 			else {
 				if(show.equals(passedShow)){
 					if(showSongs==null){
-						executeShowDetailsTask(show);
+						getShowTracks(show);
 					} else {
 						refreshTrackList();
 					}
 				} else {
 					refreshTrackList();
-					executeShowDetailsTask(show);
+					getShowTracks(show);
 				}
 			}
 		}
-        LoaderManager lm = this.getLoaderManager();
-		if(lm.getLoader(1)!=null){
-			// The second argument is the query for a new loader, but here we are trying to
-			// reconnect to an already existing loader, and "If a loader already exists
-			// (a new one does not need to be created), this parameter will be ignored and
-			// the last arguments continue to be used.If a loader already exists (a new one
-			// does not need to be created), this parameter will be ignored and the last arguments
-			// continue to be used.
-			// http://developer.android.com/reference/android/app/LoaderManager.html
-			lm.initLoader(1, null, this);
-		}
 	}
 
-	// Get a show's details.
-	private void executeShowDetailsTask(ArchiveShowObj show) {
-		Bundle b = new Bundle();
-		b.putSerializable("show", show);
-		LoaderManager lm = this.getLoaderManager();
-		if(lm.getLoader(1)!=null){
-			// We already have a loader.
-			lm.restartLoader(1, b, this);
-		} else{
-			// We need a new loader.
-			lm.initLoader(1, b, this);
+//	// Get a show's details.
+//	private void executeShowDetailsTask(ArchiveShowObj show) {
+//		Bundle b = new Bundle();
+//		b.putSerializable("show", show);
+//		LoaderManager lm = this.getLoaderManager();
+//		if(lm.getLoader(1)!=null){
+//			// We already have a loader.
+//			lm.restartLoader(1, b, this);
+//		} else{
+//			// We need a new loader.
+//			lm.initLoader(1, b, this);
+//		}
+//	}
+
+
+	public static ArrayList<ArchiveSongObj> parseShowJSON(JSONObject json){
+		ArrayList<ArchiveSongObj> songs = new ArrayList<ArchiveSongObj>();
+		String songTitle = "";
+		String songLink = "";
+		String showTitle = "";
+		String showIdent = "";
+		String showArtist = "";
+		int trackNo = 0;
+
+		Logging.Log(LOG_TAG, "Attempting to parse show JSON...");
+		try {
+			JSONObject showMetadata = json.getJSONObject("metadata");
+			showIdent = showMetadata.getString("identifier");
+
+			// Get the MP3 files listed in the JSON response.
+			// TODO Add in logic for other codecs.
+			JSONArray showArray = json.getJSONArray("files");
+			JSONObject showObject = new JSONObject();
+			Logging.Log(LOG_TAG, "Number of files: " + showArray.length());
+			for(int i = 0; i < showArray.length(); i ++){
+				showObject = showArray.getJSONObject(i);
+				if(showObject.has("format") && showObject.getString("format").equals("VBR MP3")){
+					songTitle = "";
+					songLink = "";
+					showTitle = "";
+					if(showObject.has("title")) songTitle = showObject.getString("title");
+					if(showObject.has("name")) songLink = "http://archive.org/download/" + showIdent + "/" + showObject.getString("name");
+					if(showObject.has("album")) showTitle = showObject.getString("album");
+					if(showObject.has("track")) trackNo = showObject.getInt("track");
+					if(showObject.has("creator")) showArtist = showObject.getString("creator");
+					Logging.Log(LOG_TAG, "Retrieved: " + trackNo + " " + songTitle + " from " + showTitle);
+					ArchiveSongObj song = new ArchiveSongObj(songTitle, songLink, showTitle, showIdent, showArtist);
+					songs.add(song);
+				}
+			}
+			// If we didn't collect any songs...
+			if(songs.isEmpty()){
+				Logging.Log(LOG_TAG, "Sorry, no mp3's for this show.  This might be because the show was recently released commercially.");
+				return songs;
+			}
+
+			// Archive's JSON doesn't always list the tracks in order.
+			// Sort by filename to get proper song order.
+			Collections.sort(songs, new Comparator<ArchiveSongObj>() {
+				@Override
+				public int compare(ArchiveSongObj song1, ArchiveSongObj song2) {
+					return song1.getFileName().compareTo(song2.getFileName());
+				}
+			});
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
+		return songs;
 	}
-	
-	// Pop up a loading dialog and pass the show to a ShowDetailsAsyncTaskLoader for parsing.
-	@Override
-	public Loader<Bundle> onCreateLoader(int id, Bundle args) {
-		Logging.Log(LOG_TAG, "NEW LOADER.");
+
+	private void getShowTracks(final ArchiveShowObj passedShow) {
+		if(db.getShowExists(passedShow)){
+			Logging.Log(LOG_TAG, "Show exists.  Setting title to: " + db.getShow(passedShow.getIdentifier()).getArtistAndTitle());
+			showSongs.addAll(db.getSongsFromShow(passedShow.getIdentifier()));
+			show.setFullTitle(db.getShow(passedShow.getIdentifier()).getArtistAndTitle());
+			return;
+		}
+
+		Logging.Log(LOG_TAG, "getShowTracks() called.  Attempting to fetch show JSON from archive.");
 		dialogAndNavigationListener.showLoadingDialog("Loading show...");
-		return (Loader<Bundle>) new ShowDetailsAsyncTaskLoader(getActivity(), (ArchiveShowObj) args.get("show"));
+		JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, "https://archive.org/metadata/" + passedShow.getIdentifier(), null,
+				new Response.Listener<JSONObject>() {
+					@Override
+					public void onResponse(JSONObject response) {
+						Logging.Log(LOG_TAG, "Size of JSON response: " + response.toString().length());
+
+						showSongs = parseShowJSON(response);
+						show = passedShow;
+						if(!showSongs.isEmpty()){
+							db.insertShow(show);
+							db.setShowExists(show);
+							db.insertRecentShow(show);
+							for(ArchiveSongObj song : showSongs){
+								db.insertSong(song);
+							}
+
+						}
+
+						refreshTrackList();
+						dialogAndNavigationListener.hideDialog();
+					}
+				},
+				new Response.ErrorListener() {
+					@Override
+					public void onErrorResponse(VolleyError error) {
+
+					}
+				});
+		RequestQueueSingleton.getInstance(this.getActivity().getApplicationContext()).addToRequestQueue(jsObjRequest);
 	}
 
-	// Set the show's songs to those returned by the loader, and refresh the track list.
-	@SuppressWarnings("unchecked")
-	@Override
-	public void onLoadFinished(Loader<Bundle> arg0, Bundle arg1) {
-		Logging.Log(LOG_TAG, "LOADER FINISHED.");
-		showSongs = (ArrayList<ArchiveSongObj>) arg1.getSerializable("songs");
-		show = (ArchiveShowObj) arg1.getSerializable("show");
-		Logging.Log(LOG_TAG, show.getArtistAndTitle());
-		if(this.show.getShowTitle().length()<2){
-			Logging.Log(LOG_TAG, "BLANK: " + ((ArchiveShowObj)arg1.getSerializable("show")).getShowTitle());
-			this.showLabel.setText(((ArchiveShowObj)arg1.getSerializable("show")).getShowTitle());
-		}
-		refreshTrackList();
-		dialogAndNavigationListener.hideDialog();
-		Intent i = new Intent(Intent.ACTION_SEND);
-		i.setType("text/plain");
-		// Add data to the intent, the receiving app will decide what to do with it.
-		i.putExtra(Intent.EXTRA_SUBJECT, "Vibe Vault");
-		i.putExtra(Intent.EXTRA_TEXT, show.getShowArtist() + " " + show.getShowTitle() + " " + show.getShowURL()
-				+ "\n\nSent using #VibeVault for Android.");
-		if(mShareActionProvider!=null){
-			mShareActionProvider.setShareIntent(i);
-		}
-	}
 
-	@Override
-	public void onLoaderReset(Loader<Bundle> arg0) {
-	}
+	
+//	// Pop up a loading dialog and pass the show to a ShowDetailsAsyncTaskLoader for parsing.
+//	@Override
+//	public Loader<Bundle> onCreateLoader(int id, Bundle args) {
+//		//getShows((ArchiveShowObj) args.get("show"));
+//		Logging.Log(LOG_TAG, "NEW LOADER.");
+//		dialogAndNavigationListener.showLoadingDialog("Loading show...");
+//		return (Loader<Bundle>) new ShowDetailsAsyncTaskLoader(getActivity(), (ArchiveShowObj) args.get("show"));
+//	}
+//
+//	// Set the show's songs to those returned by the loader, and refresh the track list.
+//	@SuppressWarnings("unchecked")
+//	@Override
+//	public void onLoadFinished(Loader<Bundle> arg0, Bundle arg1) {
+//		Logging.Log(LOG_TAG, "LOADER FINISHED.");
+//		showSongs = (ArrayList<ArchiveSongObj>) arg1.getSerializable("songs");
+//		show = (ArchiveShowObj) arg1.getSerializable("show");
+//		Logging.Log(LOG_TAG, show.getArtistAndTitle());
+//		if(this.show.getShowTitle().length()<2){
+//			Logging.Log(LOG_TAG, "BLANK: " + ((ArchiveShowObj)arg1.getSerializable("show")).getShowTitle());
+//			this.showLabel.setText(((ArchiveShowObj)arg1.getSerializable("show")).getShowTitle());
+//		}
+//		refreshTrackList();
+//		dialogAndNavigationListener.hideDialog();
+//		Intent i = new Intent(Intent.ACTION_SEND);
+//		i.setType("text/plain");
+//		// Add data to the intent, the receiving app will decide what to do with it.
+//		i.putExtra(Intent.EXTRA_SUBJECT, "Vibe Vault");
+//		i.putExtra(Intent.EXTRA_TEXT, show.getShowArtist() + " " + show.getShowTitle() + " " + show.getShowURL()
+//				+ "\n\nSent using #VibeVault for Android.");
+//		if(mShareActionProvider!=null){
+//			mShareActionProvider.setShareIntent(i);
+//		}
+//	}
+//
+//	@Override
+//	public void onLoaderReset(Loader<Bundle> arg0) {
+//	}
 	
 	public ArchiveShowObj getShow(){
 		return show;
@@ -326,7 +422,6 @@ public class ShowDetailsFragment extends Fragment implements LoaderManager.Loade
 	@Override
 	public void onStart() {
 		super.onStart();
-		db = StaticDataStore.getInstance(getActivity());
 	}
 	
 	@Override

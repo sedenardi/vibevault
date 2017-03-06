@@ -50,7 +50,9 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 	private String folderName;
 	private int status;
 	private ArchiveShowObj downloadShow;
-	
+
+	protected static final String LOG_TAG = ArchiveSongObj.class.getName();
+
 	/**
 	 * Create a song object.
 	 * 
@@ -62,21 +64,16 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 	 * downloaded).
 	 * 
 	 * @param tit The title of the song.
-	 * @param urlStrings An ArrayList of Strings which are the URL's for the different formats of the song.
 	 * @param showTit The title of the show which the song is a part of.
 	 */
-	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent){
+	public ArchiveSongObj(String tit, String urlStr, String showTit, String showIdent, String showArt){
+		Logging.Log(LOG_TAG, "Creating show: ");
+
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
 		
-		String artistAndShowTitle[] = showTit.split(" Live at ");
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live @ ");
-		}
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live ");
-		}
-		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");	
+
+		showArtist = showArt;
 		urlString = urlStr;
 		status = -1;
 		
@@ -93,7 +90,7 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 	}
 	
 	// Constructor from DB
-	public ArchiveSongObj(String tit, String folder, String fileStr, String showTit, String showIdent, boolean isDownloaded, int ID){
+	public ArchiveSongObj(String tit, String folder, String fileStr, String showTit, String showIdent, String showArt, boolean isDownloaded, int ID){
 		if (!folder.equals("")) {
 			urlString = "http://www.archive.org/download/" + showIdent + "/" +  folder + "/" + fileStr;
 		} else {
@@ -103,14 +100,8 @@ public class ArchiveSongObj extends ArchiveVoteObj implements Serializable {
 		status = -1;
 		title = tit.replace("&apos;", "'").replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;","&");
 		showTitle = showTit;
-		String artistAndShowTitle[] = showTit.split(" Live at ");
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live @ ");
-		}
-		if(artistAndShowTitle.length < 2){
-			artistAndShowTitle = tit.split(" Live ");
-		}
-		showArtist = artistAndShowTitle[0].replaceAll(" - ", "").replaceAll("-","");
+		showArtist = showArt;
+
 
 		this.showIdent = showIdent;
 		fileName = fileStr;

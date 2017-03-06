@@ -11,6 +11,13 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
+
 public class Downloading{
 	
 	private static final String LOG_TAG = Downloading.class.getName();
@@ -121,40 +128,61 @@ public class Downloading{
 				MediaStore.MediaColumns.DATA + "='" + path + "'", null);
 	}
 	
-	public static String syncFilesDirectory(Context context, StaticDataStore db) {
+	public static void syncFilesDirectory(Context context, final StaticDataStore db) {
 		if (!createArchiveDir(context, db)) {
-			return "Error creating directory on SDCard";
+			Logging.Log(LOG_TAG, "Error creating directory on SDCard");
 		}
 		String dir = getAppDirectory(db);
-		int showsAdded = 0;
-		int songsAdded = 0;
 		File appRootDir = new File(Environment.getExternalStorageDirectory(),dir);
 		File[] dirs = appRootDir.listFiles();
 		if (dirs != null) {
 			if (dirs.length > 0) {
-				for (File d : dirs) {
+				for (final File d : dirs) {
 					if (d.isDirectory()) {
 						String showIdent = d.getName();
 						Logging.Log(LOG_TAG,"Found " + showIdent);
-						ArchiveShowObj show = new ArchiveShowObj(ArchiveShowObj.ArchiveShowPrefix + showIdent,false);
+						final ArchiveShowObj show = new ArchiveShowObj(ArchiveShowObj.ArchiveShowPrefix + showIdent,false);
 						if (!db.getShowExists(show)) {
 							Logging.Log(LOG_TAG,showIdent + " doesn't exist in DB");
 							ArrayList<ArchiveSongObj> songs = new ArrayList<ArchiveSongObj>();
-							Searching.getSongs(show, songs, db);
-							showsAdded++;
-							File[] files = d.listFiles();
-							if (files != null) {
-								if (files.length > 0) {
-									for (File f : files) {
-										if (f.isFile()) {
-											String fileName = f.getName();
-											Logging.Log(LOG_TAG, "Found " + fileName + ", adding to DB");
-											db.setSongDownloaded(fileName);
-											songsAdded++;
+
+							JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, "https://archive.org/metadata/" + show.getIdentifier(), null,
+									new Response.Listener<JSONObject>() {
+										@Override
+										public void onResponse(JSONObject response) {
+											Logging.Log(LOG_TAG, "JSON for show with bad DB entry...  Size: " + response.toString().length());
+											ArrayList<ArchiveSongObj> showSongs = ShowDetailsFragment.parseShowJSON(response);
+											if(!showSongs.isEmpty()){
+												db.insertShow(show);
+												db.setShowExists(show);
+												db.insertRecentShow(show);
+												for(ArchiveSongObj song : showSongs){
+													db.insertSong(song);
+												}
+											}
+
+											File[] files = d.listFiles();
+											if (files != null) {
+												if (files.length > 0) {
+													for (File f : files) {
+														if (f.isFile()) {
+															String fileName = f.getName();
+															Logging.Log(LOG_TAG, "Found " + fileName + ", adding to DB");
+															db.setSongDownloaded(fileName);
+														}
+													}
+												}
+											}
 										}
-									}
-								}
-							}
+									},
+									new Response.ErrorListener() {
+										@Override
+										public void onErrorResponse(VolleyError error) {
+
+										}
+									});
+							RequestQueueSingleton.getInstance(context.getApplicationContext()).addToRequestQueue(jsObjRequest);
+
 						} else if (db.getShowDownloadStatus(show) != StaticDataStore.SHOW_STATUS_FULLY_DOWNLOADED) {
 							ArrayList<ArchiveSongObj> songs = db.getSongsFromShow(show.getIdentifier());
 							int localSongs = 0;
@@ -169,15 +197,11 @@ public class Downloading{
 											if (!db.songIsDownloaded(fileName)) {
 												Logging.Log(LOG_TAG, fileName + " adding to DB");
 												db.setSongDownloaded(fileName);
-												songsAdded++;
 												localSongs++;
 											}
 										}
 									}
 								}
-							}
-							if (songs.size() == localSongs) {
-								showsAdded++;
 							}
 						}
 					}
@@ -224,7 +248,7 @@ public class Downloading{
 				}
 			}
 		}
-		return showsAdded + " shows and " + songsAdded + " songs added, " + showsRemoved + " shows and " + songsRemoved + " songs removed.";
+		return;
 	}
 	
 	//in bytes

@@ -170,6 +170,7 @@ public class StaticDataStore extends SQLiteOpenHelper {
 					cur.getString(cur.getColumnIndex(SONG_FILENAME)), 
 					cur.getString(cur.getColumnIndex(SHOW_ARTIST)) + " Live at " + cur.getString(cur.getColumnIndex(SHOW_TITLE)),
 					cur.getString(cur.getColumnIndex(SHOW_IDENT)),
+					cur.getString(cur.getColumnIndex(SHOW_ARTIST)),
 					Boolean.valueOf(cur.getString(cur.getColumnIndex(SONG_DOWNLOADED))),
 					cur.getInt(cur.getColumnIndex(PLAYLISTSONG_SONG_KEY))));
 		}
@@ -804,7 +805,9 @@ public class StaticDataStore extends SQLiteOpenHelper {
 							"",
 							dlSongCur.getString(dlSongCur.getColumnIndex("fileName")), 
 							dlSongCur.getString(dlSongCur.getColumnIndex("showTitle")),
-							dlSongCur.getString(dlSongCur.getColumnIndex("showIdent")), true, -1));
+							dlSongCur.getString(dlSongCur.getColumnIndex("showIdent")),
+							dlSongCur.getString(dlShowCur.getColumnIndex("showArtist")),
+							true, -1));
 				}
 			}
 			dlSongCur.close();

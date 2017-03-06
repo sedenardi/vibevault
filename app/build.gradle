@@ -15,8 +15,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+
 }
 
 dependencies {
     compile files('src/main/assets/htmlcleaner-2.2.jar')
+    compile 'com.android.volley:volley:1.0.0'
 }

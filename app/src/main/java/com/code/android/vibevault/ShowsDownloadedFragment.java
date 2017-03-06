@@ -218,7 +218,7 @@ public class ShowsDownloadedFragment extends Fragment implements LoaderManager.L
 		return false;
 	}
 	
-	private class DirectorySyncTask extends AsyncTask<String, Void, String> {
+	private class DirectorySyncTask extends AsyncTask<String, Void, Void> {
 		
 		private ShowsDownloadedFragment parentScreen;
 		
@@ -227,13 +227,13 @@ public class ShowsDownloadedFragment extends Fragment implements LoaderManager.L
 		}
 		
 		@Override
-		protected String doInBackground(String... showFields) {
-			return Downloading.syncFilesDirectory(getActivity().getBaseContext(), db);
+		protected Void doInBackground(String... showFields) {
+			Downloading.syncFilesDirectory(getActivity().getBaseContext(), db);
+			return null;
 		}
 
 		@Override
-		protected void onPostExecute(String result) {
-			Toast.makeText(getActivity().getBaseContext(), result, Toast.LENGTH_LONG).show();
+		protected void onPostExecute(Void v) {
 			LoaderManager lm = parentScreen.getLoaderManager();
 			lm.restartLoader(1, null, parentScreen);
 		}

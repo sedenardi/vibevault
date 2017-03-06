@@ -53,7 +53,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.code.android.vibevault.R;
+
+import org.json.JSONObject;
 
 public class HomeScreen extends Activity {
 	
@@ -403,12 +409,31 @@ public class HomeScreen extends Activity {
 			Logging.Log(LOG_TAG, "Looking for shows to fix, found "  + shows.size());
 			if (shows.size() > 0) {
 				Logging.Log(LOG_TAG, "Starting to fix shows");
-				for (ArchiveShowObj s : shows) {
-					Searching.getSongs(s, null, db, false);
+				for (final ArchiveShowObj s : shows) {
+					JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, "https://archive.org/metadata/" + s.getIdentifier(), null,
+							new Response.Listener<JSONObject>() {
+								@Override
+								public void onResponse(JSONObject response) {
+									Logging.Log(LOG_TAG, "JSON for show with bad DB entry...  Size: " + response.toString().length());
+									ArrayList<ArchiveSongObj> showSongs = ShowDetailsFragment.parseShowJSON(response);
+									if(!showSongs.isEmpty()){
+										db.setShowExists(s);
+										db.insertRecentShow(s);
+									}
+								}
+							},
+							new Response.ErrorListener() {
+								@Override
+								public void onErrorResponse(VolleyError error) {
+
+								}
+							});
+					RequestQueueSingleton.getInstance(getApplicationContext()).addToRequestQueue(jsObjRequest);
+
 				}
 				publishProgress(50);
 			}
-			
+
 			//Update Artists if necessary
 			if (needsArtistFetching()) {
 				Searching.updateArtists(db);
